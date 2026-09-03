@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface antialiased font-body-md min-h-screen;
+  }
+}
+
+@layer utilities {
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  
+  .tilled-soil-bg {
+    background-color: #EFEAE0;
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(58, 55, 51, 0.05) 0px,
+        rgba(58, 55, 51, 0.05) 2px,
+        transparent 2px,
+        transparent 16px
+    );
+  }
+}

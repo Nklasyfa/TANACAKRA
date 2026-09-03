@@ -1,0 +1,19 @@
+# Gemini AI Context
+gemini.md
+
+# Environment Variables & Secrets
+.env
+.env.*
+*.env
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+db.sqlite3
+
+# Node / Frontend
+node_modules/
+dist/
+.DS_Store
