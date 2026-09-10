@@ -91,7 +91,7 @@ import Sidebar from '../components/Sidebar.vue'
                   <span class="material-symbols-outlined text-[20px]">person</span>
                 </div>
                 <div class="flex-grow">
-                  <p class="font-body-md text-on-surface text-sm"><span class="font-bold">Budi Santoso</span> menambahkan data lahan baru di <span class="font-bold text-primary">Desa Sukamaju</span>.</p>
+                  <p class="font-body-md text-on-surface text-sm"><span class="font-bold">Budi Santoso</span> menambahkan data lahan baru di <span class="font-bold text-primary">Desa Cangkringan</span>.</p>
                   <p class="font-label-md text-xs text-on-surface-variant mt-1">{{ i * 15 }} menit yang lalu</p>
                 </div>
               </div>

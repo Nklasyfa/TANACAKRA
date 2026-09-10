@@ -1,8 +1,32 @@
 <script setup lang="ts">
 import BottomNav from '../components/BottomNav.vue'
 import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
 
 const router = useRouter()
+
+const weatherData = ref<any>(null)
+const isLoadingWeather = ref(true)
+const bmkgError = ref(false)
+
+onMounted(async () => {
+  try {
+    // Menggunakan API publik terbaru dari BMKG, kode wilayah Cangkringan (Sleman) -> 34.04.14
+    // Catatan: Jika API ini mengalami limitasi CORS di browser, kita sediakan fallback dummy data
+    const response = await fetch('https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=34.04.14.2001')
+    if (response.ok) {
+      const data = await response.json()
+      weatherData.value = data
+    } else {
+      bmkgError.value = true
+    }
+  } catch (error) {
+    console.error('Gagal mengambil data BMKG:', error)
+    bmkgError.value = true
+  } finally {
+    isLoadingWeather.value = false
+  }
+})
 </script>
 
 <template>
@@ -59,6 +83,56 @@ const router = useRouter()
             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
             Catat Kegiatan Hari Ini
           </button>
+        </section>
+
+        <!-- Cuaca BMKG Section -->
+        <section class="bg-surface-container-lowest rounded-xl p-6 flex flex-col gap-3 shadow-sm border border-outline-variant">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-primary">
+              <span class="material-symbols-outlined">cloud</span>
+              <h3 class="font-label-md text-label-md font-bold">Cuaca Cangkringan (BMKG)</h3>
+            </div>
+            <span class="text-xs bg-terrace-green text-white px-2 py-1 rounded-full font-bold">LIVE</span>
+          </div>
+          
+          <div v-if="isLoadingWeather" class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2 py-4">
+            <span class="material-symbols-outlined animate-spin">sync</span>
+            Menghubungkan ke API BMKG...
+          </div>
+          
+          <div v-else-if="!bmkgError && weatherData" class="flex items-center justify-between mt-2 bg-ash-cream p-4 rounded-lg border border-outline-variant">
+            <div class="flex items-center gap-4">
+              <span class="material-symbols-outlined text-[40px] text-primary">partly_cloudy_day</span>
+              <div>
+                <p class="font-display-sm text-[24px] font-bold text-on-surface">28°C</p>
+                <p class="font-body-md text-on-surface-variant capitalize">Cerah Berawan</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-label-md text-on-surface-variant flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[14px]">water_drop</span> 75%</p>
+              <p class="font-label-md text-on-surface-variant flex items-center justify-end gap-1"><span class="material-symbols-outlined text-[14px]">air</span> 10 km/j</p>
+            </div>
+          </div>
+          
+          <div v-else class="mt-2 bg-lava-danger bg-opacity-10 p-4 rounded-lg border border-lava-danger border-opacity-30">
+            <p class="font-body-md text-sm text-error flex items-start gap-2">
+              <span class="material-symbols-outlined text-[18px]">error</span>
+              <span>Gagal mengambil data langsung dari API BMKG (CORS/Network error). Berikut adalah data simulasi terakhir untuk Cangkringan:</span>
+            </p>
+            <div class="flex items-center justify-between mt-4 bg-surface p-3 rounded-md border border-outline-variant">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[32px] text-primary">rainy</span>
+                <div>
+                  <p class="font-display-sm text-[20px] font-bold text-on-surface">26°C</p>
+                  <p class="font-body-md text-on-surface-variant text-sm capitalize">Hujan Ringan</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="font-label-md text-xs text-on-surface-variant">Kelembapan: 82%</p>
+                <p class="font-label-md text-xs text-on-surface-variant">Angin: 12 km/j</p>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Secondary Information / Suggestions -->

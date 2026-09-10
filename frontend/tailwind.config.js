@@ -58,7 +58,15 @@ export default {
         "on-secondary-container": "#735f46",
         "secondary-fixed": "#f9debe",
         "on-error-container": "#93000a",
-        "on-tertiary-fixed-variant": "#004e5c"
+        "on-tertiary-fixed-variant": "#004e5c",
+        "abu-vulkanik": "#3A3733",
+        "tanah-subur": "#5C4A32",
+        "terasering": "#6B7A4F",
+        "genteng": "#B3542C",
+        "genteng-hover": "#984420",
+        "abu-letusan": "#EFEAE0",
+        "abu-letusan-dark": "#E2DCD0",
+        "bahaya-lahar": "#8C2F1B"
       },
       "borderRadius": {
         "DEFAULT": "0.125rem",

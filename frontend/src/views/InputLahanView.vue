@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BottomNav from '../components/BottomNav.vue'
 
@@ -9,8 +9,32 @@ const formData = ref({
   namaLahan: '',
   luasLahan: '',
   phTanah: '',
+  suhuTanah: '',
   kelembapan: '',
   jenisTanaman: 'Padi'
+})
+
+const isLoadingSatellite = ref(false)
+
+onMounted(async () => {
+  isLoadingSatellite.value = true
+  try {
+    // Kordinat kasar Cangkringan, Sleman: -7.62, 110.45
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-7.62&longitude=110.45&current=soil_temperature_0cm,soil_moisture_0_to_7cm')
+    if (res.ok) {
+      const data = await res.json()
+      if (data.current) {
+        // Konversi moisture m³/m³ ke persentase (kasar)
+        const moisturePct = (data.current.soil_moisture_0_to_7cm * 100).toFixed(1)
+        formData.value.kelembapan = moisturePct.toString()
+        formData.value.suhuTanah = data.current.soil_temperature_0cm.toString()
+      }
+    }
+  } catch (error) {
+    console.error("Gagal load satelit:", error)
+  } finally {
+    isLoadingSatellite.value = false
+  }
 })
 
 const isSubmitting = ref(false)
@@ -65,9 +89,17 @@ const submitData = () => {
           </div>
 
           <hr class="border-outline-variant my-4">
-          <h3 class="font-label-md font-bold text-primary mb-4">Parameter Tanah (Input Model Scikit-learn)</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-label-md font-bold text-primary">Parameter Tanah (Input Model Scikit-learn)</h3>
+            <span v-if="isLoadingSatellite" class="text-xs text-on-surface-variant flex items-center gap-1">
+              <span class="material-symbols-outlined animate-spin text-[14px]">sync</span> Mengambil data satelit...
+            </span>
+            <span v-else class="text-xs bg-surface-container-high text-primary px-2 py-1 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">satellite_alt</span> Auto-fill Cangkringan aktif
+            </span>
+          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block font-label-md text-label-md text-on-surface mb-2" for="ph-tanah">pH Tanah</label>
               <div class="relative">
@@ -76,7 +108,14 @@ const submitData = () => {
               </div>
             </div>
             <div>
-              <label class="block font-label-md text-label-md text-on-surface mb-2" for="kelembapan">Kelembapan Tanah</label>
+              <label class="block font-label-md text-label-md text-on-surface mb-2" for="suhu-tanah">Suhu Tanah (Satelit)</label>
+              <div class="relative">
+                <input v-model="formData.suhuTanah" type="number" step="0.1" id="suhu-tanah" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface" placeholder="0.0" required>
+                <span class="absolute right-4 top-3 font-body-md text-on-surface-variant">°C</span>
+              </div>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-md text-on-surface mb-2" for="kelembapan">Kelembapan (Satelit)</label>
               <div class="relative">
                 <input v-model="formData.kelembapan" type="number" step="0.1" id="kelembapan" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface" placeholder="Persentase" required>
                 <span class="absolute right-4 top-3 font-body-md text-on-surface-variant">%</span>
