@@ -5,29 +5,24 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const isOffline = ref(!navigator.onLine)
-const currentTab = ref('petani') // 'petani' or 'admin'
-const currentForm = ref('login') // 'login' or 'register'
+const currentRole = ref('petani') // 'petani' or 'admin'
+const isRegisterMode = ref(false) // false = login, true = register
+
 const showPassword = ref(false)
 const showRegPassword = ref(false)
+const showRegConfirmPassword = ref(false)
 
+// Login Data
 const loginEmail = ref('')
 const loginPassword = ref('')
-const rememberMe = ref(true)
+const rememberMeLogin = ref(true)
 
-const regName = ref('')
+// Register Data
+const regUsername = ref('')
 const regEmail = ref('')
-const regPhone = ref('')
 const regPassword = ref('')
 const regConfirmPassword = ref('')
-const passwordStrength = ref(0)
-
-const checkStrength = () => {
-  let strength = 0;
-  if (regPassword.value.length > 5) strength += 1;
-  if (regPassword.value.length > 8 && /[A-Z]/.test(regPassword.value)) strength += 1;
-  if (regPassword.value.length > 8 && /[0-9]/.test(regPassword.value) && /[^A-Za-z0-9]/.test(regPassword.value)) strength += 1;
-  passwordStrength.value = strength;
-}
+const rememberMeReg = ref(true)
 
 const updateOfflineStatus = () => {
   isOffline.value = !navigator.onLine
@@ -44,146 +39,186 @@ onUnmounted(() => {
 })
 
 const handleLogin = () => {
-  if (currentTab.value === 'petani') {
+  if (currentRole.value === 'petani') {
     router.push('/petani')
   } else {
     router.push('/admin')
   }
 }
+
+const handleRegister = () => {
+  // Logic register to be added later
+  // After register success, typically auto login or switch to login mode
+  isRegisterMode.value = false;
+}
+
+const setRole = (role: string) => {
+  currentRole.value = role;
+}
 </script>
 
 <template>
-  <div class="tilled-soil-bg min-h-screen flex items-center justify-center p-margin-mobile md:p-margin-desktop font-body-md text-on-surface">
+  <div class="bg-tilled-soil min-h-screen flex flex-col justify-between items-center p-4 sm:p-6 md:p-10 selection:bg-genteng selection:text-white relative">
     <!-- Offline Banner -->
-    <div v-if="isOffline" class="fixed top-0 left-0 w-full bg-lava-danger text-on-error font-label-md text-label-md py-2 px-4 text-center z-50 shadow-md">
-      <span class="material-symbols-outlined align-middle mr-2 text-[18px]">wifi_off</span>
+    <div v-if="isOffline" class="fixed top-0 left-0 w-full bg-bahaya-lahar text-white font-medium text-sm py-2 px-4 text-center z-50 shadow-md">
       Tidak ada koneksi. Coba lagi saat sinyal tersedia.
     </div>
 
-    <!-- Main Card Container -->
-    <div class="w-full max-w-md bg-surface-container-lowest border-2 border-outline-variant rounded-xl shadow-lg relative overflow-hidden transition-all duration-300">
-      
-      <!-- Header -->
-      <div class="p-gutter md:p-stack-lg border-b-2 border-outline-variant bg-surface-bright text-center">
-        <h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary tracking-tight mb-2">Tanacakra</h1>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">Manajemen Pertanian Terpadu</p>
+    <!-- Header Branding -->
+    <header class="w-full max-w-md mx-auto pt-4 pb-2 text-center mt-4">
+      <div class="inline-flex flex-col items-center">
+        <h1 class="font-display font-semibold text-2xl tracking-tight text-genteng">Tanacakra</h1>
+        <p class="text-xs text-tanah-subur mt-0.5 tracking-wide">Sistem Pendukung Keputusan Lahan Cangkringan</p>
       </div>
+    </header>
 
-      <div class="p-gutter md:p-stack-lg">
+    <!-- Centered Auth Card Container -->
+    <main class="w-full max-w-md mx-auto my-auto py-4">
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-300/80 shadow-sm p-6 sm:p-8">
         
         <!-- Role Selector Tabs -->
-        <div class="flex rounded-lg bg-surface-container-high p-1 mb-stack-lg border border-outline-variant">
-          <button 
-            @click="currentTab = 'petani'"
-            :class="[
-              'flex-1 py-3 text-center font-label-md text-label-md rounded-md transition-all',
-              currentTab === 'petani' ? 'bg-surface-container-lowest shadow-sm border border-outline-variant text-primary font-bold' : 'text-on-surface-variant hover:text-primary'
-            ]">
-            Petani
-          </button>
-          <button 
-            @click="currentTab = 'admin'"
-            :class="[
-              'flex-1 py-3 text-center font-label-md text-label-md rounded-md transition-all',
-              currentTab === 'admin' ? 'bg-surface-container-lowest shadow-sm border border-outline-variant text-primary font-bold' : 'text-on-surface-variant hover:text-primary'
-            ]">
-            Admin / Kelompok Tani
+        <div class="mb-6">
+          <label class="block text-xs font-semibold text-tanah-subur uppercase tracking-wider mb-2">Pilih Peran Akun</label>
+          <div class="grid grid-cols-2 gap-1.5 p-1 bg-abu-letusan rounded-xl border border-stone-300/70" role="tablist">
+            <button type="button" @click="setRole('petani')"
+              :class="currentRole === 'petani' ? 'min-h-[48px] py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-150 flex items-center justify-center text-center bg-white text-genteng shadow-sm border border-stone-200' : 'min-h-[48px] py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-150 flex items-center justify-center text-center text-abu-vulkanik hover:text-genteng'">
+              Petani
+            </button>
+            <button type="button" @click="setRole('admin')"
+              :class="currentRole === 'admin' ? 'min-h-[48px] py-2.5 px-2 rounded-lg text-xs leading-tight font-semibold transition-all duration-150 flex items-center justify-center text-center bg-white text-genteng shadow-sm border border-stone-200' : 'min-h-[48px] py-2.5 px-2 rounded-lg text-xs leading-tight font-medium transition-all duration-150 flex items-center justify-center text-center text-abu-vulkanik hover:text-genteng'">
+              Admin/Kelompok Tani/Penyuluh
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Switcher (Masuk / Daftar Akun Baru) -->
+        <div class="flex items-center justify-between border-b border-stone-200 pb-3 mb-6">
+          <h2 class="font-display font-semibold text-xl text-abu-vulkanik">
+            {{ isRegisterMode ? 'Daftar akun baru' : 'Masuk ke akun' }}
+          </h2>
+          <button type="button" @click="isRegisterMode = !isRegisterMode" class="text-sm font-semibold text-genteng hover:underline underline-offset-4 focus:outline-none min-h-[48px] px-2 flex items-center">
+            {{ isRegisterMode ? 'Sudah punya akun? Masuk' : 'Daftar akun baru' }}
           </button>
         </div>
 
-        <!-- Login Form -->
-        <form v-if="currentForm === 'login'" @submit.prevent="handleLogin" class="space-y-stack-md transition-opacity duration-300">
+        <!-- LOGIN FORM -->
+        <form v-if="!isRegisterMode" @submit.prevent="handleLogin" class="space-y-4">
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="login-email">Email</label>
-            <input v-model="loginEmail" type="email" id="login-email" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface placeholder-on-surface-variant" placeholder="Masukkan alamat email" required>
+            <label for="login-email" class="block text-sm font-medium text-abu-vulkanik mb-1.5">Alamat email</label>
+            <input v-model="loginEmail" type="email" id="login-email" placeholder="nama@petani.id" required
+              class="w-full min-h-[48px] px-4 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
           </div>
-          
+
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="login-password">Kata Sandi</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="login-password" class="block text-sm font-medium text-abu-vulkanik">Kata sandi</label>
+              <a href="#" class="text-xs font-medium text-genteng hover:underline py-1">Lupa kata sandi?</a>
+            </div>
             <div class="relative">
-              <input v-model="loginPassword" :type="showPassword ? 'text' : 'password'" id="login-password" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg pl-4 pr-12 font-body-md text-on-surface placeholder-on-surface-variant" placeholder="Masukkan kata sandi" required>
-              <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 px-4 flex items-center text-on-surface-variant hover:text-primary focus:outline-none">
-                <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+              <input v-model="loginPassword" :type="showPassword ? 'text' : 'password'" id="login-password" placeholder="Masukkan kata sandi" required
+                class="w-full min-h-[48px] pl-4 pr-12 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-0 top-0 bottom-0 px-3.5 flex items-center text-stone-500 hover:text-abu-vulkanik focus:outline-none min-h-[48px]" aria-label="Tampilkan sandi">
+                <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
               </button>
             </div>
-            <div class="mt-2 text-right">
-              <a href="#" class="font-label-md text-label-md text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded">Lupa kata sandi?</a>
-            </div>
           </div>
-          
-          <div class="flex items-center mt-4">
-            <input v-model="rememberMe" type="checkbox" id="remember-me" class="w-5 h-5 text-primary-container bg-ash-cream border-outline rounded focus:ring-primary focus:ring-2">
-            <label for="remember-me" class="ml-3 font-body-md text-body-md text-on-surface-variant">Ingat perangkat ini selama 30 hari</label>
+
+          <!-- Ingat Perangkat Toggle -->
+          <div class="pt-1.5 pb-1">
+            <label class="flex items-center gap-3 cursor-pointer min-h-[48px]">
+              <input v-model="rememberMeLogin" type="checkbox"
+                class="w-5 h-5 rounded border-stone-300 text-genteng focus:ring-genteng/30 accent-genteng cursor-pointer">
+              <span class="text-xs sm:text-sm text-abu-vulkanik font-normal leading-tight select-none">
+                Ingat perangkat ini selama 30 hari
+              </span>
+            </label>
           </div>
-          
-          <button type="submit" class="w-full h-12 mt-stack-md bg-primary-container hover:bg-primary text-on-primary font-data-tabular text-data-tabular rounded-lg shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+
+          <!-- Primary CTA -->
+          <button type="submit" class="w-full min-h-[48px] py-3 px-4 bg-genteng hover:bg-genteng-hover active:scale-[0.99] text-white font-semibold rounded-xl text-sm transition-all duration-150 flex items-center justify-center shadow-sm">
             Masuk
-            <span class="material-symbols-outlined">login</span>
           </button>
-          
-          <div class="text-center mt-stack-md pt-stack-sm border-t border-outline-variant">
-            <p class="font-body-md text-body-md text-on-surface-variant">
-              Belum punya akun? 
-              <button type="button" @click="currentForm = 'register'" class="text-primary font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded ml-1">Daftar akun baru</button>
-            </p>
-          </div>
         </form>
 
-        <!-- Register Form -->
-        <form v-if="currentForm === 'register'" @submit.prevent="currentForm = 'login'" class="space-y-stack-md transition-opacity duration-300">
+        <!-- REGISTER FORM -->
+        <form v-else @submit.prevent="handleRegister" class="space-y-4">
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="reg-name">Nama Lengkap</label>
-            <input v-model="regName" type="text" id="reg-name" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface" placeholder="Nama sesuai KTP" required>
+            <label for="reg-username" class="block text-sm font-medium text-abu-vulkanik mb-1.5">Username</label>
+            <input v-model="regUsername" type="text" id="reg-username" placeholder="suparman_cangkringan" required
+              class="w-full min-h-[48px] px-4 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
           </div>
-          
+
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="reg-email">Email</label>
-            <input v-model="regEmail" type="email" id="reg-email" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface" placeholder="Email aktif" required>
-            <p class="mt-1 font-label-md text-[12px] text-on-surface-variant">Gunakan format email yang valid</p>
+            <label for="reg-email" class="block text-sm font-medium text-abu-vulkanik mb-1.5">Alamat email</label>
+            <input v-model="regEmail" type="email" id="reg-email" placeholder="nama@petani.id" required
+              class="w-full min-h-[48px] px-4 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
           </div>
-          
+
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="reg-phone">No. HP / WhatsApp</label>
-            <input v-model="regPhone" type="tel" id="reg-phone" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg px-4 font-body-md text-on-surface" placeholder="08xxxxxxxxxx" required>
-          </div>
-          
-          <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="reg-password">Kata Sandi Baru</label>
+            <label for="reg-password" class="block text-sm font-medium text-abu-vulkanik mb-1.5">Kata sandi</label>
             <div class="relative">
-              <input v-model="regPassword" @keyup="checkStrength" :type="showRegPassword ? 'text' : 'password'" id="reg-password" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg pl-4 pr-12 font-body-md text-on-surface" placeholder="Minimal 8 karakter" required>
-              <button type="button" @click="showRegPassword = !showRegPassword" class="absolute inset-y-0 right-0 px-4 flex items-center text-on-surface-variant hover:text-primary focus:outline-none">
-                <span class="material-symbols-outlined">{{ showRegPassword ? 'visibility_off' : 'visibility' }}</span>
+              <input v-model="regPassword" :type="showRegPassword ? 'text' : 'password'" id="reg-password" placeholder="Minimal 8 karakter" required
+                class="w-full min-h-[48px] pl-4 pr-12 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
+              <button type="button" @click="showRegPassword = !showRegPassword" class="absolute right-0 top-0 bottom-0 px-3.5 flex items-center text-stone-500 hover:text-abu-vulkanik focus:outline-none min-h-[48px]" aria-label="Tampilkan sandi">
+                <svg v-if="showRegPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
               </button>
             </div>
-            <!-- Password Strength -->
-            <div class="flex gap-1 mt-2 h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-              <div :class="['h-full w-1/3 transition-colors duration-300', passwordStrength >= 1 ? (passwordStrength >= 3 ? 'bg-terrace-green' : (passwordStrength >= 2 ? 'bg-secondary-fixed-dim' : 'bg-lava-danger')) : 'bg-transparent']"></div>
-              <div :class="['h-full w-1/3 transition-colors duration-300', passwordStrength >= 2 ? (passwordStrength >= 3 ? 'bg-terrace-green' : 'bg-secondary-fixed-dim') : 'bg-transparent']"></div>
-              <div :class="['h-full w-1/3 transition-colors duration-300', passwordStrength >= 3 ? 'bg-terrace-green' : 'bg-transparent']"></div>
-            </div>
           </div>
-          
+
           <div>
-            <label class="block font-label-md text-label-md text-on-surface mb-2" for="reg-confirm-password">Konfirmasi Kata Sandi</label>
+            <label for="reg-confirm-password" class="block text-sm font-medium text-abu-vulkanik mb-1.5">Konfirmasi kata sandi</label>
             <div class="relative">
-              <input v-model="regConfirmPassword" type="password" id="reg-confirm-password" class="w-full h-12 bg-ash-cream border border-outline focus:border-2 focus:border-primary-container focus:ring-0 rounded-lg pl-4 pr-12 font-body-md text-on-surface" placeholder="Ulangi kata sandi" required>
+              <input v-model="regConfirmPassword" :type="showRegConfirmPassword ? 'text' : 'password'" id="reg-confirm-password" placeholder="Ulangi kata sandi" required
+                class="w-full min-h-[48px] pl-4 pr-12 rounded-xl border border-stone-300 bg-stone-50/50 text-abu-vulkanik placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-genteng/30 focus:border-genteng text-sm transition-colors">
+              <button type="button" @click="showRegConfirmPassword = !showRegConfirmPassword" class="absolute right-0 top-0 bottom-0 px-3.5 flex items-center text-stone-500 hover:text-abu-vulkanik focus:outline-none min-h-[48px]" aria-label="Tampilkan sandi">
+                <svg v-if="showRegConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
             </div>
           </div>
-          
-          <button type="submit" class="w-full h-12 mt-stack-lg bg-primary-container hover:bg-primary text-on-primary font-data-tabular text-data-tabular rounded-lg shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            Daftar Akun
-            <span class="material-symbols-outlined">person_add</span>
-          </button>
-          
-          <div class="text-center mt-stack-md pt-stack-sm border-t border-outline-variant">
-            <p class="font-body-md text-body-md text-on-surface-variant">
-              Sudah punya akun? 
-              <button type="button" @click="currentForm = 'login'" class="text-primary font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-primary rounded ml-1">Masuk di sini</button>
-            </p>
+
+          <!-- Ingat Perangkat Toggle for Register -->
+          <div class="pt-1.5 pb-1">
+            <label class="flex items-center gap-3 cursor-pointer min-h-[48px]">
+              <input v-model="rememberMeReg" type="checkbox"
+                class="w-5 h-5 rounded border-stone-300 text-genteng focus:ring-genteng/30 accent-genteng cursor-pointer">
+              <span class="text-xs sm:text-sm text-abu-vulkanik font-normal leading-tight select-none">
+                Ingat perangkat ini selama 30 hari
+              </span>
+            </label>
           </div>
+
+          <!-- Primary CTA -->
+          <button type="submit" class="w-full min-h-[48px] py-3 px-4 bg-genteng hover:bg-genteng-hover active:scale-[0.99] text-white font-semibold rounded-xl text-sm transition-all duration-150 flex items-center justify-center shadow-sm">
+            Daftar Sekarang
+          </button>
         </form>
 
       </div>
-    </div>
+    </main>
+
+    <!-- Footer Context Notice -->
+    <footer class="w-full max-w-md mx-auto py-3 text-center mb-2">
+      <p class="text-xs text-stone-500">
+        Kawasan Pertanian Lereng Merapi &bull; Desa Cangkringan, Sleman
+      </p>
+    </footer>
   </div>
 </template>
