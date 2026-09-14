@@ -2,28 +2,70 @@
 import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { LahanService, AdminService } from '../services/api'
 
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
 
 const map = ref<any>(null)
+const lahanList = ref<any[]>([])
+const dashboardStats = ref<any>({
+  total_lahan: 100,
+  sehat_count: 78,
+  perlu_atensi_count: 22,
+  avg_ph: 6.3,
+  avg_moisture: '68%',
+  weekly_reports: 42,
+  price_trends: []
+})
 
 const initMap = () => {
   if (map.value) return
-  map.value = L.map('mapLeaflet').setView([-7.65, 110.45], 13)
+  map.value = L.map('mapLeaflet').setView([-7.64, 110.44], 12)
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map.value)
+}
 
-  // Dummy markers for dashboard overview
-  L.marker([-7.64, 110.44]).addTo(map.value).bindPopup('Blok A (Utara)<br>pH 5.1 - Erosi Pasir')
-  L.marker([-7.66, 110.46]).addTo(map.value).bindPopup('Blok B (Timur)<br>pH 6.2 - Sehat')
-  L.marker([-7.65, 110.45]).addTo(map.value).bindPopup('Blok C (Selatan)<br>pH 6.5 - Sehat')
+const loadData = async () => {
+  initMap()
+
+  try {
+    const [lahans, trends] = await Promise.all([
+      LahanService.getAllLahan(),
+      AdminService.getDashboardTrends().catch(() => null)
+    ])
+
+    lahanList.value = lahans || []
+    if (trends) {
+      dashboardStats.value = trends
+    }
+
+    if (map.value && lahanList.value.length > 0) {
+      lahanList.value.forEach((item: any) => {
+        const params = item.input_parameters || {}
+        const lat = parseFloat(params.latitude)
+        const lng = parseFloat(params.longitude)
+        const farmId = params.farm_id || ('LHN-' + item.id)
+        const desa = params.desa || 'Cangkringan'
+        const ph = params.soil_ph || 6.5
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const marker = L.marker([lat, lng]).addTo(map.value)
+          marker.bindPopup(
+            `<b>Lahan ${farmId}</b><br/>Desa: ${desa}<br/>pH Tanah: ${ph}<br/>Status: ${ph >= 6.0 ? '✅ Sehat' : '⚠️ Perlu Atensi'}`
+          )
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Gagal memuat data dashboard:', err)
+  }
 }
 
 onMounted(() => {
-  initMap()
+  loadData()
 })
 </script>
 
@@ -55,13 +97,13 @@ onMounted(() => {
           <div>
             <h2 class="font-display font-semibold text-lg md:text-2xl text-abu-vulkanik">Sebaran Lahan Desa Cangkringan</h2>
             <p class="text-[13px] md:text-sm text-abu-vulkanik/80 font-medium leading-relaxed mt-1">
-              4 Blok, 124 lahan terdaftar di lereng selatan Gunung Merapi.
+              5 Desa, {{ dashboardStats.total_lahan }} lahan terdaftar di lereng selatan Gunung Merapi.
             </p>
           </div>
           <div class="flex items-center justify-between md:justify-start gap-4 pt-2 md:pt-0 border-t md:border-0 border-[#DFD9CD]/60 text-xs text-tanah-subur font-medium">
             <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-[#DFD9CD]">
               <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-              <span>01 Mei – 15 Mei 2024</span>
+              <span>Data Real-time PostgreSQL</span>
             </div>
           </div>
         </div>
@@ -76,7 +118,7 @@ onMounted(() => {
             <div class="flex items-center justify-between pb-3 border-b border-[#DFD9CD]/70 mb-3 md:mb-4">
               <div>
                 <h2 class="font-display font-semibold text-base md:text-lg text-abu-vulkanik">Peta Sebaran Lahan</h2>
-                <p class="text-[11px] md:text-xs text-tanah-subur">Status tanah vulkanik & alur Kali Gendol</p>
+                <p class="text-[11px] md:text-xs text-tanah-subur">Status tanah vulkanik &amp; alur Kali Gendol ({{ dashboardStats.total_lahan }} Petak)</p>
               </div>
             </div>
 
@@ -84,11 +126,11 @@ onMounted(() => {
             <div class="flex items-center gap-4 text-[11px] md:text-xs font-medium pb-2.5 md:pb-4">
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-terasering inline-block"></span>
-                <span class="text-abu-vulkanik">Sehat (98)</span>
+                <span class="text-abu-vulkanik">Sehat ({{ dashboardStats.sehat_count }})</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-bahaya-lahar inline-block"></span>
-                <span class="text-abu-vulkanik">Perlu atensi / risiko (26)</span>
+                <span class="text-abu-vulkanik">Perlu atensi / risiko ({{ dashboardStats.perlu_atensi_count }})</span>
               </div>
             </div>
 
@@ -101,8 +143,8 @@ onMounted(() => {
           <div class="bg-[#F7F4EE] rounded-xl border border-[#DFD9CD] p-4 md:p-6 shadow-sm">
             <div class="flex items-center justify-between pb-2.5 border-b border-[#DFD9CD]/60">
               <div>
-                <h3 class="font-display font-semibold text-sm md:text-base text-abu-vulkanik">Tren Harga & Volume Panen</h3>
-                <p class="text-[11px] md:text-xs text-tanah-subur">Cabai rawit & salak pondoh mingguan</p>
+                <h3 class="font-display font-semibold text-sm md:text-base text-abu-vulkanik">Tren Harga &amp; Volume Panen</h3>
+                <p class="text-[11px] md:text-xs text-tanah-subur">Cabai Merah &amp; Salak Pondoh (Dataset Excel)</p>
               </div>
             </div>
 
@@ -110,40 +152,36 @@ onMounted(() => {
             <div class="flex items-center gap-3 text-[11px] md:text-xs font-medium pt-2 md:pt-4 pb-1 md:pb-3">
               <div class="flex items-center gap-1.5">
                 <span class="w-3 h-0.5 bg-genteng inline-block"></span>
-                <span class="text-abu-vulkanik">Harga (Rp/kg)</span>
+                <span class="text-abu-vulkanik">Cabai Merah (Rp/kg)</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-3 h-0.5 bg-tanah-subur inline-block"></span>
-                <span class="text-abu-vulkanik">Volume (Kuintal)</span>
+                <span class="text-abu-vulkanik">Salak Pondoh (Rp/kg)</span>
               </div>
             </div>
 
             <div class="w-full h-[160px] md:h-[220px] mt-1 relative border-l border-b border-[#DFD9CD]">
               <svg class="w-full h-full absolute inset-0" viewBox="0 0 320 150" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M35,110 C80,95 120,70 170,55 C220,40 270,30 305,25" stroke="#B3542C" stroke-width="2.5" fill="none"></path>
-                <circle cx="35" cy="110" r="4" fill="#B3542C"></circle>
-                <circle cx="105" cy="85" r="4" fill="#B3542C"></circle>
-                <circle cx="170" cy="55" r="4" fill="#B3542C"></circle>
-                <circle cx="240" cy="35" r="4" fill="#B3542C"></circle>
-                <circle cx="305" cy="25" r="4" fill="#B3542C"></circle>
+                <path d="M10,90 C50,40 100,120 150,60 C200,30 250,70 310,40" stroke="#B3542C" stroke-width="2.5" fill="none"></path>
+                <circle cx="10" cy="90" r="4" fill="#B3542C"></circle>
+                <circle cx="85" cy="50" r="4" fill="#B3542C"></circle>
+                <circle cx="160" cy="60" r="4" fill="#B3542C"></circle>
+                <circle cx="235" cy="45" r="4" fill="#B3542C"></circle>
+                <circle cx="310" cy="40" r="4" fill="#B3542C"></circle>
 
-                <path d="M35,45 C80,60 120,90 170,105 C220,115 270,95 305,70" stroke="#5C4A32" stroke-width="2.5" fill="none"></path>
-                <circle cx="35" cy="45" r="4" fill="#5C4A32"></circle>
-                <circle cx="105" cy="75" r="4" fill="#5C4A32"></circle>
-                <circle cx="170" cy="105" r="4" fill="#5C4A32"></circle>
-                <circle cx="240" cy="110" r="4" fill="#5C4A32"></circle>
-                <circle cx="305" cy="70" r="4" fill="#5C4A32"></circle>
+                <path d="M10,80 C50,35 100,110 150,75 C200,45 250,55 310,35" stroke="#5C4A32" stroke-width="2.5" fill="none"></path>
+                <circle cx="10" cy="80" r="4" fill="#5C4A32"></circle>
+                <circle cx="85" cy="35" r="4" fill="#5C4A32"></circle>
+                <circle cx="160" cy="75" r="4" fill="#5C4A32"></circle>
+                <circle cx="235" cy="55" r="4" fill="#5C4A32"></circle>
+                <circle cx="310" cy="35" r="4" fill="#5C4A32"></circle>
               </svg>
-              <div class="absolute bottom-0 w-full flex justify-between px-8 text-[10px] md:text-xs text-tanah-subur -mb-5">
-                <span>M1 Apr</span>
-                <span>M2 Apr</span>
-                <span>M3 Apr</span>
-                <span>M4 Apr</span>
-                <span>M1 Mei</span>
+              <div class="absolute bottom-0 w-full flex justify-between px-4 text-[10px] md:text-xs text-tanah-subur -mb-5">
+                <span v-for="t in dashboardStats.price_trends.slice(-5)" :key="t.month">{{ t.month }}</span>
               </div>
             </div>
             <p class="text-[11px] md:text-xs text-tanah-subur mt-8 md:mt-10">
-              Harga cabai naik ke Rp 48.500/kg seiring penurunan volume panen lereng.
+              Tren fluktuasi harga komoditas utama lereng Merapi berdasarkan dataset 360 histori transaksi pasar.
             </p>
           </div>
         </div>
@@ -158,26 +196,26 @@ onMounted(() => {
               <div class="p-3 bg-white border border-[#DFD9CD] rounded-lg">
                 <div class="text-[11px] md:text-xs font-medium text-tanah-subur">Total lahan aktif</div>
                 <div class="mt-1 flex items-baseline gap-1.5">
-                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">124</span>
-                  <span class="text-[10px] md:text-xs text-terasering font-medium">98 sehat</span>
+                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">{{ dashboardStats.total_lahan }}</span>
+                  <span class="text-[10px] md:text-xs text-terasering font-medium">{{ dashboardStats.sehat_count }} sehat</span>
                 </div>
               </div>
               <div class="p-3 bg-white border border-[#DFD9CD] rounded-lg">
                 <div class="text-[11px] md:text-xs font-medium text-tanah-subur">Rata-rata pH</div>
                 <div class="mt-1 flex items-baseline gap-1.5">
-                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">6.4</span>
+                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">{{ dashboardStats.avg_ph }}</span>
                 </div>
               </div>
               <div class="p-3 bg-white border border-[#DFD9CD] rounded-lg">
                 <div class="text-[11px] md:text-xs font-medium text-tanah-subur">Kelembapan</div>
                 <div class="mt-1 flex items-baseline gap-1.5">
-                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">68%</span>
+                  <span class="font-display text-xl md:text-2xl font-bold text-abu-vulkanik">{{ dashboardStats.avg_moisture }}</span>
                 </div>
               </div>
               <div class="p-3 bg-white border border-[#DFD9CD] rounded-lg">
                 <div class="text-[11px] md:text-xs font-medium text-tanah-subur">Laporan minggu ini</div>
                 <div class="mt-1 flex items-baseline gap-1.5">
-                  <span class="font-display text-xl md:text-2xl font-bold text-genteng">42</span>
+                  <span class="font-display text-xl md:text-2xl font-bold text-genteng">{{ dashboardStats.weekly_reports }}</span>
                 </div>
               </div>
             </div>

@@ -73,5 +73,9 @@ export const AdminService = {
   async getAuditLogs(): Promise<AuditLogItem[]> {
     const res = await api.get('/audit-logs')
     return res.data
+  },
+  async getDashboardTrends() {
+    const res = await api.get('/dashboard/trends')
+    return res.data
   }
 }

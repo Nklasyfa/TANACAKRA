@@ -12,4 +12,5 @@ urlpatterns = [
     path('pipeline/config', views.pipeline_config, name='pipeline-config'),
     path('tindakan/confirm', views.tindakan_confirm, name='tindakan-confirm'),
     path('broadcast/alert', views.broadcast_alert, name='broadcast-alert'),
+    path('dashboard/trends', views.dashboard_trends, name='dashboard-trends'),
 ]

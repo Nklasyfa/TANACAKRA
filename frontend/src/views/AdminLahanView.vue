@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { LahanService } from '../services/api'
 // Leaflet imports
 import L from 'leaflet'
@@ -8,7 +7,6 @@ import 'leaflet/dist/leaflet.css'
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
 
-const router = useRouter()
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
 const searchQuery = ref('')
