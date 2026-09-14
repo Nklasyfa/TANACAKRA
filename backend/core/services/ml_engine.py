@@ -19,8 +19,18 @@ class TanacakraMLEngine:
         self._train_from_excel_dataset()
 
     def _train_from_excel_dataset(self):
-        dataset_path = r"D:\TANACAKRA\data\data pendukung\TANACAKRA_Data_Analysis.xlsx"
-        if os.path.exists(dataset_path):
+        possible_paths = [
+            r"D:\TANACAKRA\data\data pendukung\TANACAKRA_Data_Analysis.xlsx",
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx")),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx"))
+        ]
+        dataset_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                dataset_path = path
+                break
+
+        if dataset_path and os.path.exists(dataset_path):
             try:
                 df = pd.read_excel(dataset_path, sheet_name="ML_Dataset")
                 # Features: [soil_ph, humidity_percent, rainfall_mm, temperature_C, NDVI]

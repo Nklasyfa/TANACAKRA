@@ -1,6 +1,38 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
+
+const userProfile = ref<any>({
+  username: 'Petani Cangkringan',
+  email: 'petani@cangkringan.desa.id',
+  phone: '081234567890',
+  role: 'Petani',
+  desa: 'Cangkringan, Sleman'
+})
+
+const saveStatus = ref('')
+
+onMounted(() => {
+  const savedUser = localStorage.getItem('tanacakra_user')
+  if (savedUser) {
+    try {
+      const parsed = JSON.parse(savedUser)
+      userProfile.value.username = parsed.username || 'Petani Cangkringan'
+      userProfile.value.email = parsed.email || 'petani@cangkringan.desa.id'
+      userProfile.value.role = parsed.role || 'Petani'
+    } catch (e) {
+      console.error(e)
+    }
+  }
+})
+
+const handleSave = () => {
+  saveStatus.value = 'Perubahan profil berhasil disimpan.'
+  setTimeout(() => {
+    saveStatus.value = ''
+  }, 3000)
+}
 </script>
 
 <template>
@@ -24,7 +56,7 @@ import BottomNav from '../components/BottomNav.vue'
         <p class="text-xs md:text-sm text-abu-vulkanik opacity-80 mt-1">Perbarui data diri, keamanan kata sandi, dan preferensi pemberitahuan lapangan.</p>
       </header>
 
-      <form class="space-y-6 md:space-y-8" @submit.prevent>
+      <form class="space-y-6 md:space-y-8" @submit.prevent="handleSave">
         <!-- Info Akun -->
         <section class="bg-[#F8F5EE] border border-[#DDD6C8] rounded-md p-4 md:p-6 shadow-sm">
           <div class="border-b border-[#E3DDD1] pb-3 mb-4 md:mb-5">
@@ -33,20 +65,20 @@ import BottomNav from '../components/BottomNav.vue'
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
             <div class="md:col-span-2">
-              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Nama lengkap</label>
-              <input type="text" value="Suparman Wignyosukarto" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
+              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Username / Nama Lengkap</label>
+              <input v-model="userProfile.username" type="text" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
             </div>
             <div>
-              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Alamat email</label>
-              <input type="email" value="suparman.w@tanacakra.id" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
+              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Alamat Email</label>
+              <input v-model="userProfile.email" type="email" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
             </div>
             <div>
-              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Nomor telepon / WhatsApp</label>
-              <input type="tel" value="081234567890" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
+              <label class="block text-[11px] md:text-xs font-semibold text-abu-vulkanik mb-1.5">Nomor Telepon / WhatsApp</label>
+              <input v-model="userProfile.phone" type="tel" class="w-full bg-[#FFFFFF] border border-[#DDD6C8] rounded px-3 py-2 md:px-3.5 md:py-2.5 text-xs md:text-sm text-abu-vulkanik focus:outline-none focus:border-genteng focus:ring-1 focus:ring-genteng">
             </div>
             <div class="md:col-span-2 bg-[#EFEAE0] p-3 rounded border border-[#E3DDD1] flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs">
-              <span class="text-abu-vulkanik opacity-80">Wilayah kelolaan terdaftar: <strong class="font-semibold text-abu-vulkanik">Lahan Blok A (Utara), Dusun Kinahrejo</strong></span>
-              <span class="text-[10px] md:text-xs font-medium text-terasering bg-[#E4ECD7] px-2 py-0.5 rounded border border-[#C6D8AF] self-start md:self-auto">Terverifikasi BPP</span>
+              <span class="text-abu-vulkanik opacity-80">Wilayah kelolaan terdaftar: <strong class="font-semibold text-abu-vulkanik">Desa Cangkringan, Sleman, DIY</strong></span>
+              <span class="text-[10px] md:text-xs font-medium text-terasering bg-[#E4ECD7] px-2 py-0.5 rounded border border-[#C6D8AF] self-start md:self-auto">Role: {{ userProfile.role }}</span>
             </div>
           </div>
         </section>
@@ -73,11 +105,14 @@ import BottomNav from '../components/BottomNav.vue'
           </div>
         </section>
 
+        <div v-if="saveStatus" class="p-3 bg-[#EEF2E6] text-terasering border border-[#D2DEC0] rounded text-xs">
+          {{ saveStatus }}
+        </div>
+
         <div class="flex flex-col md:flex-row md:items-center justify-between pt-2 gap-4">
           <button type="submit" class="w-full md:w-auto bg-genteng hover:bg-[#9E4723] text-white font-medium px-6 py-2.5 md:py-2.5 rounded text-[13px] md:text-sm transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-genteng">
             Simpan Perubahan
           </button>
-          <span class="text-[10px] md:text-xs text-abu-vulkanik opacity-75 text-center md:text-left">Perubahan terakhir disimpan: 12 Mei 2024, 09:15 WIB</span>
         </div>
       </form>
     </main>

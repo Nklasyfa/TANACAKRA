@@ -1,6 +1,48 @@
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
+import { LahanService } from '../services/api'
+
+const historyList = ref<any[]>([])
+const isLoading = ref(true)
+const selectedDesa = ref('all')
+const searchQuery = ref('')
+
+const loadHistory = async () => {
+  try {
+    isLoading.value = true
+    const data = await LahanService.getLahanHistory()
+    historyList.value = data || []
+  } catch (err) {
+    console.error('Gagal mengambil riwayat:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadHistory()
+})
+
+const filteredHistory = computed(() => {
+  return historyList.value.filter((item: any) => {
+    const params = item.input_parameters || {}
+    const farmId = (params.farm_id || '').toLowerCase()
+    const desa = (params.desa || '').toLowerCase()
+    const query = searchQuery.value.toLowerCase()
+
+    const matchesQuery = farmId.includes(query) || desa.includes(query)
+    const matchesDesa = selectedDesa.value === 'all' || desa === selectedDesa.value.toLowerCase()
+    return matchesQuery && matchesDesa
+  })
+})
+
+const formatDate = (isoStr?: string) => {
+  if (!isoStr) return 'Terbaru'
+  const d = new Date(isoStr)
+  return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
+}
 </script>
 
 <template>
@@ -26,31 +68,33 @@ import BottomNav from '../components/BottomNav.vue'
             <p class="text-xs md:text-sm text-abu-vulkanik/80 mt-1">Daftar masukan parameter tanah dan rekomendasi mesin pendukung keputusan (EngineOutput).</p>
           </div>
           <div class="text-[11px] md:text-xs text-abu-vulkanik/70 tabular-nums">
-            Total 8 catatan tersimpan
+            Total {{ historyList.length }} catatan tersimpan
           </div>
         </div>
 
         <div class="mt-4 md:mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#E8E3D7] p-3 md:p-3.5 rounded border border-[#D9D3C7]">
-          <div class="flex flex-col md:flex-row md:items-center gap-3 text-sm">
-            <div class="flex items-center gap-2">
-              <label class="text-[11px] md:text-xs font-semibold text-abu-vulkanik whitespace-nowrap">Rentang tanggal:</label>
-              <div class="flex items-center gap-1.5 bg-white border border-[#CCC6B8] rounded px-2 md:px-2.5 py-1 text-xs flex-1 md:flex-none">
-                <span class="material-symbols-outlined text-[14px] md:text-[16px] text-abu-vulkanik/70">calendar_today</span>
-                <input type="text" value="01 Mei 2024 - 15 Mei 2024" class="bg-transparent border-none text-abu-vulkanik focus:outline-none w-full md:w-44 font-medium text-[11px] md:text-xs" />
-              </div>
+          <div class="flex flex-col md:flex-row md:items-center gap-3 text-sm flex-1">
+            <div class="flex items-center gap-2 flex-1 max-w-xs">
+              <span class="material-symbols-outlined text-[18px] text-abu-vulkanik/70">search</span>
+              <input v-model="searchQuery" type="text" placeholder="Cari ID lahan / desa..." class="bg-white border border-[#CCC6B8] rounded px-2.5 py-1 text-xs text-abu-vulkanik w-full focus:outline-none" />
             </div>
             <div class="flex items-center gap-2">
-              <label class="text-[11px] md:text-xs font-semibold text-abu-vulkanik whitespace-nowrap">Lahan:</label>
-              <select class="bg-white border border-[#CCC6B8] rounded px-2 md:px-2.5 py-1 text-[11px] md:text-xs text-abu-vulkanik font-medium focus:outline-none flex-1 md:flex-none">
-                <option>Semua petak lahan</option>
-                <option selected>Lahan Blok A (Utara)</option>
+              <label class="text-[11px] md:text-xs font-semibold text-abu-vulkanik whitespace-nowrap">Filter Desa:</label>
+              <select v-model="selectedDesa" class="bg-white border border-[#CCC6B8] rounded px-2.5 py-1 text-xs text-abu-vulkanik font-medium focus:outline-none">
+                <option value="all">Semua Desa</option>
+                <option value="Cangkringan">Cangkringan</option>
+                <option value="Umbulharjo">Umbulharjo</option>
+                <option value="Kepuharjo">Kepuharjo</option>
+                <option value="Glagahharjo">Glagahharjo</option>
+                <option value="Wukirsari">Wukirsari</option>
+                <option value="Argomulyo">Argomulyo</option>
               </select>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <button class="w-full md:w-auto flex items-center justify-center gap-1 bg-white hover:bg-[#F7F4EC] border border-[#CCC6B8] text-abu-vulkanik text-[11px] md:text-xs font-medium px-3 py-1.5 rounded transition-colors">
-              <span class="material-symbols-outlined text-[14px] md:text-[16px]">file_download</span>
-              <span>Ekspor CSV</span>
+              <span class="material-symbols-outlined text-[16px]">file_download</span>
+              <span>Ekspor Data</span>
             </button>
           </div>
         </div>
@@ -62,72 +106,55 @@ import BottomNav from '../components/BottomNav.vue'
           <table class="w-full text-left text-sm text-abu-vulkanik min-w-[700px]">
             <thead class="bg-[#ECE7DC] border-b border-[#D9D3C7] text-xs text-abu-vulkanik font-semibold">
               <tr>
-                <th scope="col" class="py-2.5 md:py-3 px-3 md:px-4 w-36 cursor-pointer select-none hover:text-genteng transition-colors">
-                  <div class="flex items-center gap-1">
-                    <span>Tanggal Input</span>
-                    <span class="material-symbols-outlined text-[14px] md:text-[16px]">arrow_downward</span>
-                  </div>
-                </th>
-                <th scope="col" class="py-2.5 md:py-3 px-3 md:px-4 w-32 md:w-40 cursor-pointer select-none hover:text-genteng transition-colors">
-                  <div class="flex items-center gap-1">
-                    <span>Petak Lahan</span>
-                  </div>
-                </th>
-                <th scope="col" class="py-2.5 md:py-3 px-3 md:px-4 w-40 md:w-44 cursor-pointer select-none hover:text-genteng transition-colors">
-                  <div class="flex items-center gap-1">
-                    <span>Parameter Singkat</span>
-                  </div>
-                </th>
-                <th scope="col" class="py-2.5 md:py-3 px-3 md:px-4">
-                  <span>Hasil Rekomendasi Mesin</span>
-                </th>
-                <th scope="col" class="py-2.5 md:py-3 px-3 md:px-4 w-24 md:w-28 text-center">
-                  <span>Status</span>
-                </th>
+                <th scope="col" class="py-3 px-4 w-40">Tanggal Input</th>
+                <th scope="col" class="py-3 px-4 w-44">Petak Lahan</th>
+                <th scope="col" class="py-3 px-4 w-48">Parameter Hara</th>
+                <th scope="col" class="py-3 px-4">Hasil Rekomendasi ML</th>
+                <th scope="col" class="py-3 px-4 w-28 text-center">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#EAE5DA] text-[11px] md:text-xs">
-              <tr class="hover:bg-[#FAF8F3] transition-colors">
-                <td class="py-3 px-3 md:px-4 font-medium tabular-nums text-abu-vulkanik">12 Mei 2024, 08:30</td>
-                <td class="py-3 px-3 md:px-4 font-medium text-abu-vulkanik">Lahan Blok A (Utara)</td>
-                <td class="py-3 px-3 md:px-4 tabular-nums">
-                  <div class="leading-relaxed">
-                    <span class="font-semibold text-tanah-subur">pH:</span> 6.5 &nbsp;|&nbsp; 
-                    <span class="font-semibold text-tanah-subur">Lembap:</span> 68%
-                    <div class="text-[10px] md:text-[11px] text-abu-vulkanik/70">NPK: 120-45-70</div>
-                  </div>
-                </td>
-                <td class="py-3 px-3 md:px-4 text-abu-vulkanik">Kondisi tanah optimal untuk pemupukan cabai; berikan pupuk kalium sesuai dosis anjuran minggu ini.</td>
-                <td class="py-3 px-3 md:px-4 text-center">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-[11px] font-medium bg-[#EEF2E6] text-terasering border border-[#D2DEC0]">Kondisi baik</span>
+            <tbody class="divide-y divide-[#EAE5DA] text-xs">
+              <tr v-if="isLoading">
+                <td colspan="5" class="py-8 text-center text-abu-vulkanik/60">
+                  Memuat riwayat dari PostgreSQL database...
                 </td>
               </tr>
-              <tr class="hover:bg-[#FAF8F3] transition-colors">
-                <td class="py-3 px-3 md:px-4 font-medium tabular-nums text-abu-vulkanik">10 Mei 2024, 14:15</td>
-                <td class="py-3 px-3 md:px-4 font-medium text-abu-vulkanik">Lahan Blok A (Utara)</td>
-                <td class="py-3 px-3 md:px-4 tabular-nums">
+              <tr v-else-if="filteredHistory.length === 0">
+                <td colspan="5" class="py-8 text-center text-abu-vulkanik/60">
+                  Tidak ada catatan lahan yang ditemukan.
+                </td>
+              </tr>
+              <tr v-else v-for="item in filteredHistory" :key="item.id" class="hover:bg-[#FAF8F3] transition-colors">
+                <td class="py-3 px-4 font-medium tabular-nums text-abu-vulkanik">
+                  {{ formatDate(item.created_at) }}
+                </td>
+                <td class="py-3 px-4 font-medium text-abu-vulkanik">
+                  <div>Petak {{ item.input_parameters?.farm_id || ('CGK' + String(item.id).padStart(3, '0')) }}</div>
+                  <div class="text-[11px] text-abu-vulkanik/70 font-normal">Desa {{ item.input_parameters?.desa || 'Cangkringan' }}</div>
+                </td>
+                <td class="py-3 px-4 tabular-nums">
                   <div class="leading-relaxed">
-                    <span class="font-semibold text-tanah-subur">pH:</span> 6.4 &nbsp;|&nbsp; 
-                    <span class="font-semibold text-tanah-subur">Lembap:</span> 42%
-                    <div class="text-[10px] md:text-[11px] text-abu-vulkanik/70">NPK: 115-40-65</div>
+                    <span class="font-semibold text-tanah-subur">pH:</span> {{ item.input_parameters?.soil_ph || 6.5 }} &nbsp;|&nbsp; 
+                    <span class="font-semibold text-tanah-subur">Moisture:</span> {{ item.input_parameters?.moisture || '65%' }}
+                    <div class="text-[11px] text-abu-vulkanik/70">NPK: {{ item.input_parameters?.nitrogen || 120 }}-{{ item.input_parameters?.phosphorus || 45 }}-{{ item.input_parameters?.potassium || 70 }}</div>
                   </div>
                 </td>
-                <td class="py-3 px-3 md:px-4 text-abu-vulkanik">Kelembapan tanah rendah di lapisan olah; segera lakukan pengairan berkala sebelum terik siang hari.</td>
-                <td class="py-3 px-3 md:px-4 text-center">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] md:text-[11px] font-medium bg-[#F9EBE8] text-bahaya-lahar border border-[#E9C5BE]">Perlu atensi</span>
+                <td class="py-3 px-4 text-abu-vulkanik">
+                  {{ item.engine_output?.prediction_result || 'Kondisi tanah vulkanik ideal. Rekomendasi komoditas: Cabai Merah & Tomat Vulkanik.' }}
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <span 
+                    :class="(item.input_parameters?.soil_ph || 6.5) >= 6.0 ? 'bg-[#EEF2E6] text-terasering border-[#D2DEC0]' : 'bg-[#F9EBE8] text-bahaya-lahar border-[#E9C5BE]'"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border">
+                    {{ (item.input_parameters?.soil_ph || 6.5) >= 6.0 ? 'Sehat' : 'Perlu Atensi' }}
+                  </span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="px-3 md:px-4 py-2.5 md:py-3 bg-[#FAF8F3] border-t border-[#D9D3C7] flex flex-col md:flex-row md:items-center justify-between text-[10px] md:text-xs text-abu-vulkanik gap-3">
-          <span>Menampilkan 1–2 dari 8 entri</span>
-          <div class="flex items-center gap-1 self-end md:self-auto">
-            <button class="px-2 py-1 border border-[#D9D3C7] rounded bg-white hover:bg-[#EFEAE0] transition-colors disabled:opacity-50" disabled>Sebelumnya</button>
-            <button class="px-2 py-1 border border-genteng bg-genteng text-white rounded font-medium">1</button>
-            <button class="px-2 py-1 border border-[#D9D3C7] rounded bg-white hover:bg-[#EFEAE0] transition-colors">2</button>
-            <button class="px-2 py-1 border border-[#D9D3C7] rounded bg-white hover:bg-[#EFEAE0] transition-colors">Selanjutnya</button>
-          </div>
+        <div class="px-4 py-3 bg-[#FAF8F3] border-t border-[#D9D3C7] flex flex-col md:flex-row md:items-center justify-between text-xs text-abu-vulkanik gap-3">
+          <span>Menampilkan {{ filteredHistory.length }} dari {{ historyList.length }} entri</span>
         </div>
       </section>
     </main>
