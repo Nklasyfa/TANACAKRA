@@ -103,4 +103,87 @@ class TanacakraPlotlyEngine:
             }
         }
 
+    @staticmethod
+    def generate_price_trend_chart(trends: list) -> dict:
+        """
+        Menghasilkan Line & Bar Chart interaktif berbasis Plotly.js untuk Tren Harga & Volume Panen.
+        """
+        months = [t.get('month', '') for t in trends]
+        harga_cabai = [t.get('harga_cabai', 0) for t in trends]
+        harga_salak = [t.get('harga_salak', 0) for t in trends]
+        volume_panen = [t.get('volume_panen', 350) for t in trends]
+
+        return {
+            "data": [
+                {
+                    "x": months,
+                    "y": harga_cabai,
+                    "type": "scatter",
+                    "mode": "lines+markers",
+                    "name": "Cabai Merah (Rp/kg)",
+                    "line": {"color": "#B3542C", "width": 3, "shape": "spline"},
+                    "marker": {"size": 8, "color": "#B3542C"},
+                    "hovertemplate": "<b>%{x}</b><br>Cabai Merah: Rp %{y:,.0f}/kg<extra></extra>"
+                },
+                {
+                    "x": months,
+                    "y": harga_salak,
+                    "type": "scatter",
+                    "mode": "lines+markers",
+                    "name": "Salak Pondoh (Rp/kg)",
+                    "line": {"color": "#4E7C40", "width": 3, "shape": "spline"},
+                    "marker": {"size": 8, "color": "#4E7C40"},
+                    "hovertemplate": "<b>%{x}</b><br>Salak Pondoh: Rp %{y:,.0f}/kg<extra></extra>"
+                },
+                {
+                    "x": months,
+                    "y": volume_panen,
+                    "type": "bar",
+                    "name": "Volume Panen (Ton)",
+                    "yaxis": "y2",
+                    "opacity": 0.35,
+                    "marker": {"color": "#D97706"},
+                    "hovertemplate": "<b>%{x}</b><br>Volume Panen: %{y:.1f} Ton<extra></extra>"
+                }
+            ],
+            "layout": {
+                "title": {
+                    "text": "<b>Fluktuasi Harga Pasar & Volume Panen Cangkringan</b>",
+                    "font": {"size": 15, "color": "#2C2622", "family": "Plus Jakarta Sans, sans-serif"}
+                },
+                "margin": {"l": 60, "r": 60, "t": 50, "b": 45},
+                "xaxis": {
+                    "title": "Bulan Transaksi",
+                    "showgrid": True,
+                    "gridcolor": "#EFEAE0",
+                    "tickfont": {"size": 11, "color": "#5C4A32"}
+                },
+                "yaxis": {
+                    "title": "Harga Pasar (Rp / kg)",
+                    "showgrid": True,
+                    "gridcolor": "#EFEAE0",
+                    "tickprefix": "Rp ",
+                    "tickfont": {"size": 11, "color": "#5C4A32"}
+                },
+                "yaxis2": {
+                    "title": "Volume Panen (Ton)",
+                    "overlaying": "y",
+                    "side": "right",
+                    "showgrid": False,
+                    "ticksuffix": " Ton",
+                    "tickfont": {"size": 11, "color": "#D97706"}
+                },
+                "legend": {
+                    "orientation": "h",
+                    "x": 0,
+                    "y": 1.15,
+                    "font": {"size": 11, "color": "#2C2622"}
+                },
+                "paper_bgcolor": "transparent",
+                "plot_bgcolor": "transparent",
+                "hovermode": "x unified",
+                "font": {"color": "#2C2622", "family": "Plus Jakarta Sans, sans-serif"}
+            }
+        }
+
 plotly_engine = TanacakraPlotlyEngine()

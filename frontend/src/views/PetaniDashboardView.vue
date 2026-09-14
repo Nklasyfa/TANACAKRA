@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
+import PlotlyChart from '../components/PlotlyChart.vue'
 import { useRouter } from 'vue-router'
 import { LahanService, AdminService } from '../services/api'
 import L from 'leaflet'
@@ -196,6 +197,25 @@ onMounted(() => {
           <span class="text-xs font-medium text-terasering bg-terasering/10 px-2.5 py-1 rounded">100 Petak Terpetakan</span>
         </div>
         <div id="mapPetaniLeaflet" class="w-full h-[260px] md:h-[360px] rounded-lg border border-[#DED7CA] z-10"></div>
+      </section>
+
+      <!-- PLOTLY INTERACTIVE CHART: TREN HARGA & VOLUME PANEN -->
+      <section class="bg-white rounded-xl p-4 md:p-6 border border-[#DED7CA] shadow-sm">
+        <div class="flex items-center justify-between pb-2.5 border-b border-[#EFEAE0] mb-3">
+          <div>
+            <h3 class="font-display font-semibold text-base text-abu-vulkanik">Tren Harga Pasar &amp; Volume Panen Interaktif</h3>
+            <p class="text-[11px] md:text-xs text-tanah-subur">Visualisasi Data Real-time Plotly.js (Cabai Merah &amp; Salak Pondoh)</p>
+          </div>
+        </div>
+        <div class="w-full min-h-[300px]">
+          <PlotlyChart 
+            v-if="dashboardData?.plotly_chart_schema" 
+            :schema="dashboardData.plotly_chart_schema" 
+          />
+          <div v-else class="h-[260px] flex items-center justify-center text-xs text-abu-vulkanik/60">
+            Memuat visualisasi grafik Plotly.js...
+          </div>
+        </div>
       </section>
 
       <!-- Grid Layout for Content -->

@@ -9,6 +9,7 @@ import { LahanService, AdminService } from '../services/api'
 
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
+import PlotlyChart from '../components/PlotlyChart.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -233,49 +234,26 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- TREND CHART -->
+          <!-- TREND CHART (PLOTLY INTERAKTIF) -->
           <div class="bg-[#F7F4EE] rounded-xl border border-[#DFD9CD] p-4 md:p-6 shadow-sm">
-            <div class="flex items-center justify-between pb-2.5 border-b border-[#DFD9CD]/60">
+            <div class="flex items-center justify-between pb-2.5 border-b border-[#DFD9CD]/60 mb-3">
               <div>
-                <h3 class="font-display font-semibold text-sm md:text-base text-abu-vulkanik">Tren Harga &amp; Volume Panen</h3>
-                <p class="text-[11px] md:text-xs text-tanah-subur">Cabai Merah &amp; Salak Pondoh (Dataset Excel)</p>
+                <h3 class="font-display font-semibold text-sm md:text-base text-abu-vulkanik">Tren Harga &amp; Volume Panen Interaktif</h3>
+                <p class="text-[11px] md:text-xs text-tanah-subur">Cabai Merah &amp; Salak Pondoh (Dataset PostgreSQL &amp; Plotly.js)</p>
               </div>
             </div>
 
-            <!-- Legend -->
-            <div class="flex items-center gap-3 text-[11px] md:text-xs font-medium pt-2 md:pt-4 pb-1 md:pb-3">
-              <div class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-genteng inline-block"></span>
-                <span class="text-abu-vulkanik">Cabai Merah (Rp/kg)</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-tanah-subur inline-block"></span>
-                <span class="text-abu-vulkanik">Salak Pondoh (Rp/kg)</span>
+            <div class="w-full min-h-[320px]">
+              <PlotlyChart 
+                v-if="dashboardStats?.plotly_chart_schema" 
+                :schema="dashboardStats.plotly_chart_schema" 
+              />
+              <div v-else class="h-[280px] flex items-center justify-center text-xs text-abu-vulkanik/60">
+                Memuat grafik Plotly.js...
               </div>
             </div>
-
-            <div class="w-full h-[160px] md:h-[220px] mt-1 relative border-l border-b border-[#DFD9CD]">
-              <svg class="w-full h-full absolute inset-0" viewBox="0 0 320 150" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                <path d="M10,90 C50,40 100,120 150,60 C200,30 250,70 310,40" stroke="#B3542C" stroke-width="2.5" fill="none"></path>
-                <circle cx="10" cy="90" r="4" fill="#B3542C"></circle>
-                <circle cx="85" cy="50" r="4" fill="#B3542C"></circle>
-                <circle cx="160" cy="60" r="4" fill="#B3542C"></circle>
-                <circle cx="235" cy="45" r="4" fill="#B3542C"></circle>
-                <circle cx="310" cy="40" r="4" fill="#B3542C"></circle>
-
-                <path d="M10,80 C50,35 100,110 150,75 C200,45 250,55 310,35" stroke="#5C4A32" stroke-width="2.5" fill="none"></path>
-                <circle cx="10" cy="80" r="4" fill="#5C4A32"></circle>
-                <circle cx="85" cy="35" r="4" fill="#5C4A32"></circle>
-                <circle cx="160" cy="75" r="4" fill="#5C4A32"></circle>
-                <circle cx="235" cy="55" r="4" fill="#5C4A32"></circle>
-                <circle cx="310" cy="35" r="4" fill="#5C4A32"></circle>
-              </svg>
-              <div class="absolute bottom-0 w-full flex justify-between px-4 text-[10px] md:text-xs text-tanah-subur -mb-5">
-                <span v-for="t in dashboardStats.price_trends.slice(-5)" :key="t.month">{{ t.month }}</span>
-              </div>
-            </div>
-            <p class="text-[11px] md:text-xs text-tanah-subur mt-8 md:mt-10">
-              Tren fluktuasi harga komoditas utama lereng Merapi berdasarkan dataset 360 histori transaksi pasar.
+            <p class="text-[11px] md:text-xs text-tanah-subur mt-2">
+              Visualisasi tren fluktuasi harga komoditas &amp; volume panen lereng Merapi interaktif berbasis Plotly.js (Hover untuk detail).
             </p>
           </div>
         </div>

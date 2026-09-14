@@ -301,6 +301,8 @@ def dashboard_trends(request):
         "total_panen_ton": round(total_produksi_ton, 1)
     }
 
+    plotly_chart_schema = plotly_engine.generate_price_trend_chart(trends)
+
     return Response({
         "total_lahan": total_lahan,
         "sehat_count": sehat_count,
@@ -314,7 +316,8 @@ def dashboard_trends(request):
         "total_biaya": total_biaya,
         "total_produksi_ton": round(total_produksi_ton, 1),
         "best_commodity": best_commodity,
-        "price_trends": trends
+        "price_trends": trends,
+        "plotly_chart_schema": plotly_chart_schema
     }, status=status.HTTP_200_OK)
 
 
