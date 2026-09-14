@@ -61,12 +61,6 @@ const closeDrawer = () => {
   selectedLahan.value = null
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('tanacakra_token')
-  localStorage.removeItem('tanacakra_user')
-  router.push('/')
-}
-
 // Map functions
 const initMap = () => {
   if (map.value) return
@@ -79,18 +73,15 @@ const initMap = () => {
   }).addTo(map.value)
 }
 
-const addMarkers = (list) => {
+const addMarkers = (list: any[]) => {
   if (!map.value) return
-  // Clear existing markers (simple approach: recreate map)
-  // For simplicity, we'll remove and reinit if markers exist; but we can also manage layer group.
-  // We'll just reinitialize map and add markers again.
-  map.value.eachLayer((layer) => {
+  map.value.eachLayer((layer: any) => {
     if (layer instanceof L.Marker) {
       map.value.removeLayer(layer)
     }
   })
 
-  list.forEach((item) => {
+  list.forEach((item: any) => {
     const params = item.input_parameters || {}
     const lat = params.latitude
     const lng = params.longitude

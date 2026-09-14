@@ -2,12 +2,11 @@
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
 import PlotlyChart from '../components/PlotlyChart.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import { LahanService, type LandInputPayload } from '../services/api'
 
 const router = useRouter()
-const route = useRoute()
 
 const availableFarms = ref<any[]>([])
 const selectedFarmId = ref('CGK001')
@@ -47,12 +46,6 @@ const onFarmSelect = (farmId: string) => {
     selectedFarmDetail.value = farm.input_parameters
     phValue.value = farm.input_parameters.soil_ph || 6.5
   }
-}
-
-const handleLogout = () => {
-  localStorage.removeItem('tanacakra_token')
-  localStorage.removeItem('tanacakra_user')
-  router.push('/')
 }
 
 const submitData = async () => {

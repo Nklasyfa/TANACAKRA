@@ -1,13 +1,11 @@
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
 
-const router = useRouter()
-const route = useRoute()
 const map = ref<any>(null)
 
 const initMap = () => {
