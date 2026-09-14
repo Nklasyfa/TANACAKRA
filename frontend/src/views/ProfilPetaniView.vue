@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
-import { useRouter, useRoute } from 'vue-router'
-
-const router = useRouter()
-const route = useRoute()
-
-const handleLogout = () => {
-  router.push('/')
-}
 </script>
 
 <template>

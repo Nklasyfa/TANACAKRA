@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
 import { AdminService, type AuditLogItem } from '../services/api'
 
-const router = useRouter()
 const auditLogs = ref<AuditLogItem[]>([])
 const isLoading = ref(true)
 const searchQuery = ref('')
@@ -42,11 +40,7 @@ const formatDate = (isoStr: string) => {
   return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' })
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('tanacakra_token')
-  localStorage.removeItem('tanacakra_user')
-  router.push('/')
-}
+
 </script>
 
 <template>

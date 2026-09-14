@@ -6,19 +6,51 @@ import { useRouter } from 'vue-router'
 import { LahanService, AdminService } from '../services/api'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
 const router = useRouter()
 const map = ref<any>(null)
+const markersGroup = ref<any>(null)
 const lahanList = ref<any[]>([])
 const dashboardData = ref<any>(null)
 
 const initMap = () => {
   if (map.value) return
-  map.value = L.map('mapPetaniLeaflet').setView([-7.64, 110.44], 13)
+  map.value = L.map('mapPetaniLeaflet', {
+    zoomControl: true,
+    scrollWheelZoom: true
+  }).setView([-7.64, 110.44], 12)
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
   }).addTo(map.value)
+
+  markersGroup.value = (L as any).markerClusterGroup({
+    chunkedLoading: true,
+    maxClusterRadius: 45,
+    iconCreateFunction: (cluster: any) => {
+      const markers = cluster.getAllChildMarkers()
+      let sehatCount = 0
+      markers.forEach((m: any) => {
+        if (m.options.status === 'sehat') sehatCount++
+      })
+      const total = markers.length
+      const ratio = sehatCount / total
+      const bgColor = ratio >= 0.75 ? '#4E7C40' : ratio >= 0.4 ? '#D98E26' : '#B3542C'
+
+      return L.divIcon({
+        html: `<div style="background-color: ${bgColor}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${total}</div>`,
+        className: 'custom-cluster-icon',
+        iconSize: L.point(36, 36)
+      })
+    }
+  })
+
+  map.value.addLayer(markersGroup.value)
 }
 
 const loadPetaniData = async () => {
@@ -31,20 +63,57 @@ const loadPetaniData = async () => {
     lahanList.value = lahans || []
     dashboardData.value = trends
 
-    if (map.value && lahanList.value.length > 0) {
+    if (map.value && markersGroup.value && lahanList.value.length > 0) {
+      markersGroup.value.clearLayers()
+
       lahanList.value.forEach((item: any) => {
         const params = item.input_parameters || {}
         const lat = parseFloat(params.latitude)
         const lng = parseFloat(params.longitude)
-        const farmId = params.farm_id || ('LHN-' + item.id)
+        const farmId = params.farm_id || ('CGK' + String(item.id).padStart(3, '0'))
         const desa = params.desa || 'Cangkringan'
-        const ph = params.soil_ph || 6.5
+        const ph = parseFloat(params.soil_ph || 6.5)
+        const soilType = params.soil_type || 'Regosol Vulkanik'
+        const areaHa = params.area_ha || 1.0
+        const elevation = params.elevation_m || 600
+        const organicC = params.organic_carbon || 2.1
+        const isSehat = ph >= 6.0
 
         if (!isNaN(lat) && !isNaN(lng)) {
-          const marker = L.marker([lat, lng]).addTo(map.value)
-          marker.bindPopup(
-            `<b>Lahan ${farmId}</b><br/>Desa: ${desa}<br/>pH Tanah: ${ph}<br/>Status: ${ph >= 6.0 ? '✅ Subur & Ideal' : '⚠️ Perlu Dolomit/Atensi'}`
-          )
+          const markerColor = isSehat ? '#4E7C40' : '#B3542C'
+          const marker = L.circleMarker([lat, lng], {
+            radius: 7,
+            fillColor: markerColor,
+            color: '#FFFFFF',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9,
+            status: isSehat ? 'sehat' : 'atensi'
+          } as any)
+
+          const popupContent = `
+            <div style="font-family: sans-serif; padding: 2px; min-width: 180px;">
+              <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+                <span>Petak ${farmId}</span>
+                <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${isSehat ? '#4E7C40' : '#B3542C'};">
+                  ${isSehat ? 'Sehat' : 'Perlu Atensi'}
+                </span>
+              </div>
+              <div style="font-size: 12px; color: #555; line-height: 1.5;">
+                <strong>Desa:</strong> ${desa}<br/>
+                <strong>pH Tanah:</strong> ${ph} (${isSehat ? 'Ideal' : 'Kurang Ideal'})<br/>
+                <strong>Jenis Tanah:</strong> ${soilType}<br/>
+                <strong>Luas Lahan:</strong> ${areaHa} Ha<br/>
+                <strong>Elevasi:</strong> ${elevation} m dpl<br/>
+                <strong>Karbon Organik:</strong> ${organicC}%
+              </div>
+              <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #eee; font-size: 11px; color: #777;">
+                ${isSehat ? '🟢 Subur & retensi hara tinggi.' : '🔴 Perlu pemberian pupuk kalium/dolomit.'}
+              </div>
+            </div>
+          `
+          marker.bindPopup(popupContent)
+          markersGroup.value.addLayer(marker)
         }
       })
     }

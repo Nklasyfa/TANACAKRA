@@ -1,14 +1,6 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
 import AdminSidebar from '../components/AdminSidebar.vue'
 import AdminBottomNav from '../components/AdminBottomNav.vue'
-
-const router = useRouter()
-const route = useRoute()
-
-const handleLogout = () => {
-  router.push('/')
-}
 </script>
 
 <template>
