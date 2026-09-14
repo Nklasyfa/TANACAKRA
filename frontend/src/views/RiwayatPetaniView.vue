@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -22,45 +23,7 @@ const handleLogout = () => {
     </header>
 
     <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-[240px] fixed inset-y-0 left-0 bg-[#E8E3D7] border-r border-[#D9D3C7] flex-col justify-between z-30 select-none">
-      <div class="flex flex-col">
-        <div class="px-6 pt-6 pb-5 border-b border-[#DDD7CB]">
-          <h1 class="font-serif font-semibold text-[21px] tracking-tight text-genteng leading-none">Tanacakra</h1>
-          <p class="text-xs text-abu-vulkanik/80 mt-1.5 font-medium">Dashboard Petani</p>
-        </div>
-        <nav class="mt-4 flex flex-col gap-1 px-3">
-          <router-link to="/petani" class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-abu-vulkanik hover:bg-[#DDD7CB]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70 text-abu-vulkanik">home</span>
-            <span class="text-sm font-medium">Beranda</span>
-          </router-link>
-          <router-link to="/input-lahan" class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-abu-vulkanik hover:bg-[#DDD7CB]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70 text-abu-vulkanik">edit_note</span>
-            <span class="text-sm font-medium">Catat</span>
-          </router-link>
-          <router-link to="/riwayat" class="flex items-center gap-3 px-3 py-2.5 bg-[#DFD9CD] border-l-[3px] border-tanah-subur text-genteng font-semibold rounded-r-sm shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
-            <span class="material-symbols-outlined text-[20px] text-genteng">history</span>
-            <span class="text-sm font-semibold text-genteng">Riwayat</span>
-          </router-link>
-          <router-link to="/profil" class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-abu-vulkanik hover:bg-[#DDD7CB]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70 text-abu-vulkanik">person</span>
-            <span class="text-sm font-medium">Profil</span>
-          </router-link>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-[#DDD7CB] flex flex-col gap-3">
-        <div class="flex items-center gap-2.5 px-2">
-          <span class="material-symbols-outlined text-[20px] text-tanah-subur">account_circle</span>
-          <div class="flex flex-col leading-tight min-w-0">
-            <span class="text-sm font-semibold text-abu-vulkanik truncate">Suparman Wignyosukarto</span>
-            <span class="text-xs text-abu-vulkanik/70 font-medium truncate">Petani Lahan Blok A</span>
-          </div>
-        </div>
-        <button @click="handleLogout" class="flex items-center gap-2 px-2 py-1.5 text-xs text-abu-vulkanik hover:text-bahaya-lahar transition-colors w-full text-left font-medium rounded hover:bg-[#DDD7CB]/50">
-          <span class="material-symbols-outlined text-[18px] opacity-70">logout</span>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+    <PetaniSidebar />
 
     <!-- Main Content Area -->
     <main class="md:ml-[240px] flex-1 p-4 md:p-8 lg:p-10 max-w-7xl">

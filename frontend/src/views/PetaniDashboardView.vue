@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -29,69 +30,7 @@ const handleLogout = () => {
     </header>
 
     <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-[240px] flex-shrink-0 bg-abu-letusan border-r border-[#DED7CA] flex-col justify-between fixed h-full z-20 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-display font-semibold text-[21px] tracking-tight text-genteng leading-tight">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur font-medium mt-0.5">Dashboard Petani</p>
-        </div>
-
-        <nav class="space-y-1">
-          <router-link to="/petani" 
-            :class="route.path === '/petani' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/petani' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <span>Beranda</span>
-          </router-link>
-
-          <router-link to="/input-lahan" 
-            :class="route.path === '/input-lahan' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/input-lahan' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            <span>Catat</span>
-          </router-link>
-
-          <router-link to="/riwayat" 
-            :class="route.path === '/riwayat' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/riwayat' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>Riwayat</span>
-          </router-link>
-
-          <router-link to="/profil" 
-            :class="route.path === '/profil' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/profil' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span>Profil</span>
-          </router-link>
-        </nav>
-      </div>
-
-      <div class="p-6 border-t border-[#DED7CA]/80 space-y-3">
-        <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-abu-letusan-dark border border-tanah-subur/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg class="w-4 h-4 text-tanah-subur" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs font-semibold text-abu-vulkanik truncate">Suparman Wignyosukarto</p>
-            <p class="text-[11px] text-tanah-subur/80 truncate">Petani Lahan Blok A</p>
-          </div>
-        </div>
-
-        <button @click="handleLogout" class="flex items-center gap-2.5 text-xs text-abu-vulkanik/80 hover:text-genteng font-medium pt-1 transition-colors w-full text-left">
-          <svg class="w-4 h-4 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+    <PetaniSidebar />
 
     <!-- Main Content Area -->
     <main class="md:ml-[240px] flex-1 px-5 pt-4 md:p-10 max-w-7xl flex flex-col gap-5 md:gap-8">

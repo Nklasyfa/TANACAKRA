@@ -1,15 +1,33 @@
-<script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+import AdminSidebar from '../components/AdminSidebar.vue'
+import AdminBottomNav from '../components/AdminBottomNav.vue'
 
 const router = useRouter()
 const route = useRoute()
+const map = ref<any>(null)
 
-const handleLogout = () => {
-  router.push('/')
+const initMap = () => {
+  if (map.value) return
+  map.value = L.map('mapLeaflet').setView([-7.65, 110.45], 13)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map.value)
+
+  // Dummy markers for dashboard overview
+  L.marker([-7.64, 110.44]).addTo(map.value).bindPopup('Blok A (Utara)<br>pH 5.1 - Erosi Pasir')
+  L.marker([-7.66, 110.46]).addTo(map.value).bindPopup('Blok B (Timur)<br>pH 6.2 - Sehat')
+  L.marker([-7.65, 110.45]).addTo(map.value).bindPopup('Blok C (Selatan)<br>pH 6.5 - Sehat')
 }
-</script>
 
-<template>
+onMounted(() => {
+  initMap()
+})
+</script>
   <div class="min-h-screen bg-abu-letusan text-abu-vulkanik font-sans antialiased selection:bg-genteng/20 selection:text-genteng flex flex-col md:flex-row pb-24 md:pb-0">
 
     <!-- Mobile Top App Bar -->
@@ -26,56 +44,7 @@ const handleLogout = () => {
     </header>
 
     <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-60 bg-[#EFEAE0] border-r border-[#DFD9CD] flex-col justify-between fixed inset-y-0 left-0 z-30 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-display font-semibold text-[21px] text-genteng tracking-tight leading-none">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur/80 font-medium mt-1">Admin Dashboard</p>
-        </div>
-
-        <nav class="space-y-1">
-          <router-link to="/admin" 
-            :class="route.path === '/admin' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin' ? 'fill-1 text-genteng' : 'text-abu-vulkanik/70'">dashboard</span>
-            <span>Dashboard</span>
-          </router-link>
-
-          <router-link to="/admin/lahan" 
-            :class="route.path === '/admin/lahan' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/lahan' ? 'text-genteng' : 'text-abu-vulkanik/70'">grid_view</span>
-            <span>Manajemen Lahan</span>
-          </router-link>
-
-          <router-link to="/admin/log" 
-            :class="route.path === '/admin/log' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/log' ? 'text-genteng' : 'text-abu-vulkanik/70'">receipt_long</span>
-            <span>Log Aktivitas</span>
-          </router-link>
-
-          <router-link to="/admin/pengaturan" 
-            :class="route.path === '/admin/pengaturan' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/pengaturan' ? 'text-genteng' : 'text-abu-vulkanik/70'">settings</span>
-            <span>Pengaturan</span>
-          </router-link>
-        </nav>
-      </div>
-
-      <div class="p-6 border-t border-[#DFD9CD]/80 space-y-3">
-        <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-[#DFD9CD] border border-[#DFD9CD] flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span class="material-symbols-outlined text-tanah-subur text-[20px]">admin_panel_settings</span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-xs font-semibold text-abu-vulkanik truncate">Admin Utama</p>
-            <p class="text-[11px] text-tanah-subur/80 truncate">Kelompok Tani Cangkringan</p>
-          </div>
-        </div>
-        <button @click="handleLogout" class="flex items-center gap-2.5 text-xs text-abu-vulkanik/80 hover:text-bahaya-lahar font-medium pt-1 transition-colors w-full text-left">
-          <span class="material-symbols-outlined text-[18px] text-abu-vulkanik/70 flex-shrink-0">logout</span>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+    <AdminSidebar />
 
     <!-- MAIN CONTENT AREA -->
     <main class="md:ml-60 flex-1 p-4 md:p-8 lg:p-10 max-w-7xl w-full mx-auto space-y-5 md:space-y-8">
@@ -123,42 +92,8 @@ const handleLogout = () => {
               </div>
             </div>
 
-            <!-- SVG Map Placeholder (Same aesthetic logic) -->
-            <div class="relative w-full h-[240px] md:h-[350px] bg-[#EFEAE0] rounded-lg border border-[#DFD9CD] overflow-hidden group">
-              <svg class="w-full h-full" viewBox="0 0 360 240" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-                <!-- Topographic Contour Lines -->
-                <path d="M-10,30 Q90,20 180,35 T370,25" stroke="#DFD9CD" stroke-width="1.2" fill="none"></path>
-                <path d="M-10,75 Q110,60 190,85 T370,70" stroke="#DFD9CD" stroke-width="1.2" fill="none"></path>
-                <path d="M-10,120 Q80,105 200,130 T370,115" stroke="#DFD9CD" stroke-width="1.2" fill="none"></path>
-                <path d="M-10,165 Q100,150 210,180 T370,160" stroke="#DFD9CD" stroke-width="1.2" fill="none"></path>
-                <path d="M-10,210 Q90,200 200,220 T370,205" stroke="#DFD9CD" stroke-width="1.2" fill="none"></path>
-
-                <!-- River / Lahar Trail -->
-                <path d="M195,-5 C185,45 175,95 160,140 C150,180 140,215 130,245" stroke="#DFD9CD" stroke-width="7" stroke-linecap="round" fill="none"></path>
-                <path d="M195,-5 C185,45 175,95 160,140 C150,180 140,215 130,245" stroke="#8C2F1B" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="3 3" fill="none"></path>
-
-                <!-- Annotations -->
-                <text x="35" y="45" fill="#5C4A32" font-size="9" font-family="'Plus Jakarta Sans'" font-weight="600" opacity="0.6">Blok A (Utara)</text>
-                <text x="240" y="55" fill="#5C4A32" font-size="9" font-family="'Plus Jakarta Sans'" font-weight="600" opacity="0.6">Blok B (Timur)</text>
-                <text x="40" y="225" fill="#5C4A32" font-size="9" font-family="'Plus Jakarta Sans'" font-weight="600" opacity="0.6">Blok C (Selatan)</text>
-                
-                <!-- Some points -->
-                <circle cx="75" cy="85" r="4.5" fill="#6B7A4F"></circle>
-                <circle cx="115" cy="90" r="4.5" fill="#8C2F1B"></circle>
-                <circle cx="150" cy="60" r="4.5" fill="#8C2F1B"></circle>
-                <circle cx="230" cy="75" r="4.5" fill="#6B7A4F"></circle>
-                <circle cx="130" cy="175" r="4.5" fill="#8C2F1B"></circle>
-                <circle cx="285" cy="155" r="4.5" fill="#6B7A4F"></circle>
-                <circle cx="240" cy="200" r="4.5" fill="#6B7A4F"></circle>
-
-                <!-- Callout -->
-                <g transform="translate(150, 60)">
-                  <circle cx="0" cy="0" r="8" fill="#8C2F1B" fill-opacity="0.3" class="animate-pulse"></circle>
-                  <rect x="8" y="-28" width="130" height="38" rx="3" fill="#3A3733"></rect>
-                  <text x="14" y="-16" fill="#EFEAE0" font-size="9" font-family="'Plus Jakarta Sans'" font-weight="700">Blok B - Petak 14</text>
-                  <text x="14" y="-5" fill="#DFD9CD" font-size="8" font-family="'Plus Jakarta Sans'">pH 5.1 • Erosi Pasir</text>
-                </g>
-              </svg>
+            <!-- Leaflet Map Container -->
+            <div id="mapLeaflet" class="w-full h-[240px] md:h-[350px] rounded-lg border border-[#DFD9CD] overflow-hidden z-10">
             </div>
           </div>
 
@@ -300,27 +235,7 @@ const handleLogout = () => {
     </main>
 
     <!-- FIXED BOTTOM TAB BAR (Admin) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#EFEAE0] border-t border-[#DFD9CD] px-2 py-2 flex items-center justify-around z-30 select-none pb-safe">
-      <router-link to="/admin" class="flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-[#DFD9CD] text-genteng font-semibold transition-all">
-        <span class="material-symbols-outlined fill text-[20px] text-genteng">dashboard</span>
-        <span class="text-[10px] leading-tight">Dashboard</span>
-      </router-link>
-
-      <router-link to="/admin/lahan" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
-        <span class="material-symbols-outlined text-[20px] opacity-70">grid_view</span>
-        <span class="text-[10px] font-medium leading-tight">Lahan</span>
-      </router-link>
-
-      <router-link to="/admin/log" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
-        <span class="material-symbols-outlined text-[20px] opacity-70">receipt_long</span>
-        <span class="text-[10px] font-medium leading-tight">Log</span>
-      </router-link>
-
-      <router-link to="/admin/pengaturan" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
-        <span class="material-symbols-outlined text-[20px] opacity-70">settings</span>
-        <span class="text-[10px] font-medium leading-tight">Pengaturan</span>
-      </router-link>
-    </nav>
+    <AdminBottomNav />
 
   </div>
 </template>

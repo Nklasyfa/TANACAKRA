@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { LahanService } from '../services/api'
+// Leaflet imports
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import AdminSidebar from '../components/AdminSidebar.vue'
+import AdminBottomNav from '../components/AdminBottomNav.vue'
 
 const router = useRouter()
 const lahanList = ref<any[]>([])
@@ -10,6 +15,9 @@ const searchQuery = ref('')
 const selectedDesa = ref('all')
 const isDrawerOpen = ref(false)
 const selectedLahan = ref<any>(null)
+// Map state
+const showMap = ref(false)
+const map = ref<any>(null)
 
 const fetchLahanData = async () => {
   try {
@@ -58,6 +66,71 @@ const handleLogout = () => {
   localStorage.removeItem('tanacakra_user')
   router.push('/')
 }
+
+// Map functions
+const initMap = () => {
+  if (map.value) return
+  // Initialize map centered on Cangkringan area
+  map.value = L.map('mapLeaflet').setView([-7.65, 110.45], 13)
+
+  // Add OSM tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map.value)
+}
+
+const addMarkers = (list) => {
+  if (!map.value) return
+  // Clear existing markers (simple approach: recreate map)
+  // For simplicity, we'll remove and reinit if markers exist; but we can also manage layer group.
+  // We'll just reinitialize map and add markers again.
+  map.value.eachLayer((layer) => {
+    if (layer instanceof L.Marker) {
+      map.value.removeLayer(layer)
+    }
+  })
+
+  list.forEach((item) => {
+    const params = item.input_parameters || {}
+    const lat = params.latitude
+    const lng = params.longitude
+    if (lat && lng) {
+      const marker = L.marker([parseFloat(lat), parseFloat(lng)]).addTo(map.value)
+      const farmId = params.farm_id || ('LHN-' + item.id)
+      const desa = params.desa || 'Cangkringan'
+      const ph = params.soil_ph || 'N/A'
+      const luas = params.area_ha || 'N/A'
+      marker.bindPopup(
+        `<b>Lahan ${farmId}</b><br/>Desa: ${desa}<br/>pH: ${ph}<br/>Luas: ${luas} ha`
+      )
+    }
+  })
+}
+
+// Watch for map visibility
+watch(
+  () => showMap.value,
+  (val) => {
+    if (val) {
+      initMap()
+    } else {
+      if (map.value) {
+        map.value.remove()
+        map.value = null
+      }
+    }
+  }
+)
+
+// Watch for lahan data changes to update markers
+watch(
+  () => lahanList.value,
+  (list) => {
+    if (map.value && list.length) {
+      addMarkers(list)
+    }
+  }
+)
 </script>
 
 <template>
@@ -77,51 +150,11 @@ const handleLogout = () => {
     </header>
 
     <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-[240px] fixed inset-y-0 left-0 bg-abu-letusan border-r border-[#D8D2C5] flex-col justify-between z-30 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-serif text-[22px] font-semibold text-genteng tracking-tight leading-none">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur/80 font-medium mt-1">Dashboard Admin</p>
-        </div>
-        <nav class="space-y-1 mt-2">
-          <router-link to="/admin" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">dashboard</span>
-            <span>Dashboard</span>
-          </router-link>
-          <router-link to="/admin/lahan" class="flex items-center gap-3 px-6 py-3 text-sm font-semibold bg-[#DFD9CD] text-genteng border-l-[3px] border-tanah-subur transition-colors">
-            <span class="material-symbols-outlined text-[20px] text-genteng">grid_view</span>
-            <span>Manajemen Lahan</span>
-          </router-link>
-          <router-link to="/admin/log" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">receipt_long</span>
-            <span>Log Aktivitas</span>
-          </router-link>
-          <router-link to="/admin/pengaturan" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">settings</span>
-            <span>Pengaturan</span>
-          </router-link>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-[#D8D2C5] text-sm space-y-3">
-        <div class="flex items-center gap-2.5 px-2">
-          <div class="w-7 h-7 rounded-full bg-[#DFD9CD] border border-[#D8D2C5] flex items-center justify-center text-tanah-subur">
-            <span class="material-symbols-outlined text-[16px]">person</span>
-          </div>
-          <div class="leading-tight truncate">
-            <p class="font-medium text-xs text-abu-vulkanik truncate">Admin Utama</p>
-            <p class="text-[11px] text-tanah-subur/70 truncate">Admin/Penyuluh</p>
-          </div>
-        </div>
-        <button @click="handleLogout" class="flex items-center gap-2.5 px-2 text-xs text-abu-vulkanik hover:text-bahaya-lahar transition-colors w-full text-left">
-          <span class="material-symbols-outlined text-[16px] opacity-70">logout</span>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+    <AdminSidebar />
 
     <!-- Main Content Area -->
     <main class="w-full md:ml-[240px] flex-1 p-4 pt-20 md:pt-8 md:p-8 min-w-0 max-w-7xl">
-      
+
       <!-- Content Header (Desktop) -->
       <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -132,6 +165,10 @@ const handleLogout = () => {
           <button @click="fetchLahanData" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white/70 hover:bg-white text-abu-vulkanik border border-[#D8D2C5] rounded shadow-sm transition-colors">
             <span class="material-symbols-outlined text-[16px] text-tanah-subur">refresh</span>
             <span>Refresh Data</span>
+          </button>
+          <button @click="showMap = !showMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white/70 hover:bg-white text-abu-vulkanik border border-[#D8D2C5] rounded shadow-sm transition-colors">
+            <span class="material-symbols-outlined text-[16px] text-tanah-subur">{{ showMap ? 'grid_view' : 'map' }}</span>
+            <span>{{ showMap ? 'Tabel Data' : 'Peta Lahan' }}</span>
           </button>
         </div>
       </header>
@@ -237,6 +274,11 @@ const handleLogout = () => {
 
     </main>
 
+    <!-- Map View (Desktop) -->
+    <section v-if="showMap" class="hidden md:block w-full h-[600px]">
+      <div id="mapLeaflet" class="w-full h-full"></div>
+    </section>
+
     <!-- Detail Drawer / Bottom Sheet -->
     <div v-if="isDrawerOpen && selectedLahan" class="fixed inset-0 z-50 flex justify-end md:bg-black/20 bg-black/40 backdrop-blur-sm transition-opacity">
       <div class="absolute inset-0" @click="closeDrawer"></div>
@@ -267,28 +309,7 @@ const handleLogout = () => {
     </div>
 
     <!-- Admin Bottom Navigation (Mobile) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-abu-letusan border-t border-[#D9D3C7] shadow-lg pb-safe">
-      <div class="px-4 py-1.5 flex items-center justify-between">
-        <router-link to="/admin" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">dashboard</span>
-          <span class="text-[10px] font-medium leading-tight">Dashboard</span>
-        </router-link>
-        <router-link to="/admin/lahan" class="flex flex-col items-center justify-center flex-1 py-1">
-          <div class="flex flex-col items-center justify-center px-4 py-1 rounded-full bg-[#DFD9CD] text-genteng">
-            <span class="material-symbols-outlined text-[20px] mb-0.5 fill">grid_view</span>
-            <span class="text-[10px] font-bold leading-tight">Lahan</span>
-          </div>
-        </router-link>
-        <router-link to="/admin/log" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">receipt_long</span>
-          <span class="text-[10px] font-medium leading-tight">Log</span>
-        </router-link>
-        <router-link to="/admin/pengaturan" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">settings</span>
-          <span class="text-[10px] font-medium leading-tight">Pengaturan</span>
-        </router-link>
-      </div>
-    </nav>
+    <AdminBottomNav />
 
   </div>
 </template>

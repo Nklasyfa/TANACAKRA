@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
 import PlotlyChart from '../components/PlotlyChart.vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -101,44 +102,7 @@ const submitData = async () => {
     </header>
 
     <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-60 bg-abu-letusan border-r border-tanah-subur/20 flex-col justify-between fixed inset-y-0 left-0 z-30 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-serif font-semibold text-[21px] text-genteng tracking-tight leading-none">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur/80 font-medium mt-1">Dashboard Petani</p>
-        </div>
-
-        <nav class="space-y-1">
-          <router-link to="/petani" 
-            :class="route.path === '/petani' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-abu-letusan-dark border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-abu-letusan-dark/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/petani' ? 'fill-1 text-genteng' : 'text-abu-vulkanik/70'">home</span>
-            <span>Beranda</span>
-          </router-link>
-
-          <router-link to="/input-lahan" 
-            :class="route.path === '/input-lahan' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-abu-letusan-dark border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-abu-letusan-dark/40 transition-colors'">
-            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/input-lahan' ? 'fill-1 text-genteng' : 'text-abu-vulkanik/70'">edit_square</span>
-            <span>Catat Lahan</span>
-          </router-link>
-        </nav>
-      </div>
-
-      <div class="p-6 border-t border-tanah-subur/15">
-        <div class="flex items-start gap-3 mb-3">
-          <div class="w-8 h-8 rounded-full bg-abu-letusan-dark border border-tanah-subur/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <span class="material-symbols-outlined text-tanah-subur text-[20px]">account_circle</span>
-          </div>
-          <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-abu-vulkanik truncate leading-tight">Petani Cangkringan</p>
-            <p class="text-xs text-tanah-subur/80 truncate mt-0.5 leading-tight">Sleman, DIY</p>
-          </div>
-        </div>
-        <button @click="handleLogout" class="w-full flex items-center gap-2.5 text-xs font-medium text-abu-vulkanik/80 hover:text-bahaya-lahar transition-colors pt-1">
-          <span class="material-symbols-outlined text-[18px]">logout</span>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+    <PetaniSidebar />
 
     <!-- MAIN CONTENT AREA -->
     <main class="md:ml-60 flex-1 p-5 md:p-8 lg:p-10 max-w-7xl">
