@@ -40,20 +40,23 @@ const handleLogout = () => {
             <span>Dashboard</span>
           </router-link>
 
-          <a href="#" class="flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors">
-            <span class="material-symbols-outlined text-abu-vulkanik/70 text-[22px]">grid_view</span>
+          <router-link to="/admin/lahan" 
+            :class="route.path === '/admin/lahan' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
+            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/lahan' ? 'text-genteng' : 'text-abu-vulkanik/70'">grid_view</span>
             <span>Manajemen Lahan</span>
-          </a>
+          </router-link>
 
-          <a href="#" class="flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors">
-            <span class="material-symbols-outlined text-abu-vulkanik/70 text-[22px]">receipt_long</span>
+          <router-link to="/admin/log" 
+            :class="route.path === '/admin/log' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
+            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/log' ? 'text-genteng' : 'text-abu-vulkanik/70'">receipt_long</span>
             <span>Log Aktivitas</span>
-          </a>
+          </router-link>
 
-          <a href="#" class="flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors">
-            <span class="material-symbols-outlined text-abu-vulkanik/70 text-[22px]">settings</span>
+          <router-link to="/admin/pengaturan" 
+            :class="route.path === '/admin/pengaturan' ? 'flex items-center gap-3.5 px-6 py-3 text-sm font-semibold text-genteng bg-[#DFD9CD]/50 border-l-[3px] border-tanah-subur transition-colors' : 'flex items-center gap-3.5 px-6 py-3 text-sm font-medium text-abu-vulkanik hover:bg-[#DFD9CD]/40 transition-colors'">
+            <span class="material-symbols-outlined text-[22px]" :class="route.path === '/admin/pengaturan' ? 'text-genteng' : 'text-abu-vulkanik/70'">settings</span>
             <span>Pengaturan</span>
-          </a>
+          </router-link>
         </nav>
       </div>
 
@@ -303,20 +306,20 @@ const handleLogout = () => {
         <span class="text-[10px] leading-tight">Dashboard</span>
       </router-link>
 
-      <a href="#" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik transition-colors">
-        <span class="material-symbols-outlined text-[20px] text-abu-vulkanik opacity-70">grid_view</span>
+      <router-link to="/admin/lahan" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
+        <span class="material-symbols-outlined text-[20px] opacity-70">grid_view</span>
         <span class="text-[10px] font-medium leading-tight">Lahan</span>
-      </a>
+      </router-link>
 
-      <a href="#" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik transition-colors">
-        <span class="material-symbols-outlined text-[20px] text-abu-vulkanik opacity-70">receipt_long</span>
+      <router-link to="/admin/log" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
+        <span class="material-symbols-outlined text-[20px] opacity-70">receipt_long</span>
         <span class="text-[10px] font-medium leading-tight">Log</span>
-      </a>
+      </router-link>
 
-      <a href="#" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik transition-colors">
-        <span class="material-symbols-outlined text-[20px] text-abu-vulkanik opacity-70">settings</span>
+      <router-link to="/admin/pengaturan" class="flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 text-abu-vulkanik hover:text-genteng transition-colors">
+        <span class="material-symbols-outlined text-[20px] opacity-70">settings</span>
         <span class="text-[10px] font-medium leading-tight">Pengaturan</span>
-      </a>
+      </router-link>
     </nav>
 
   </div>

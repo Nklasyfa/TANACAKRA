@@ -53,19 +53,21 @@ const handleLogout = () => {
             <span>Catat</span>
           </router-link>
 
-          <a href="#" class="flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <router-link to="/riwayat" 
+            :class="route.path === '/riwayat' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
+            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/riwayat' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span>Riwayat</span>
-          </a>
+          </router-link>
 
-          <a href="#" class="flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <router-link to="/profil" 
+            :class="route.path === '/profil' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
+            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/profil' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
             </svg>
             <span>Profil</span>
-          </a>
+          </router-link>
         </nav>
       </div>
 

@@ -18,9 +18,10 @@ const fetchLahanData = async () => {
     lahanList.value = data
   } catch (err) {
     console.error('Gagal mengambil data lahan:', err)
-  } fontally {
+  } finally {
     isLoading.value = false
   }
+
 }
 
 onMounted(() => {

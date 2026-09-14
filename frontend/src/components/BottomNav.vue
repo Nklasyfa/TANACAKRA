@@ -25,19 +25,21 @@ const route = useRoute()
     </router-link>
 
     <!-- Riwayat -->
-    <a href="#" class="flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all">
-      <svg class="w-5 h-5 text-abu-vulkanik/70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <router-link to="/riwayat" 
+      :class="route.path === '/riwayat' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
+      <svg class="w-5 h-5" :class="route.path === '/riwayat' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
-      <span class="text-[10px] font-medium text-abu-vulkanik">Riwayat</span>
-    </a>
+      <span class="text-[10px]" :class="route.path === '/riwayat' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Riwayat</span>
+    </router-link>
 
     <!-- Profil -->
-    <a href="#" class="flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all">
-      <svg class="w-5 h-5 text-abu-vulkanik/70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <router-link to="/profil" 
+      :class="route.path === '/profil' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
+      <svg class="w-5 h-5" :class="route.path === '/profil' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
       </svg>
-      <span class="text-[10px] font-medium text-abu-vulkanik">Profil</span>
-    </a>
+      <span class="text-[10px]" :class="route.path === '/profil' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Profil</span>
+    </router-link>
   </nav>
 </template>
