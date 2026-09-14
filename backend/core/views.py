@@ -146,6 +146,17 @@ def lahan_history(request, lahan_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def lahan_list(request):
+    """
+    Mengambil seluruh daftar data lahan Cangkringan (100 petak) untuk Admin Manajemen Lahan.
+    """
+    datasets = DatasetInput.objects.all().order_by('-created_at')
+    serializer = DatasetInputSerializer(datasets, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def audit_logs_list(request):
     """
     Mengambil daftar log aktivitas sistem (AuditLog) untuk Admin Dashboard.

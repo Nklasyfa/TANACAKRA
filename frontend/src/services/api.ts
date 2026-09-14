@@ -61,8 +61,13 @@ export const LahanService = {
   async getHistory(lahanId: string) {
     const res = await api.get(`/lahan/${lahanId}/history`)
     return res.data
+  },
+  async getAllLahan() {
+    const res = await api.get('/lahan')
+    return res.data
   }
 }
+
 
 export const AdminService = {
   async getAuditLogs(): Promise<AuditLogItem[]> {
