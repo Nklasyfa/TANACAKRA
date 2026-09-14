@@ -135,42 +135,24 @@ const renderMarkers = (items: any[]) => {
 const loadData = async () => {
   initMap()
 
-  // 1. Parallel fetch for Lahan data (Instant map rendering)
-  LahanService.getAllLahan().then((lahans) => {
-    if (lahans && lahans.length > 0) {
-      lahanList.value = lahans
-      renderMarkers(lahans)
-    }
-  }).catch(() => {
-    // Generate 100 default fallback markers if offline
-    const fallbackList = Array.from({ length: 100 }, (_, i) => ({
-      id: i + 1,
-      input_parameters: {
-        farm_id: 'CGK' + String(i + 1).padStart(3, '0'),
-        desa: ['Wukirsari', 'Argomulyo', 'Glagaharjo', 'Kepuharjo', 'Umpak'][i % 5],
-        soil_ph: (5.2 + (i % 25) * 0.1).toFixed(1),
-        soil_type: 'Regosol Vulkanik',
-        area_ha: (0.5 + (i % 4) * 0.5).toFixed(1),
-        elevation_m: 550 + (i % 10) * 20,
-        organic_carbon: (1.5 + (i % 5) * 0.3).toFixed(1)
-      }
-    }))
-    lahanList.value = fallbackList
-    renderMarkers(fallbackList)
-  })
+  // Both calls now resolve instantly (with fallback data if backend is offline)
+  const [lahans, trends] = await Promise.all([
+    LahanService.getAllLahan(),
+    AdminService.getDashboardTrends()
+  ])
 
-  // 2. Parallel fetch for Dashboard Trends
-  AdminService.getDashboardTrends().then((trends) => {
-    if (trends) {
-      dashboardStats.value = trends
-    }
-  }).catch((err) => console.error('Gagal memuat trends:', err))
+  lahanList.value = lahans || []
+  if (trends) {
+    dashboardStats.value = trends
+  }
+
+  renderMarkers(lahanList.value)
 }
 
 onMounted(() => {
   setTimeout(() => {
     loadData()
-  }, 100)
+  }, 50)
 })
 </script>
 
