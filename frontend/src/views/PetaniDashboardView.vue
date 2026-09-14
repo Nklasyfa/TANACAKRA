@@ -1,15 +1,61 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { LahanService, AdminService } from '../services/api'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 const router = useRouter()
-const route = useRoute()
+const map = ref<any>(null)
+const lahanList = ref<any[]>([])
+const dashboardData = ref<any>(null)
 
-// Function to handle logout
-const handleLogout = () => {
-  router.push('/')
+const initMap = () => {
+  if (map.value) return
+  map.value = L.map('mapPetaniLeaflet').setView([-7.64, 110.44], 13)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map.value)
 }
+
+const loadPetaniData = async () => {
+  initMap()
+  try {
+    const [lahans, trends] = await Promise.all([
+      LahanService.getAllLahan(),
+      AdminService.getDashboardTrends().catch(() => null)
+    ])
+    lahanList.value = lahans || []
+    dashboardData.value = trends
+
+    if (map.value && lahanList.value.length > 0) {
+      lahanList.value.forEach((item: any) => {
+        const params = item.input_parameters || {}
+        const lat = parseFloat(params.latitude)
+        const lng = parseFloat(params.longitude)
+        const farmId = params.farm_id || ('LHN-' + item.id)
+        const desa = params.desa || 'Cangkringan'
+        const ph = params.soil_ph || 6.5
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const marker = L.marker([lat, lng]).addTo(map.value)
+          marker.bindPopup(
+            `<b>Lahan ${farmId}</b><br/>Desa: ${desa}<br/>pH Tanah: ${ph}<br/>Status: ${ph >= 6.0 ? '✅ Subur & Ideal' : '⚠️ Perlu Dolomit/Atensi'}`
+          )
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Gagal memuat data petani:', err)
+  }
+}
+
+onMounted(() => {
+  loadPetaniData()
+})
 </script>
 
 <template>
@@ -19,12 +65,12 @@ const handleLogout = () => {
     <header class="md:hidden px-5 pt-5 pb-3 border-b border-[#DED7CA]/60 flex items-center justify-between bg-abu-letusan sticky top-0 z-10">
       <div>
         <h1 class="font-display font-semibold text-lg text-genteng leading-tight">Tanacakra</h1>
-        <p class="text-[11px] text-tanah-subur">Desa Cangkringan</p>
+        <p class="text-[11px] text-tanah-subur">Desa Cangkringan • Lereng Merapi</p>
       </div>
       <div class="flex items-center gap-2">
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#DED7CA] text-[11px] text-tanah-subur">
           <span class="w-2 h-2 rounded-full bg-terasering"></span>
-          <span>Sensor aktif</span>
+          <span>PostgreSQL Active</span>
         </span>
       </div>
     </header>
@@ -38,13 +84,51 @@ const handleLogout = () => {
       <!-- Header sentence -->
       <header class="md:mb-0">
         <h2 class="font-display text-lg md:text-2xl font-semibold text-abu-vulkanik leading-snug">
-          Lahan Blok A — data terakhir dimasukkan 12 Mei 2024
+          Dashboard Tani Cangkringan — 100 Petak Terintegrasi PostgreSQL
         </h2>
         <p class="text-xs md:text-sm text-tanah-subur mt-0.5 md:mt-1">
-          <span class="md:hidden">Petak 14 • Suparman Wignyosukarto</span>
-          <span class="hidden md:inline">Evaluasi harian kondisi kimia-fisik tanah vulkanik petak lereng Cangkringan.</span>
+          Pantau sebaran lahan, rekomendasi komoditas Scikit-learn, dan peta geografis lereng Merapi.
         </p>
       </header>
+
+      <!-- HERO BANNER: KOMODITAS TERBAIK SAAT INI (POPUPS/RECOMMENDATION) -->
+      <section v-if="dashboardData?.best_commodity" class="bg-gradient-to-r from-genteng/10 via-[#F7F4EE] to-[#EFEAE0] rounded-xl p-5 md:p-6 border-2 border-genteng/40 shadow-sm relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1.5 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-genteng text-white text-[10px] font-bold tracking-wide uppercase">
+              🌟 {{ dashboardData.best_commodity.badge }}
+            </div>
+            <h3 class="font-display font-bold text-lg md:text-xl text-abu-vulkanik">
+              Komoditas Terbaik Musim Ini: <span class="text-genteng">{{ dashboardData.best_commodity.title }}</span>
+            </h3>
+            <p class="text-xs md:text-sm text-abu-vulkanik/90 leading-relaxed">
+              {{ dashboardData.best_commodity.reason }}
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 pt-2 text-xs font-semibold text-tanah-subur">
+              <span class="bg-white/80 px-2.5 py-1 rounded border border-[#DED7CA]">Rata-rata Harga: <strong class="text-genteng">{{ dashboardData.best_commodity.avg_price }}</strong></span>
+              <span class="bg-white/80 px-2.5 py-1 rounded border border-[#DED7CA]">Estimasi Hasil: <strong class="text-terasering">{{ dashboardData.best_commodity.expected_yield }}</strong></span>
+              <span class="bg-white/80 px-2.5 py-1 rounded border border-[#DED7CA]">Potensi ROI: <strong class="text-terasering">{{ dashboardData.best_commodity.roi_estimate }}</strong></span>
+            </div>
+          </div>
+
+          <button @click="router.push('/input-lahan')" class="px-5 py-3 rounded-lg bg-genteng hover:bg-genteng-hover text-white text-xs md:text-sm font-semibold tracking-wide transition-all shadow-md shrink-0">
+            Catat Tanam Sekarang →
+          </button>
+        </div>
+      </section>
+
+      <!-- SPATIAL LEAFLET MAP FOR FARMERS -->
+      <section class="bg-white rounded-xl p-4 md:p-6 border border-[#DED7CA] shadow-sm">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#EFEAE0]">
+          <div>
+            <h3 class="font-display font-semibold text-base text-abu-vulkanik">Peta Sebaran Lahan Tani Cangkringan</h3>
+            <p class="text-[11px] text-tanah-subur">100 Petak Lahan Terdaftar di Lereng Merapi</p>
+          </div>
+          <span class="text-xs font-medium text-terasering bg-terasering/10 px-2.5 py-1 rounded">100 Petak Terpetakan</span>
+        </div>
+        <div id="mapPetaniLeaflet" class="w-full h-[260px] md:h-[360px] rounded-lg border border-[#DED7CA] z-10"></div>
+      </section>
 
       <!-- Grid Layout for Content -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 items-start">
@@ -59,7 +143,7 @@ const handleLogout = () => {
                 <span class="inline-block w-2.5 h-2.5 rounded-full bg-terasering"></span>
                 <span class="text-xs font-semibold text-terasering md:tracking-wide">Kondisi tanah optimal</span>
               </div>
-              <span class="text-[11px] md:text-xs text-tanah-subur">Cabai rawit<span class="hidden md:inline"> • 1.450 m²</span></span>
+              <span class="text-[11px] md:text-xs text-tanah-subur">Cabai Merah & Salak • Cangkringan</span>
             </div>
 
             <!-- Recommendation Sentence -->

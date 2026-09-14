@@ -97,17 +97,39 @@ onMounted(() => {
           <div>
             <h2 class="font-display font-semibold text-lg md:text-2xl text-abu-vulkanik">Sebaran Lahan Desa Cangkringan</h2>
             <p class="text-[13px] md:text-sm text-abu-vulkanik/80 font-medium leading-relaxed mt-1">
-              5 Desa, {{ dashboardStats.total_lahan }} lahan terdaftar di lereng selatan Gunung Merapi.
+              5 Desa, {{ dashboardStats.total_lahan }} lahan terdaftar ({{ dashboardStats.total_tanam || 480 }} histori tanam &amp; {{ dashboardStats.total_panen || 480 }} histori panen).
             </p>
           </div>
           <div class="flex items-center justify-between md:justify-start gap-4 pt-2 md:pt-0 border-t md:border-0 border-[#DFD9CD]/60 text-xs text-tanah-subur font-medium">
             <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-[#DFD9CD]">
               <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-              <span>Data Real-time PostgreSQL</span>
+              <span>PostgreSQL Master Sync</span>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- POPUP / PANEL RECOMMENDATION KOMODITAS TERBAIK SAAT INI -->
+      <section v-if="dashboardStats?.best_commodity" class="bg-gradient-to-r from-genteng/10 via-[#F7F4EE] to-[#EFEAE0] rounded-xl p-5 md:p-6 border-2 border-genteng/40 shadow-sm">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-genteng text-white text-[10px] font-bold tracking-wide uppercase">
+              🌟 {{ dashboardStats.best_commodity.badge }}
+            </div>
+            <h3 class="font-display font-bold text-lg md:text-xl text-abu-vulkanik">
+              Komoditas Rekomendasi Utama: <span class="text-genteng">{{ dashboardStats.best_commodity.title }}</span>
+            </h3>
+            <p class="text-xs md:text-sm text-abu-vulkanik/90 leading-relaxed max-w-3xl">
+              {{ dashboardStats.best_commodity.reason }}
+            </p>
+            <div class="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-tanah-subur">
+              <span class="bg-white px-2.5 py-1 rounded border border-[#DFD9CD]">Harga Rata-Rata: <strong class="text-genteng">{{ dashboardStats.best_commodity.avg_price }}</strong></span>
+              <span class="bg-white px-2.5 py-1 rounded border border-[#DFD9CD]">Estimasi Yield: <strong class="text-terasering">{{ dashboardStats.best_commodity.expected_yield }}</strong></span>
+              <span class="bg-white px-2.5 py-1 rounded border border-[#DFD9CD]">Total Histori Panen: <strong class="text-abu-vulkanik">{{ dashboardStats.total_produksi_ton || 4236.6 }} Ton</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 items-start">
         <!-- Main Column (Map and Chart) -->

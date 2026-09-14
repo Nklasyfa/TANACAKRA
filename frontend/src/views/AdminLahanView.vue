@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { LahanService } from '../services/api'
 // Leaflet imports
 import L from 'leaflet'
@@ -16,6 +16,7 @@ const selectedLahan = ref<any>(null)
 // Map state
 const showMap = ref(false)
 const map = ref<any>(null)
+const mapLeaflet = ref<HTMLElement | null>(null)
 
 const fetchLahanData = async () => {
   try {
@@ -62,8 +63,9 @@ const closeDrawer = () => {
 // Map functions
 const initMap = () => {
   if (map.value) return
+  if (!mapLeaflet.value) return
   // Initialize map centered on Cangkringan area
-  map.value = L.map('mapLeaflet').setView([-7.65, 110.45], 13)
+  map.value = L.map(mapLeaflet.value).setView([-7.65, 110.45], 13)
 
   // Add OSM tile layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -99,8 +101,9 @@ const addMarkers = (list: any[]) => {
 // Watch for map visibility
 watch(
   () => showMap.value,
-  (val) => {
+  async (val) => {
     if (val) {
+      await nextTick()
       initMap()
     } else {
       if (map.value) {
@@ -265,7 +268,7 @@ watch(
 
     <!-- Map View (Desktop) -->
     <section v-if="showMap" class="hidden md:block w-full h-[600px]">
-      <div id="mapLeaflet" class="w-full h-full"></div>
+      <div ref="mapLeaflet" class="w-full h-full"></div>
     </section>
 
     <!-- Detail Drawer / Bottom Sheet -->

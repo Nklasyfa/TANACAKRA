@@ -8,16 +8,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tanacakra_backend.settings')
 django.setup()
 
-from core.models import User, DatasetInput, EngineOutput, VisualizationConfig, AuditLog
+from core.models import User, DatasetInput, EngineOutput, VisualizationConfig, AuditLog, PlantingData, HarvestData, PriceData, CostData
 
 def import_data():
-    print("=== STARTING EXCEL DATA IMPORT TO DJANGO POSTGRESQL ===")
+    print("=== STARTING FULL EXCEL DATA IMPORT TO DJANGO POSTGRESQL ===")
 
     data_dir = r"D:\TANACAKRA\data"
     inti_file = os.path.join(data_dir, "data inti", "TANACAKRA_Data_Inti.xlsx")
-    analysis_file = os.path.join(data_dir, "data pendukung", "TANACAKRA_Data_Analysis.xlsx")
 
-    # 1. Ensure Default Users Exist
     admin_user, _ = User.objects.get_or_create(
         username="admin_cangkringan",
         defaults={"email": "admin@cangkringan.desa.id", "role": "ADMIN"}
@@ -27,11 +25,15 @@ def import_data():
         defaults={"email": "petani@cangkringan.desa.id", "role": "PETANI"}
     )
 
-    # 2. Read Land Data (100 Farms)
-    if os.path.exists(inti_file):
-        df_lahan = pd.read_excel(inti_file, sheet_name="Data_Lahan")
-        print(f"[+] Loaded {len(df_lahan)} farm land records from Data_Lahan.")
+    if not os.path.exists(inti_file):
+        print(f"[!] File {inti_file} not found!")
+        return
 
+    xls = pd.ExcelFile(inti_file)
+
+    # 1. Data Lahan
+    if "Data_Lahan" in xls.sheet_names:
+        df_lahan = pd.read_excel(xls, sheet_name="Data_Lahan")
         created_count = 0
         for _, row in df_lahan.iterrows():
             params = {
@@ -46,8 +48,6 @@ def import_data():
                 "latitude": float(row.get('latitude', -7.66)),
                 "longitude": float(row.get('longitude', 110.42))
             }
-
-            # Check if dataset already exists for this farm
             exists = DatasetInput.objects.filter(input_parameters__farm_id=params["farm_id"]).exists()
             if not exists:
                 DatasetInput.objects.create(
@@ -55,17 +55,90 @@ def import_data():
                     input_parameters=params
                 )
                 created_count += 1
+        print(f"[+] Data_Lahan: {len(df_lahan)} loaded, {created_count} imported into DatasetInput.")
 
-        print(f"[+] Imported {created_count} new farm land records into DatasetInput table.")
+    # 2. Data Tanam
+    if "Data_Tanam" in xls.sheet_names:
+        df_tanam = pd.read_excel(xls, sheet_name="Data_Tanam")
+        PlantingData.objects.all().delete()
+        planting_objs = []
+        for _, row in df_tanam.iterrows():
+            d_val = row.get('date')
+            d_date = pd.to_datetime(d_val).date() if pd.notnull(d_val) else None
+            planting_objs.append(PlantingData(
+                planting_id=str(row.get('planting_id')),
+                farm_id=str(row.get('farm_id')),
+                date=d_date,
+                commodity=str(row.get('commodity')),
+                variety=str(row.get('variety')) if pd.notnull(row.get('variety')) else '',
+                season=str(row.get('season')) if pd.notnull(row.get('season')) else '',
+                area_planted_ha=float(row.get('area_planted_ha', 0.0))
+            ))
+        PlantingData.objects.bulk_create(planting_objs)
+        print(f"[+] Data_Tanam: {len(planting_objs)} records imported into PlantingData table.")
 
-    # 3. Log Audit
+    # 3. Data Panen
+    if "Data_Panen" in xls.sheet_names:
+        df_panen = pd.read_excel(xls, sheet_name="Data_Panen")
+        HarvestData.objects.all().delete()
+        harvest_objs = []
+        for _, row in df_panen.iterrows():
+            d_val = row.get('date_harvest')
+            d_date = pd.to_datetime(d_val).date() if pd.notnull(d_val) else None
+            harvest_objs.append(HarvestData(
+                harvest_id=str(row.get('harvest_id')),
+                planting_id=str(row.get('planting_id')),
+                date_harvest=d_date,
+                commodity=str(row.get('commodity')),
+                area_harvested_ha=float(row.get('area_harvested_ha', 0.0)),
+                production_ton=float(row.get('production_ton', 0.0)),
+                yield_ton_ha=float(row.get('yield_ton_ha', 0.0))
+            ))
+        HarvestData.objects.bulk_create(harvest_objs)
+        print(f"[+] Data_Panen: {len(harvest_objs)} records imported into HarvestData table.")
+
+    # 4. Data Harga
+    if "Data_Harga" in xls.sheet_names:
+        df_harga = pd.read_excel(xls, sheet_name="Data_Harga")
+        PriceData.objects.all().delete()
+        price_objs = []
+        for _, row in df_harga.iterrows():
+            d_val = row.get('date')
+            d_date = pd.to_datetime(d_val).date() if pd.notnull(d_val) else None
+            price_objs.append(PriceData(
+                date=d_date,
+                commodity=str(row.get('commodity')),
+                price_rp_per_kg=float(row.get('price_rp_per_kg', 0.0))
+            ))
+        PriceData.objects.bulk_create(price_objs)
+        print(f"[+] Data_Harga: {len(price_objs)} records imported into PriceData table.")
+
+    # 5. Data Biaya
+    if "Data_Biaya" in xls.sheet_names:
+        df_biaya = pd.read_excel(xls, sheet_name="Data_Biaya")
+        CostData.objects.all().delete()
+        cost_objs = []
+        for _, row in df_biaya.iterrows():
+            d_val = row.get('expense_date')
+            d_date = pd.to_datetime(d_val).date() if pd.notnull(d_val) else None
+            cost_objs.append(CostData(
+                planting_id=str(row.get('planting_id')),
+                category=str(row.get('category')),
+                amount=float(row.get('amount', 0.0)),
+                expense_date=d_date,
+                notes=str(row.get('notes')) if pd.notnull(row.get('notes')) else ''
+            ))
+        CostData.objects.bulk_create(cost_objs)
+        print(f"[+] Data_Biaya: {len(cost_objs)} records imported into CostData table.")
+
+    # Log Audit
     AuditLog.objects.create(
         user=admin_user,
-        action=f"Import master data {len(df_lahan)} lahan Desa Cangkringan dari Excel",
+        action="Import FULL master datasets (Lahan, Tanam, Panen, Harga, Biaya) dari Excel ke PostgreSQL",
         endpoint="/script/import_excel_data"
     )
 
-    print("=== EXCEL DATA IMPORT COMPLETED SUCCESSFULLY ===")
+    print("=== FULL EXCEL DATA IMPORT COMPLETED SUCCESSFULLY ===")
 
 if __name__ == "__main__":
     import_data()

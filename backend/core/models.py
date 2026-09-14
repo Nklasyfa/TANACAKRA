@@ -44,3 +44,46 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action} by {self.user} at {self.timestamp}"
+
+class PlantingData(models.Model):
+    planting_id = models.CharField(max_length=50, primary_key=True)
+    farm_id = models.CharField(max_length=50)
+    date = models.DateField(null=True, blank=True)
+    commodity = models.CharField(max_length=100)
+    variety = models.CharField(max_length=100, null=True, blank=True)
+    season = models.CharField(max_length=50, null=True, blank=True)
+    area_planted_ha = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.planting_id} - {self.commodity} ({self.farm_id})"
+
+class HarvestData(models.Model):
+    harvest_id = models.CharField(max_length=50, primary_key=True)
+    planting_id = models.CharField(max_length=50)
+    date_harvest = models.DateField(null=True, blank=True)
+    commodity = models.CharField(max_length=100)
+    area_harvested_ha = models.FloatField(default=0.0)
+    production_ton = models.FloatField(default=0.0)
+    yield_ton_ha = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.harvest_id} - {self.commodity}"
+
+class PriceData(models.Model):
+    date = models.DateField(null=True, blank=True)
+    commodity = models.CharField(max_length=100)
+    price_rp_per_kg = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"{self.commodity} - Rp {self.price_rp_per_kg}/kg ({self.date})"
+
+class CostData(models.Model):
+    planting_id = models.CharField(max_length=50)
+    category = models.CharField(max_length=100)
+    amount = models.FloatField(default=0.0)
+    expense_date = models.DateField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.planting_id} - {self.category}: Rp {self.amount}"
+
