@@ -26,6 +26,8 @@ onMounted(() => {
   initMap()
 })
 </script>
+
+<template>
   <div class="min-h-screen bg-abu-letusan text-abu-vulkanik font-sans antialiased selection:bg-genteng/20 selection:text-genteng flex flex-col md:flex-row pb-24 md:pb-0">
 
     <!-- Mobile Top App Bar -->
