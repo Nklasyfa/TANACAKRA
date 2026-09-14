@@ -67,5 +67,10 @@ if __name__ == "__main__":
     print("4. Testing Lahan History (Petak 14):")
     test_endpoint("Lahan History", "/lahan/14/history", method="GET")
     print("\n" + "-"*40 + "\n")
+
+    # 5. Test Audit Logs
+    print("5. Testing Audit Logs:")
+    test_endpoint("Audit Logs", "/audit-logs", method="GET")
+    print("\n" + "-"*40 + "\n")
     
     print("=== API TESTING COMPLETE ===")

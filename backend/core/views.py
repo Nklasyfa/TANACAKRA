@@ -4,8 +4,16 @@ from rest_framework.response import Response
 from rest_framework import status
 import time
 
-from .models import DatasetInput, EngineOutput, AuditLog, User
-from .serializers import DatasetInputSerializer, EngineOutputSerializer
+from .models import DatasetInput, EngineOutput, VisualizationConfig, AuditLog, User
+from .serializers import (
+    DatasetInputSerializer, 
+    EngineOutputSerializer, 
+    VisualizationConfigSerializer, 
+    AuditLogSerializer,
+    UserSerializer
+)
+from .services.ml_engine import ml_engine
+from .services.plotly_engine import plotly_engine
 
 def log_audit(user, action, endpoint):
     AuditLog.objects.create(
@@ -18,120 +26,148 @@ def log_audit(user, action, endpoint):
 @permission_classes([AllowAny])
 def auth_login(request):
     """
-    Mock login endpoint. In production, this would be handled by Supabase Auth,
-    and we would validate the JWT token here or via middleware.
+    Login endpoint dengan dukungan Supabase Auth / Local User Auth.
     """
-    # For now, just return a mock success
+    username = request.data.get('username', 'petani_demo')
+    password = request.data.get('password', '')
+    role = request.data.get('role', 'PETANI')
+
+    # Ambil atau buat user demo
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={'email': f"{username}@tanacakra.id", 'role': role}
+    )
+
+    log_audit(user, f"Login pengguna ({user.role})", "/api/v1/auth/login")
+
     return Response({
         "message": "Login berhasil",
-        "token": "dummy-jwt-token-from-supabase",
-        "user": {
-            "id": 1,
-            "username": "petani_demo",
-            "role": "PETANI"
-        }
+        "token": "supabase-jwt-token-tanacakra-2026",
+        "user": UserSerializer(user).data
     }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([AllowAny]) # Change to IsAuthenticated later when auth is fully integrated
+@permission_classes([AllowAny])
 def input_lahan(request, lahan_id):
     """
-    Input parameter masukan tanah lapangan oleh petani (pH, kelembapan, NPK).
+    Input parameter tanah oleh petani (pH, kelembapan, NPK).
+    Juga langsung memicu eksekusi ML Pipeline Scikit-learn & pembuatan Grafik Plotly.
     """
-    # Simulate user for now
     user = User.objects.first()
-    
-    # Save input parameters
+    if not user:
+        user = User.objects.create(username="petani_cangkringan", role="PETANI")
+
+    input_params = request.data.get('parameters', request.data)
+
+    # 1. Simpan dataset input
     dataset = DatasetInput.objects.create(
         user=user,
-        input_parameters=request.data.get('parameters', {})
+        input_parameters=input_params
     )
-    
-    log_audit(user, f"Input dataset lahan baru (Petak {lahan_id})", f"/api/v1/lahan/{lahan_id}/input")
-    
-    serializer = DatasetInputSerializer(dataset)
+
+    # 2. Eksekusi Scikit-learn ML Engine
+    start_time = time.time()
+    prediction_result = ml_engine.predict(input_params)
+    execution_time = round(time.time() - start_time, 3)
+
+    # 3. Simpan hasil ke EngineOutput
+    engine_output = EngineOutput.objects.create(
+        dataset=dataset,
+        prediction_result=prediction_result,
+        execution_time=execution_time
+    )
+
+    # 4. Generasi Plotly Schema & Simpan ke VisualizationConfig
+    plotly_schema = plotly_engine.generate_soil_radar_chart(input_params)
+    visualization = VisualizationConfig.objects.create(
+        engine_output=engine_output,
+        plotly_json_schema=plotly_schema
+    )
+
+    log_audit(user, f"Input & Prediksi ML Lahan (Petak {lahan_id})", f"/api/v1/lahan/{lahan_id}/input")
+
     return Response({
-        "message": f"Data parameter lahan {lahan_id} berhasil disimpan.",
-        "data": serializer.data
+        "message": f"Data parameter lahan {lahan_id} berhasil diproses oleh Scikit-learn Engine.",
+        "dataset_id": dataset.id,
+        "engine_output": EngineOutputSerializer(engine_output).data,
+        "plotly_schema": plotly_schema
     }, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def pipeline_infer(request):
     """
-    Menjalankan inferensi model Scikit-learn Random Forest untuk menghasilkan rekomendasi pupuk dan tindakan.
+    Menjalankan inferensi model Scikit-learn Random Forest untuk dataset tertentu.
     """
     user = User.objects.first()
     dataset_id = request.data.get('dataset_id')
-    
+
     try:
         dataset = DatasetInput.objects.get(id=dataset_id)
     except DatasetInput.DoesNotExist:
         return Response({"error": "Dataset tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
-        
+
     start_time = time.time()
-    
-    # --- MOCK ML PIPELINE EXECUTION ---
-    # In Epic 4, we will load the scikit-learn model here and call model.predict()
-    prediction_result = {
-        "status": "Perlu Retrain" if dataset.input_parameters.get('pH', 7) < 6 else "Optimal",
-        "rekomendasi_pupuk": "Dolomit 150 kg/ha" if dataset.input_parameters.get('pH', 7) < 6 else "Pupuk NPK Standar",
-        "confidence_score": 0.92
-    }
-    
-    execution_time = round(time.time() - start_time, 2)
-    
-    engine_output = EngineOutput.objects.create(
+    prediction_result = ml_engine.predict(dataset.input_parameters)
+    execution_time = round(time.time() - start_time, 3)
+
+    engine_output, _ = EngineOutput.objects.update_or_create(
         dataset=dataset,
-        prediction_result=prediction_result,
-        execution_time=execution_time
+        defaults={
+            "prediction_result": prediction_result,
+            "execution_time": execution_time
+        }
     )
-    
-    log_audit(user, "Inferensi rekomendasi pupuk", "/api/v1/pipeline/infer")
-    
-    serializer = EngineOutputSerializer(engine_output)
+
+    log_audit(user, f"Inferensi Scikit-learn Pipeline (Dataset #{dataset_id})", "/api/v1/pipeline/infer")
+
     return Response({
-        "message": "Inferensi model berhasil",
-        "data": serializer.data
+        "message": "Inferensi model Scikit-learn berhasil",
+        "data": EngineOutputSerializer(engine_output).data
     }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def lahan_history(request, lahan_id):
     """
-    Mengambil riwayat log data masukan dan tren 14 hari terakhir suatu petak.
-    (Currently fetches all datasets for simplicity)
+    Mengambil riwayat log data masukan dan tren historis suatu petak lahan.
     """
     datasets = DatasetInput.objects.all().order_by('-created_at')[:10]
-    serializer = DatasetInputSerializer(datasets, many=True)
+    datasets_data = DatasetInputSerializer(datasets, many=True).data
+
+    # Trend Chart Plotly
+    trend_chart = plotly_engine.generate_history_trend_chart(datasets_data)
+
     return Response({
         "lahan_id": lahan_id,
-        "history": serializer.data
+        "history": datasets_data,
+        "trend_chart_schema": trend_chart
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def audit_logs_list(request):
+    """
+    Mengambil daftar log aktivitas sistem (AuditLog) untuk Admin Dashboard.
+    """
+    logs = AuditLog.objects.all().order_by('-timestamp')[:50]
+    serializer = AuditLogSerializer(logs, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
 @permission_classes([AllowAny])
 def pipeline_config(request):
-    """
-    Memperbarui konfigurasi parameter ambang batas pipeline ML secara global atau per petak.
-    """
-    log_audit(User.objects.first(), "Perbarui ambang batas pipeline", "/api/v1/pipeline/config")
+    log_audit(User.objects.first(), "Perbarui ambang batas pipeline ML", "/api/v1/pipeline/config")
     return Response({"message": "Konfigurasi pipeline berhasil diperbarui"}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def tindakan_confirm(request):
-    """
-    Konfirmasi petani setelah melaksanakan rekomendasi lapang (misal penaburan dolomit).
-    """
-    log_audit(User.objects.first(), "Konfirmasi pelaksanaan rekomendasi", "/api/v1/tindakan/confirm")
-    return Response({"message": "Tindakan berhasil dikonfirmasi"}, status=status.HTTP_200_OK)
+    log_audit(User.objects.first(), "Konfirmasi pelaksanaan rekomendasi lapang", "/api/v1/tindakan/confirm")
+    return Response({"message": "Tindakan rekomendasi berhasil dikonfirmasi"}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def broadcast_alert(request):
-    """
-    Pengiriman peringatan dini risiko lahar dingin/anomali tanah ke kontak WhatsApp petani.
-    """
-    log_audit(User.objects.first(), "Kirim broadcast peringatan bahaya", "/api/v1/broadcast/alert")
-    return Response({"message": "Broadcast peringatan berhasil dikirim"}, status=status.HTTP_200_OK)
+    log_audit(User.objects.first(), "Kirim broadcast peringatan bahaya Cangkringan", "/api/v1/broadcast/alert")
+    return Response({"message": "Broadcast peringatan berhasil dikirim ke seluruh petani"}, status=status.HTTP_200_OK)

@@ -18,6 +18,14 @@ node_modules/
 dist/
 .DS_Store
 
+<<<<<<< feat/epic3-backend-and-ml-integration
 # Ignored folders
 ui/
 docs/
+=======
+# Local tools & data
+.claude/
+data/
+asset/
+
+>>>>>>> local

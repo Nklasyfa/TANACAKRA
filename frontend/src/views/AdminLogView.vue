@@ -1,10 +1,48 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { AdminService, type AuditLogItem } from '../services/api'
 
 const router = useRouter()
-const route = useRoute()
+const auditLogs = ref<AuditLogItem[]>([])
+const isLoading = ref(true)
+const searchQuery = ref('')
+
+const fetchLogs = async () => {
+  try {
+    isLoading.value = true
+    const logs = await AdminService.getAuditLogs()
+    auditLogs.value = logs
+  } catch (err) {
+    console.error('Gagal mengambil audit log:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchLogs()
+})
+
+const filteredLogs = computed(() => {
+  if (!searchQuery.value) return auditLogs.value
+  const query = searchQuery.value.toLowerCase()
+  return auditLogs.value.filter(log => 
+    log.action.toLowerCase().includes(query) ||
+    log.endpoint.toLowerCase().includes(query) ||
+    (log.user && log.user.username.toLowerCase().includes(query))
+  )
+})
+
+const formatDate = (isoStr: string) => {
+  if (!isoStr) return '-'
+  const d = new Date(isoStr)
+  return d.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' })
+}
 
 const handleLogout = () => {
+  localStorage.removeItem('tanacakra_token')
+  localStorage.removeItem('tanacakra_user')
   router.push('/')
 }
 </script>
@@ -17,13 +55,11 @@ const handleLogout = () => {
       <div class="flex items-center justify-between">
         <div>
           <h1 class="font-serif text-xl font-semibold tracking-tight text-abu-vulkanik leading-tight">Log Aktivitas</h1>
-          <p class="text-[11px] text-tanah-subur font-medium">Audit trail sistem</p>
+          <p class="text-[11px] text-tanah-subur font-medium">Audit trail sistem Supabase</p>
         </div>
-        <div class="flex items-center space-x-1">
-          <button class="p-2 text-abu-vulkanik hover:text-genteng transition-colors rounded-full relative">
-            <span class="material-symbols-outlined text-[20px]">filter_list</span>
-          </button>
-        </div>
+        <button @click="fetchLogs" class="p-2 text-abu-vulkanik hover:text-genteng transition-colors rounded-full">
+          <span class="material-symbols-outlined text-[20px]">refresh</span>
+        </button>
       </div>
     </header>
 
@@ -76,49 +112,37 @@ const handleLogout = () => {
       <header class="hidden md:flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
           <h2 class="font-serif text-2xl lg:text-3xl font-semibold text-abu-vulkanik tracking-tight">Log Aktivitas Sistem</h2>
-          <p class="text-sm text-abu-vulkanik opacity-80 mt-1">Audit trail interaksi pengguna, eksekusi pipeline rekomendasi, dan sinkronisasi data lapangan.</p>
+          <p class="text-sm text-abu-vulkanik opacity-80 mt-1">Audit trail interaksi pengguna, eksekusi pipeline rekomendasi Scikit-learn, dan REST API Django.</p>
         </div>
-        <div class="flex items-center gap-2 text-xs text-abu-vulkanik opacity-75 bg-[#E6E0D4] px-3 py-1.5 rounded border border-[#dedad0]">
-          <span class="inline-block w-2 h-2 rounded-full bg-terasering"></span>
-          <span>Sinkronisasi aktif: 12 Mei 2024, 09:42 WIB</span>
-        </div>
+        <button @click="fetchLogs" class="flex items-center gap-2 text-xs font-medium text-tanah-subur bg-[#E6E0D4] px-3 py-1.5 rounded border border-[#dedad0] hover:bg-[#DFD9CD] transition-colors">
+          <span class="material-symbols-outlined text-[16px]">refresh</span>
+          <span>Refresh Data</span>
+        </button>
       </header>
 
       <section class="bg-[#FBF8F2] border border-[#dedad0] rounded-lg p-3 md:p-4 mb-4 md:mb-5 shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 md:gap-4">
           <div class="relative flex-1 max-w-md">
             <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-abu-vulkanik opacity-60">search</span>
-            <input type="text" placeholder="Cari user, aksi, ID lahan..." class="w-full pl-9 pr-3 py-2 md:py-1.5 text-xs md:text-sm bg-white md:bg-[#EFEAE0] border border-[#dedad0] rounded text-abu-vulkanik focus:outline-none focus:border-tanah-subur" />
-          </div>
-          
-          <div class="flex flex-wrap items-center gap-2 md:gap-2.5">
-            <div class="flex items-center gap-1.5 text-[11px] md:text-xs text-abu-vulkanik">
-              <span class="opacity-70 hidden md:inline">Aksi:</span>
-              <select class="bg-white md:bg-[#EFEAE0] border border-[#dedad0] rounded px-2 py-1.5 md:px-2.5 md:py-1.5 text-[11px] md:text-xs text-abu-vulkanik focus:outline-none focus:border-tanah-subur">
-                <option value="all">Semua aksi</option>
-                <option value="input">Input Data Lahan</option>
-              </select>
-            </div>
-            <div class="flex items-center gap-1.5 text-[11px] md:text-xs text-abu-vulkanik">
-              <span class="opacity-70 hidden md:inline">Pengguna:</span>
-              <select class="bg-white md:bg-[#EFEAE0] border border-[#dedad0] rounded px-2 py-1.5 md:px-2.5 md:py-1.5 text-[11px] md:text-xs text-abu-vulkanik focus:outline-none focus:border-tanah-subur">
-                <option value="all">Semua pengguna</option>
-                <option value="petani">Petani Lapangan</option>
-              </select>
-            </div>
-            <div class="hidden md:flex items-center gap-1.5 text-xs text-abu-vulkanik">
-              <span class="opacity-70">Rentang:</span>
-              <select class="bg-[#EFEAE0] border border-[#dedad0] rounded px-2.5 py-1.5 text-xs text-abu-vulkanik focus:outline-none focus:border-tanah-subur">
-                <option value="today">Hari ini (12 Mei)</option>
-              </select>
-            </div>
-            <button class="hidden md:inline-block text-xs text-genteng hover:underline px-2 py-1">Reset</button>
+            <input v-model="searchQuery" type="text" placeholder="Cari user, aksi, endpoint..." class="w-full pl-9 pr-3 py-2 md:py-1.5 text-xs md:text-sm bg-white md:bg-[#EFEAE0] border border-[#dedad0] rounded text-abu-vulkanik focus:outline-none focus:border-tanah-subur" />
           </div>
         </div>
       </section>
 
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-12 bg-[#FBF8F2] border border-[#dedad0] rounded-lg">
+        <span class="material-symbols-outlined animate-spin text-3xl text-tanah-subur">sync</span>
+        <p class="text-xs text-abu-vulkanik/70 mt-2">Memuat log aktivitas dari database PostgreSQL...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="filteredLogs.length === 0" class="text-center py-12 bg-[#FBF8F2] border border-[#dedad0] rounded-lg">
+        <span class="material-symbols-outlined text-4xl text-tanah-subur opacity-40">receipt_long</span>
+        <p class="text-sm text-abu-vulkanik font-medium mt-2">Belum ada log aktivitas tercatat</p>
+      </div>
+
       <!-- Desktop Table -->
-      <section class="hidden md:block bg-[#FBF8F2] border border-[#dedad0] rounded-lg overflow-hidden shadow-sm">
+      <section v-else class="hidden md:block bg-[#FBF8F2] border border-[#dedad0] rounded-lg overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-abu-vulkanik">
             <thead class="bg-[#EFEAE0] border-b border-[#dedad0] text-abu-vulkanik font-semibold">
@@ -131,44 +155,19 @@ const handleLogout = () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#dedad0]">
-              <tr class="hover:bg-[#f6f2e9] transition-colors">
+              <tr v-for="log in filteredLogs" :key="log.id" class="hover:bg-[#f6f2e9] transition-colors">
                 <td class="py-3 px-4 whitespace-nowrap">
-                  <span class="font-medium text-abu-vulkanik">12 Mei 2024, 09:38:12</span>
-                  <span class="block text-[11px] opacity-60">24 detik lalu</span>
+                  <span class="font-medium text-abu-vulkanik">{{ formatDate(log.timestamp) }}</span>
                 </td>
                 <td class="py-3 px-4">
-                  <div class="font-medium text-abu-vulkanik">Suparman Wignyosukarto</div>
-                  <div class="text-[11px] opacity-65">Petani • Blok A (Kinahrejo)</div>
+                  <div class="font-medium text-abu-vulkanik">{{ log.user ? log.user.username : 'System / Anon' }}</div>
+                  <div class="text-[11px] opacity-65">{{ log.user ? log.user.role : 'System Engine' }}</div>
                 </td>
                 <td class="py-3 px-4">
-                  <div class="font-medium text-abu-vulkanik">Input dataset lahan baru</div>
-                  <div class="text-[11px] opacity-70">Petak 14 (pH 6.5, lembap 68%)</div>
+                  <div class="font-medium text-abu-vulkanik">{{ log.action }}</div>
                 </td>
                 <td class="py-3 px-4 font-mono text-[11px] text-tanah-subur">
-                  <span class="bg-[#EFEAE0] px-1.5 py-0.5 rounded border border-[#dedad0]">POST /api/v1/lahan/14/input</span>
-                </td>
-                <td class="py-3 px-4 text-right">
-                  <span class="inline-flex items-center gap-1 text-[11px] text-terasering font-medium">
-                    <span class="w-1.5 h-1.5 rounded-full bg-terasering"></span>
-                    201 Berhasil
-                  </span>
-                </td>
-              </tr>
-              <tr class="hover:bg-[#f6f2e9] transition-colors">
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span class="font-medium text-abu-vulkanik">12 Mei 2024, 09:38:14</span>
-                  <span class="block text-[11px] opacity-60">22 detik lalu</span>
-                </td>
-                <td class="py-3 px-4">
-                  <div class="font-medium text-abu-vulkanik">System Engine</div>
-                  <div class="text-[11px] opacity-65">Automated RF Pipeline</div>
-                </td>
-                <td class="py-3 px-4">
-                  <div class="font-medium text-abu-vulkanik">Inferensi rekomendasi pupuk</div>
-                  <div class="text-[11px] opacity-70">Waktu inferensi: 1.84s (Model v2.4)</div>
-                </td>
-                <td class="py-3 px-4 font-mono text-[11px] text-tanah-subur">
-                  <span class="bg-[#EFEAE0] px-1.5 py-0.5 rounded border border-[#dedad0]">POST /api/v1/pipeline/infer</span>
+                  <span class="bg-[#EFEAE0] px-1.5 py-0.5 rounded border border-[#dedad0]">{{ log.endpoint }}</span>
                 </td>
                 <td class="py-3 px-4 text-right">
                   <span class="inline-flex items-center gap-1 text-[11px] text-terasering font-medium">
@@ -180,68 +179,22 @@ const handleLogout = () => {
             </tbody>
           </table>
         </div>
-        <div class="py-3 px-4 bg-[#EFEAE0] border-t border-[#dedad0] flex items-center justify-between text-xs text-abu-vulkanik">
-          <p class="opacity-75">Menampilkan 1–2 dari 412 entri log hari ini</p>
-          <div class="flex items-center gap-1">
-            <button class="px-2.5 py-1 bg-[#FBF8F2] border border-[#dedad0] rounded text-abu-vulkanik opacity-60">Sebelumnya</button>
-            <button class="px-2.5 py-1 bg-tanah-subur text-white rounded font-medium">1</button>
-            <button class="px-2.5 py-1 bg-[#FBF8F2] border border-[#dedad0] rounded text-abu-vulkanik hover:bg-[#e7e1d5]">Berikutnya</button>
-          </div>
-        </div>
       </section>
 
       <!-- Mobile List -->
-      <section class="md:hidden flex flex-col gap-3">
-        <!-- Log Item 1 -->
-        <div class="bg-white border border-[#dedad0] rounded-lg p-3 shadow-sm flex flex-col gap-2 relative overflow-hidden">
+      <section v-if="!isLoading && filteredLogs.length > 0" class="md:hidden flex flex-col gap-3">
+        <div v-for="log in filteredLogs" :key="'mob-' + log.id" class="bg-white border border-[#dedad0] rounded-lg p-3 shadow-sm flex flex-col gap-2 relative overflow-hidden">
           <div class="absolute left-0 top-0 bottom-0 w-1 bg-terasering"></div>
           <div class="pl-2">
             <div class="flex items-start justify-between mb-1">
               <div>
-                <span class="font-semibold text-[13px] text-abu-vulkanik leading-tight">Input dataset lahan baru</span>
-                <p class="text-[10px] text-tanah-subur/80 mt-0.5">Suparman Wignyosukarto • 12 Mei, 09:38:12</p>
-              </div>
-              <span class="text-[10px] bg-[#EEF2E6] text-terasering border border-[#D2DEC0] px-1.5 py-0.5 rounded font-medium whitespace-nowrap">201 Berhasil</span>
-            </div>
-            <div class="bg-abu-letusan/40 rounded p-2 mt-2 border border-[#dedad0]/50">
-              <p class="font-mono text-[9px] text-tanah-subur mb-1">POST /api/v1/lahan/14/input</p>
-              <p class="text-[11px] text-abu-vulkanik/80 leading-snug">Petak 14 (pH 6.5, lembap 68%)</p>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Log Item 2 -->
-        <div class="bg-white border border-[#dedad0] rounded-lg p-3 shadow-sm flex flex-col gap-2 relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1 bg-terasering"></div>
-          <div class="pl-2">
-            <div class="flex items-start justify-between mb-1">
-              <div>
-                <span class="font-semibold text-[13px] text-abu-vulkanik leading-tight">Inferensi rekomendasi pupuk</span>
-                <p class="text-[10px] text-tanah-subur/80 mt-0.5">System Engine • 12 Mei, 09:38:14</p>
+                <span class="font-semibold text-[13px] text-abu-vulkanik leading-tight">{{ log.action }}</span>
+                <p class="text-[10px] text-tanah-subur/80 mt-0.5">{{ log.user ? log.user.username : 'System' }} • {{ formatDate(log.timestamp) }}</p>
               </div>
               <span class="text-[10px] bg-[#EEF2E6] text-terasering border border-[#D2DEC0] px-1.5 py-0.5 rounded font-medium whitespace-nowrap">200 Berhasil</span>
             </div>
             <div class="bg-abu-letusan/40 rounded p-2 mt-2 border border-[#dedad0]/50">
-              <p class="font-mono text-[9px] text-tanah-subur mb-1">POST /api/v1/pipeline/infer</p>
-              <p class="text-[11px] text-abu-vulkanik/80 leading-snug">Waktu inferensi: 1.84s (Model v2.4)</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Log Item 3 -->
-        <div class="bg-white border border-[#dedad0] rounded-lg p-3 shadow-sm flex flex-col gap-2 relative overflow-hidden">
-          <div class="absolute left-0 top-0 bottom-0 w-1 bg-bahaya-lahar"></div>
-          <div class="pl-2">
-            <div class="flex items-start justify-between mb-1">
-              <div>
-                <span class="font-semibold text-[13px] text-abu-vulkanik leading-tight">Gagal autentikasi kata sandi</span>
-                <p class="text-[10px] text-tanah-subur/80 mt-0.5">Wagiman S. • 12 Mei, 07:15:22</p>
-              </div>
-              <span class="text-[10px] bg-[#F9EBE8] text-bahaya-lahar border border-[#E9C5BE] px-1.5 py-0.5 rounded font-medium whitespace-nowrap">401 Tidak Sah</span>
-            </div>
-            <div class="bg-abu-letusan/40 rounded p-2 mt-2 border border-[#dedad0]/50">
-              <p class="font-mono text-[9px] text-tanah-subur mb-1">POST /api/v1/auth/login</p>
-              <p class="text-[11px] text-abu-vulkanik/80 leading-snug">Percobaan ke-2 via nomor 08129841xxxx</p>
+              <p class="font-mono text-[9px] text-tanah-subur mb-1">{{ log.endpoint }}</p>
             </div>
           </div>
         </div>
