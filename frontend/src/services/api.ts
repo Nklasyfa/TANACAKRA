@@ -62,6 +62,10 @@ export const LahanService = {
     const res = await api.get(`/lahan/${lahanId}/history`)
     return res.data
   },
+  async getLahanHistory() {
+    const res = await api.get('/lahan')
+    return res.data
+  },
   async getAllLahan() {
     const res = await api.get('/lahan')
     return res.data
