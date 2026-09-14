@@ -2,11 +2,15 @@
 import BottomNav from '../components/BottomNav.vue'
 import PlotlyChart from '../components/PlotlyChart.vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { LahanService, type LandInputPayload } from '../services/api'
 
 const router = useRouter()
 const route = useRoute()
+
+const availableFarms = ref<any[]>([])
+const selectedFarmId = ref('CGK001')
+const selectedFarmDetail = ref<any>(null)
 
 const phValue = ref(5.2)
 const moistureValue = ref(45)
@@ -18,6 +22,31 @@ const isSubmitting = ref(false)
 const mlResult = ref<any>(null)
 const plotlySchema = ref<any>(null)
 const errorMessage = ref('')
+
+const fetchFarms = async () => {
+  try {
+    const list = await LahanService.getAllLahan()
+    availableFarms.value = list
+    if (list.length > 0) {
+      onFarmSelect(list[0].input_parameters?.farm_id || 'CGK001')
+    }
+  } catch (err) {
+    console.error('Error fetching farm list:', err)
+  }
+}
+
+onMounted(() => {
+  fetchFarms()
+})
+
+const onFarmSelect = (farmId: string) => {
+  selectedFarmId.value = farmId
+  const farm = availableFarms.value.find(f => f.input_parameters?.farm_id === farmId)
+  if (farm && farm.input_parameters) {
+    selectedFarmDetail.value = farm.input_parameters
+    phValue.value = farm.input_parameters.soil_ph || 6.5
+  }
+}
 
 const handleLogout = () => {
   localStorage.removeItem('tanacakra_token')
@@ -40,12 +69,16 @@ const submitData = async () => {
   }
 
   try {
-    const res = await LahanService.inputLahan('14', payload)
+    const res = await LahanService.inputLahan(selectedFarmId.value, payload)
     mlResult.value = res.engine_output?.prediction_result
     plotlySchema.value = res.plotly_schema
   } catch (err: any) {
     console.error('Error submitting land data:', err)
-    errorMessage.value = 'Gagal terhubung ke backend Django REST API.'
+    if (err.response && err.response.data && err.response.data.error) {
+      errorMessage.value = err.response.data.error
+    } else {
+      errorMessage.value = 'Gagal terhubung ke backend Django REST API.'
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -96,8 +129,8 @@ const submitData = async () => {
             <span class="material-symbols-outlined text-tanah-subur text-[20px]">account_circle</span>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-abu-vulkanik truncate leading-tight">Petani Demo</p>
-            <p class="text-xs text-tanah-subur/80 truncate mt-0.5 leading-tight">Blok A Cangkringan</p>
+            <p class="text-sm font-semibold text-abu-vulkanik truncate leading-tight">Petani Cangkringan</p>
+            <p class="text-xs text-tanah-subur/80 truncate mt-0.5 leading-tight">Sleman, DIY</p>
           </div>
         </div>
         <button @click="handleLogout" class="w-full flex items-center gap-2.5 text-xs font-medium text-abu-vulkanik/80 hover:text-bahaya-lahar transition-colors pt-1">
@@ -116,23 +149,47 @@ const submitData = async () => {
           <h2 class="font-serif text-xl md:text-2xl lg:text-[28px] text-abu-vulkanik font-semibold tracking-tight">
             Catat Masukan Sampel Tanah Lapangan
           </h2>
-          <span class="text-[11px] md:text-xs text-tanah-subur/80 font-medium">Petak 14 &bull; Cangkringan</span>
+          <span class="text-[11px] md:text-xs text-tanah-subur/80 font-medium">Petak {{ selectedFarmId }} &bull; Cangkringan</span>
         </div>
         <p class="text-xs md:text-sm text-abu-vulkanik/80 mt-1 max-w-3xl leading-relaxed">
-          Kirim parameter fisik dan nutrisi tanah untuk kalkulasi inferensi **Scikit-learn Random Forest Engine** &amp; grafik **Plotly**.
+          Pilih petak lahan pertanian Cangkringan dan kirim parameter fisik &amp; nutrisi tanah untuk inferensi **Scikit-learn Engine** &amp; grafik **Plotly**.
         </p>
       </header>
+
+      <!-- SELEKSI LAHAN DINAMIS -->
+      <section class="mb-6 bg-white rounded-2xl border border-tanah-subur/20 p-4 shadow-sm">
+        <label class="block text-xs font-bold text-abu-vulkanik uppercase tracking-wider mb-2">Pilih Petak Lahan Pertanian (Dinamis):</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <select :value="selectedFarmId" @change="onFarmSelect(($event.target as HTMLSelectElement).value)" class="w-full py-2 px-3 text-sm font-semibold text-abu-vulkanik bg-abu-letusan border border-tanah-subur/30 rounded-xl focus:border-genteng outline-none">
+            <option v-for="farm in availableFarms" :key="farm.id" :value="farm.input_parameters?.farm_id || ('LHN-' + farm.id)">
+              {{ farm.input_parameters?.farm_id }} — Desa {{ farm.input_parameters?.desa || 'Cangkringan' }} ({{ farm.input_parameters?.soil_type }})
+            </option>
+          </select>
+
+          <div v-if="selectedFarmDetail" class="text-xs bg-abu-letusan/50 p-2.5 rounded-xl border border-tanah-subur/20 flex flex-wrap gap-x-4 gap-y-1">
+            <span><strong>Desa:</strong> {{ selectedFarmDetail.desa }}</span>
+            <span><strong>Elevasi:</strong> {{ selectedFarmDetail.elevation_m }} mdpl</span>
+            <span><strong>Luas:</strong> {{ selectedFarmDetail.area_ha }} ha</span>
+            <span><strong>pH Default:</strong> {{ selectedFarmDetail.soil_ph }}</span>
+          </div>
+        </div>
+      </section>
 
       <!-- RESULT PANEL (IF ML Inference Complete) -->
       <div v-if="mlResult" class="mb-8 bg-white border-2 border-terasering rounded-2xl p-6 shadow-md space-y-4">
         <div class="flex items-center justify-between border-b border-tanah-subur/15 pb-3">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-terasering text-2xl">auto_awesome</span>
-            <h3 class="font-serif text-lg font-bold text-abu-vulkanik">Hasil Rekomendasi Scikit-learn Pipeline</h3>
+            <h3 class="font-serif text-lg font-bold text-abu-vulkanik">Hasil Rekomendasi ML Petak {{ selectedFarmId }}</h3>
           </div>
-          <span class="text-xs px-2.5 py-1 bg-[#EEF2E6] text-terasering rounded-full font-semibold">
-            Status: {{ mlResult.status_kesehatan }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2.5 py-1 bg-genteng/10 text-genteng rounded-full font-bold">
+              Panen: {{ mlResult.estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
+            </span>
+            <span class="text-xs px-2.5 py-1 bg-[#EEF2E6] text-terasering rounded-full font-semibold">
+              Status: {{ mlResult.status_kesehatan }}
+            </span>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,12 +217,12 @@ const submitData = async () => {
         <!-- FORM COLUMN -->
         <div class="lg:col-span-7 space-y-5 md:space-y-6">
 
-          <!-- STEP 2: ACTIVE FORM (Kondisi Fisik) -->
+          <!-- STEP 1: ACTIVE FORM (Kondisi Fisik) -->
           <section class="bg-white rounded-2xl border-2 border-genteng/40 p-4 md:p-6 shadow-sm">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-tanah-subur/10">
               <span class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-genteng text-white flex items-center justify-center text-[10px] md:text-xs font-bold">1</span>
               <div>
-                <h3 class="font-serif text-base md:text-lg font-semibold text-abu-vulkanik">Kondisi fisik tanah</h3>
+                <h3 class="font-serif text-base md:text-lg font-semibold text-abu-vulkanik">Kondisi fisik tanah (Petak {{ selectedFarmId }})</h3>
                 <p class="text-[10px] md:text-xs text-tanah-subur/80">Pembacaan pH meter &amp; kelembapan tanah</p>
               </div>
             </div>
@@ -203,7 +260,7 @@ const submitData = async () => {
             </div>
           </section>
 
-          <!-- STEP 3: NPK -->
+          <!-- STEP 2: NPK -->
           <section class="bg-white rounded-2xl border border-tanah-subur/15 p-4 md:p-6 shadow-sm">
             <div class="flex items-center gap-2 mb-4 pb-3 border-b border-tanah-subur/10">
               <span class="w-5 h-5 md:w-6 md:h-6 rounded-full bg-tanah-subur/15 text-tanah-subur flex items-center justify-center text-[10px] md:text-xs font-bold">2</span>
@@ -213,17 +270,14 @@ const submitData = async () => {
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Nitrogen -->
               <div>
                 <label for="n-val" class="block text-xs font-semibold text-abu-vulkanik mb-1">Nitrogen (N)</label>
                 <input v-model="nValue" id="n-val" type="number" class="w-full py-2 px-3 text-sm font-semibold text-abu-vulkanik bg-abu-letusan border border-tanah-subur/25 rounded-lg">
               </div>
-              <!-- Fosfor -->
               <div>
                 <label for="p-val" class="block text-xs font-semibold text-abu-vulkanik mb-1">Fosfor (P)</label>
                 <input v-model="pValue" id="p-val" type="number" class="w-full py-2 px-3 text-sm font-semibold text-abu-vulkanik bg-abu-letusan border border-tanah-subur/25 rounded-lg">
               </div>
-              <!-- Kalium -->
               <div>
                 <label for="k-val" class="block text-xs font-semibold text-abu-vulkanik mb-1">Kalium (K)</label>
                 <input v-model="kValue" id="k-val" type="number" class="w-full py-2 px-3 text-sm font-semibold text-abu-vulkanik bg-abu-letusan border border-tanah-subur/25 rounded-lg">
