@@ -85,7 +85,7 @@ const initMap = () => {
       })
       const total = markers.length
       const ratio = sehatCount / total
-      const bgColor = ratio >= 0.75 ? '#4E7C40' : ratio >= 0.4 ? '#D98E26' : '#B3542C'
+      const bgColor = ratio >= 0.75 ? '#6FA05C' : ratio >= 0.4 ? '#D98E26' : '#B23A24'
 
       return L.divIcon({
         html: `<div style="background-color: ${bgColor}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${total}</div>`,
@@ -127,7 +127,7 @@ const addMarkers = (list: any[]) => {
     const organicC = params.organic_carbon || 2.1
     const isSehat = ph >= 6.0
 
-    const markerColor = isSehat ? '#4E7C40' : '#B3542C'
+    const markerColor = isSehat ? '#6FA05C' : '#B23A24'
     const marker = L.circleMarker([lat, lng], {
       radius: 7,
       fillColor: markerColor,
@@ -142,7 +142,7 @@ const addMarkers = (list: any[]) => {
       <div style="font-family: sans-serif; padding: 2px; min-width: 180px;">
         <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
           <span>Petak ${farmId}</span>
-          <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${isSehat ? '#4E7C40' : '#B3542C'};">
+          <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${isSehat ? '#6FA05C' : '#B23A24'};">
             ${isSehat ? 'Sehat' : 'Perlu Atensi'}
           </span>
         </div>

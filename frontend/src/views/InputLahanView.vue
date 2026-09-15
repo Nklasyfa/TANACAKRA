@@ -275,7 +275,7 @@ const submitData = async () => {
   height: 22px;
   width: 22px;
   border-radius: 50%;
-  background: #B3542C;
+  background: #4C7A3F;
   border: 3px solid #ffffff;
   box-shadow: 0 1px 4px rgba(58,55,51,0.25);
   cursor: pointer;
@@ -284,7 +284,7 @@ const submitData = async () => {
   height: 22px;
   width: 22px;
   border-radius: 50%;
-  background: #B3542C;
+  background: #4C7A3F;
   border: 3px solid #ffffff;
   box-shadow: 0 1px 4px rgba(58,55,51,0.25);
   cursor: pointer;

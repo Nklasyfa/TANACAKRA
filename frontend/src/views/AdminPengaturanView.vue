@@ -159,7 +159,7 @@ input[type=range]::-webkit-slider-thumb {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  background: #B3542C;
+  background: #4C7A3F;
   cursor: pointer;
 }
 </style>

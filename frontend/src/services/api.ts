@@ -90,8 +90,8 @@ function generatePlotlySchema(trends: any[]) {
         x: months, y: cabai,
         type: 'scatter', mode: 'lines+markers',
         name: 'Cabai Merah (Rp/kg)',
-        line: { color: '#B3542C', width: 3, shape: 'spline' },
-        marker: { size: 8, color: '#B3542C' },
+        line: { color: '#4C7A3F', width: 3, shape: 'spline' },
+        marker: { size: 8, color: '#4C7A3F' },
         hovertemplate: '<b>%{x}</b><br>Cabai: Rp %{y:,.0f}/kg<extra></extra>'
       },
       {
