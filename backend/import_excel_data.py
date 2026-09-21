@@ -23,7 +23,7 @@ def import_data():
     admin_user.role = "ADMIN"
     admin_user.is_staff = True
     admin_user.is_superuser = False
-    admin_user.set_password("tanacakra-admin-2026")
+    admin_user.set_password("admin123")
     admin_user.save()
 
     petani_user, _ = User.objects.get_or_create(

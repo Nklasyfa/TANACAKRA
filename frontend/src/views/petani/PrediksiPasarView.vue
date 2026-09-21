@@ -20,8 +20,6 @@ const ALL_COMMODITIES = 'Semua Komoditas'
 
 const applying = ref(false)
 const applied = ref(false)
-const scheduleApplied = ref(false)
-
 const MONTH_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 
 const monthLabel = (ym: string) => {
