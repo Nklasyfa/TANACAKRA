@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import PetaniSidebar from '../components/PetaniSidebar.vue'
-import BottomNav from '../components/BottomNav.vue'
+import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import BottomNav from '@/components/petani/BottomNav.vue'
 import { useRouter } from 'vue-router'
-import { LahanService, AdminService } from '../services/api'
-import { fetchCuacaCangkringan, type CuacaInfo } from '../services/weather'
-import { KabarTaniService, type KabarTaniItem } from '../services/kabarTani'
+import { LahanService, AdminService } from '@/services/api'
+import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
+import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
@@ -285,11 +285,7 @@ const lokasiPendek = computed(() => {
 const catatanList = computed(() => {
   const items = (lahanList.value || []).slice(0, 3)
   if (!items.length) {
-    return [
-      { icon: 'grass', tone: 'positive', title: 'Blok A • Padi Rojolele', date: '23 Okt 2024', label: 'Subur / Kelembapan Optimal' },
-      { icon: 'water_drop', tone: 'warn', title: 'Blok B • Cabai Rawit', date: '21 Okt 2024', label: 'Perlu Irigasi Tambahan' },
-      { icon: 'compost', tone: 'positive', title: 'Blok A • Padi Rojolele', date: '18 Okt 2024', label: 'Pemupukan Organik Selesai' }
-    ]
+    return []
   }
   return items.map((it: any) => {
     const p = it.input_parameters || it
@@ -502,29 +498,34 @@ const catatanList = computed(() => {
             <span class="text-[11px] text-secondary">{{ catatanList.length }} Entri Terkini</span>
           </div>
           <div class="card overflow-hidden">
-            <template v-for="(note, i) in catatanList" :key="i">
-              <router-link
-                to="/riwayat"
-                class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors"
-                :class="i < catatanList.length - 1 ? 'border-b border-[#E2D8C7]' : ''"
-              >
-                <div class="flex items-center gap-3 min-w-0">
-                  <div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0" :class="note.tone === 'warn' ? 'text-[#D97706]' : 'text-primary'">
-                    <span class="material-symbols-outlined text-[18px]">{{ note.icon }}</span>
-                  </div>
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-[14px] font-semibold text-[#241F1B] truncate">{{ note.title }}</span>
-                    <span class="text-[12px] text-secondary">{{ note.date }}</span>
-                  </div>
-                </div>
-                <span
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium shrink-0 ml-2"
-                  :class="note.tone === 'warn' ? 'bg-[#D97706]/15 text-[#92400E]' : 'bg-[#3A4A2E]/10 text-[#3A4A2E]'"
+            <template v-if="catatanList.length > 0">
+              <template v-for="(note, i) in catatanList" :key="i">
+                <router-link
+                  to="/riwayat"
+                  class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors"
+                  :class="i < catatanList.length - 1 ? 'border-b border-[#E2D8C7]' : ''"
                 >
-                  {{ note.label }}
-                </span>
-              </router-link>
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0" :class="note.tone === 'warn' ? 'text-[#D97706]' : 'text-primary'">
+                      <span class="material-symbols-outlined text-[18px]">{{ note.icon }}</span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                      <span class="text-[14px] font-semibold text-[#241F1B] truncate">{{ note.title }}</span>
+                      <span class="text-[12px] text-secondary">{{ note.date }}</span>
+                    </div>
+                  </div>
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium shrink-0 ml-2"
+                    :class="note.tone === 'warn' ? 'bg-[#D97706]/15 text-[#92400E]' : 'bg-[#3A4A2E]/10 text-[#3A4A2E]'"
+                  >
+                    {{ note.label }}
+                  </span>
+                </router-link>
+              </template>
             </template>
+            <div v-else class="p-5 text-center text-secondary text-sm">
+              Belum ada catatan observasi lahan yang tersimpan.
+            </div>
           </div>
         </section>
 

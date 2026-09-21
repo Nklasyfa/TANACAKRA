@@ -128,7 +128,7 @@ const handleGoogleLogin = async () => {
     })
     if (error) throw error
   } catch (error: any) {
-    alert(error.message || 'Gagal login dengan Google')
+    loginError.value = error.message || 'Gagal login dengan Google'
   }
 }
 
@@ -284,7 +284,7 @@ const handleRegister = async () => {
             <input v-model="rememberMeLogin" type="checkbox" class="w-4 h-4 rounded text-[#A8452A] focus:ring-[#A8452A] border-[#E2D8C7] accent-[#A8452A]" />
             <span class="text-[13px] text-[#4A3F35]">Ingat saya di perangkat ini</span>
           </label>
-          <a href="#" class="text-[13px] text-[#A8452A] hover:underline" @click.prevent>Lupa kata sandi?</a>
+          <a href="#" class="text-[13px] text-[#A8452A] hover:underline" @click.prevent="loginError = 'Fitur reset password akan segera tersedia.'">Lupa kata sandi?</a>
         </div>
 
         <p v-if="loginError" class="text-sm text-[#93000A] font-medium text-center bg-[#FFDAD6] rounded-[10px] px-3 py-2.5 mb-4">

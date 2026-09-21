@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import PetaniSidebar from '../components/PetaniSidebar.vue'
-import AdminSidebar from '../components/AdminSidebar.vue'
-import BottomNav from '../components/BottomNav.vue'
-import AdminBottomNav from '../components/AdminBottomNav.vue'
+import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
+import BottomNav from '@/components/petani/BottomNav.vue'
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

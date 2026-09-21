@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import AdminSidebar from '../components/AdminSidebar.vue'
-import AdminBottomNav from '../components/AdminBottomNav.vue'
-import { api, AdminService } from '../services/api'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
+import { api, AdminService } from '@/services/api'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
@@ -152,7 +152,8 @@ onMounted(async () => {
     <AdminSidebar />
 
     <!-- Main Content -->
-    <main class="w-full md:ml-[240px] flex-1 p-4 md:p-8 max-w-[1200px] mx-auto flex flex-col gap-6">
+    <main class="w-full md:pl-[240px] flex-1">
+      <div class="p-4 md:p-8 max-w-[1000px] mx-auto flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -364,6 +365,7 @@ onMounted(async () => {
         </div>
       </section>
 
+      </div>
     </main>
 
     <!-- Admin Bottom Navigation (Mobile) -->

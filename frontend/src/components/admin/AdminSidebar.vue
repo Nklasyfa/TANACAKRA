@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { supabase } from '../services/supabase'
+import { supabase } from '@/services/supabase'
 
 const router = useRouter()
 const route = useRoute()

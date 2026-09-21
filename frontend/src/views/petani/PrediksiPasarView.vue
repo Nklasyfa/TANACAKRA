@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import PetaniSidebar from '../components/PetaniSidebar.vue'
-import BottomNav from '../components/BottomNav.vue'
-import PlotlyChart from '../components/PlotlyChart.vue'
-import { LahanService, AdminService, TindakanService } from '../services/api'
-import { fetchCuacaCangkringan, type CuacaInfo } from '../services/weather'
+import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import BottomNav from '@/components/petani/BottomNav.vue'
+import PlotlyChart from '@/components/shared/PlotlyChart.vue'
+import { LahanService, AdminService, TindakanService } from '@/services/api'
+import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
 const router = useRouter()
 
@@ -316,13 +316,8 @@ const applyRecommendation = async () => {
   }
 }
 
-const createSchedule = async () => {
-  if (scheduleApplied.value) return
-  await TindakanService.confirm('TND-JADWAL-TANAM')
-  scheduleApplied.value = true
-  setTimeout(() => {
-    scheduleApplied.value = false
-  }, 2200)
+const createSchedule = () => {
+  router.push('/input-lahan')
 }
 </script>
 
@@ -635,8 +630,8 @@ const createSchedule = async () => {
               @click="createSchedule"
               class="hidden md:inline-flex border border-[#3A4A2E] text-[#3A4A2E] bg-transparent hover:bg-[#3A4A2E]/5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors items-center gap-1.5"
             >
-              <span class="material-symbols-outlined text-[16px]">{{ scheduleApplied ? 'check_circle' : 'event_available' }}</span>
-              <span>{{ scheduleApplied ? 'Jadwal Dibuat' : '+ Buat Jadwal Tanam' }}</span>
+              <span class="material-symbols-outlined text-[16px]">event_available</span>
+              <span>+ Buat Jadwal Tanam</span>
             </button>
             <button
               @click="router.push('/riwayat')"

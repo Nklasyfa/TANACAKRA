@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import PetaniSidebar from '../components/PetaniSidebar.vue'
-import BottomNav from '../components/BottomNav.vue'
+import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import BottomNav from '@/components/petani/BottomNav.vue'
 
 const userProfile = ref<any>({
   username: 'Pak Supardi',

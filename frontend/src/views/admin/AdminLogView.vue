@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import AdminSidebar from '../components/AdminSidebar.vue'
-import AdminBottomNav from '../components/AdminBottomNav.vue'
-import { AdminService, downloadCsv } from '../services/api'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
+import { AdminService, downloadCsv } from '@/services/api'
 
 const resetFilters = () => {
   searchQuery.value = ''

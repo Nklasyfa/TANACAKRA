@@ -8,8 +8,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .models import DatasetInput, EngineOutput, VisualizationConfig, AuditLog, User, WeatherData, PestDiseaseData, GISData
-from .serializers import (
+from ..models import DatasetInput, EngineOutput, VisualizationConfig, AuditLog, User, WeatherData, PestDiseaseData, GISData
+from ..serializers import (
     DatasetInputSerializer, 
     EngineOutputSerializer, 
     VisualizationConfigSerializer, 
@@ -20,9 +20,9 @@ from .serializers import (
     KabarTaniItemSerializer,
     KabarTaniFeaturedSerializer
 )
-from .permissions import IsAdminOrPenyuluh, IsPetani
-from .services.ml_engine import ml_engine
-from .services.plotly_engine import plotly_engine
+from ..permissions import IsAdminOrPenyuluh, IsPetani
+from ..services.ml_engine import ml_engine
+from ..services.plotly_engine import plotly_engine
 
 def log_audit(user, action, endpoint):
     AuditLog.objects.create(
@@ -295,7 +295,7 @@ def dashboard_trends(request):
     Mengembalikan data tren harga, volume panen, statistik lahan, dan rekomendasi
     komoditas terbaik — seluruh komoditas dibaca DINAMIS dari database PostgreSQL.
     """
-    from .models import DatasetInput, PriceData, PlantingData, HarvestData, CostData
+    from ..models import DatasetInput, PriceData, PlantingData, HarvestData, CostData
     from django.db.models import Avg, Sum, Count
 
     from django.utils import timezone
@@ -481,7 +481,7 @@ def kabar_tani_feed(request):
     from django.db.models import Avg, Max, Min
     from datetime import datetime, timedelta
     import json
-    from .models import PriceData, HarvestData
+    from ..models import PriceData, HarvestData
 
     now = datetime.now()
     items = []

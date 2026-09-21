@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getStoredSession, resolveSession } from '../services/session'
-import { KabarTaniService, type KabarTaniItem } from '../services/kabarTani'
+import { getStoredSession, resolveSession } from '@/services/session'
+import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
 
 const router = useRouter()
 

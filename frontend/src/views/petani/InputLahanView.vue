@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import PetaniSidebar from '../components/PetaniSidebar.vue'
-import BottomNav from '../components/BottomNav.vue'
-import PlotlyChart from '../components/PlotlyChart.vue'
+import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import BottomNav from '@/components/petani/BottomNav.vue'
+import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import { useRouter } from 'vue-router'
 import { ref, onMounted, nextTick } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-import { LahanService, type LandInputPayload } from '../services/api'
-import { fetchCuacaCangkringan, type CuacaInfo } from '../services/weather'
+import { LahanService, type LandInputPayload } from '@/services/api'
+import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
 const router = useRouter()
 
@@ -212,19 +212,10 @@ const submitData = async () => {
     if (err.response && err.response.data && err.response.data.error) {
       errorMessage.value = err.response.data.error
     } else {
-      // Fallback preview result if backend endpoint unavailable
-      mlResult.value = {
-        estimasi_hasil_panen_ton_ha: '16.8',
-        status_kesehatan: 'Sangat Baik',
-        catatan_lokasi: 'Data terintegrasi dengan mikroklimat Merapi Sektor 3, Sleman.',
-        rekomendasi_tindakan: [
-          'Tanah dalam tingkat kesuburan prima untuk varietas Padi Rojolele.',
-          'Disarankan pemberian pupuk organik cair 250 ml/petak sebelum masa bulir.',
-          'Jaga irigasi berkala di tingkat kelembapan 55%.'
-        ]
-      }
+      errorMessage.value = 'Gagal menyimpan data lahan. Silakan periksa koneksi Anda.'
     }
-    currentStep.value = 'success'
+    // Jika benar-benar gagal, kembalikan ke form (bukan success)
+    currentStep.value = 1
   }
 }
 
@@ -588,6 +579,12 @@ const resetForm = () => {
 
           <!-- STEP 3: PERIKSA & KIRIM -->
           <section v-if="currentStep === 3" class="space-y-5">
+            <!-- Peringatan Error -->
+            <div v-if="errorMessage" class="p-3 sm:p-4 rounded-xl bg-[#FBF0DB] text-[#92400E] border border-[#D97706]/25 flex items-start gap-3">
+              <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">error</span>
+              <p class="text-[13px] font-medium leading-relaxed">{{ errorMessage }}</p>
+            </div>
+            
             <div class="space-y-1">
               <h2 class="font-headline-lg text-xl font-bold text-[#243319]">Periksa Rincian Data</h2>
               <p class="text-xs text-[#7E7063]">Pastikan seluruh data pengamatan telah sesuai sebelum dihitung oleh model cerdas.</p>

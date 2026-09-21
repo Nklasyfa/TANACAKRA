@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
-import { LahanService, type LandInputPayload, downloadCsv } from '../services/api'
+import { LahanService, type LandInputPayload, downloadCsv } from '@/services/api'
 // Leaflet imports
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
-import AdminSidebar from '../components/AdminSidebar.vue'
-import AdminBottomNav from '../components/AdminBottomNav.vue'
-import PlotlyChart from '../components/PlotlyChart.vue'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
+import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
