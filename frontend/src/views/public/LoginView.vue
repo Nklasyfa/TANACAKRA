@@ -154,29 +154,25 @@ const handleRegister = async () => {
     })
     if (error) throw error
 
-    if (data.user) {
-      // Simpan session lokal
-      const user = {
-        id: data.user.id,
-        username,
-        email,
-        role: 'PETANI' as const
-      }
-      localStorage.setItem('tanacakra_user', JSON.stringify(user))
-      if (data.session) {
-        localStorage.setItem('tanacakra_token', data.session.access_token)
-      }
-      router.push('/petani')
-    } else {
-      // Supabase butuh konfirmasi email
-      loginError.value = 'Pendaftaran berhasil! Cek email kamu untuk konfirmasi.'
+    const user = data.user
+    if (!user) throw new Error('Pendaftaran gagal, coba lagi.')
+
+    const sessionToken = data.session?.access_token || `supabase-${user.id}`
+    const localUser = {
+      id: user.id,
+      username,
+      email,
+      role: 'PETANI' as const
     }
+    localStorage.setItem('tanacakra_user', JSON.stringify(localUser))
+    localStorage.setItem('tanacakra_token', sessionToken)
+    router.push('/petani')
   } catch (error: any) {
     if (!navigator.onLine) {
       const mockUser = {
         id: Date.now(),
         username,
-        email,
+        email: regEmail.value.trim(),
         role: 'PETANI' as const
       }
       localStorage.setItem('tanacakra_user', JSON.stringify(mockUser))
@@ -185,7 +181,7 @@ const handleRegister = async () => {
       return
     }
     const msg = error?.message || ''
-    if (msg.includes('already registered') || msg.includes('already been registered')) {
+    if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('User already registered')) {
       loginError.value = 'Email ini sudah terdaftar. Silakan masuk.'
     } else {
       loginError.value = msg || 'Registrasi gagal. Coba lagi.'
