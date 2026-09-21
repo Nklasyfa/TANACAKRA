@@ -1,5 +1,9 @@
-# Gemini AI Context
+# Gemini & Claude AI Context
 gemini.md
+GEMINI.md
+claude.md
+CLAUDE.md
+.claude/
 
 # Environment Variables & Secrets
 .env
@@ -12,20 +16,17 @@ __pycache__/
 *$py.class
 venv/
 db.sqlite3
+*.log
 
 # Node / Frontend
 node_modules/
 dist/
 .DS_Store
 
-<<<<<<< feat/epic3-backend-and-ml-integration
-# Ignored folders
+# UI mocks, heavy PDFs & assets
 ui/
-docs/
-=======
-# Local tools & data
-.claude/
+*.pdf
 data/
 asset/
-
->>>>>>> local
+.vscode/
+.idea/
