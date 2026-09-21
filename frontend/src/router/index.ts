@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import LandingView from '../views/LandingView.vue'
 import LoginView from '../views/LoginView.vue'
 import PetaniDashboardView from '../views/PetaniDashboardView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
@@ -8,56 +9,136 @@ import ProfilPetaniView from '../views/ProfilPetaniView.vue'
 import AdminLahanView from '../views/AdminLahanView.vue'
 import AdminLogView from '../views/AdminLogView.vue'
 import AdminPengaturanView from '../views/AdminPengaturanView.vue'
+import KabarTaniView from '../views/KabarTaniView.vue'
+import PrediksiPasarView from '../views/PrediksiPasarView.vue'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean
+    roles?: Array<'PETANI' | 'ADMIN' | 'PENYULUH'>
+  }
+}
+
+function getStoredSession(): { token: string | null; role: 'PETANI' | 'ADMIN' | 'PENYULUH' | null } {
+  let role: 'PETANI' | 'ADMIN' | 'PENYULUH' | null = null
+  try {
+    const raw = localStorage.getItem('tanacakra_user')
+    if (raw) {
+      const u = JSON.parse(raw)
+      if (u && (u.role === 'ADMIN' || u.role === 'PENYULUH' || u.role === 'PETANI')) role = u.role
+    }
+  } catch {
+    role = null
+  }
+  const token = localStorage.getItem('tanacakra_token')
+  return { token, role }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: LandingView
+    },
+    {
+      path: '/login',
       name: 'login',
       component: LoginView
     },
     {
       path: '/petani',
       name: 'petani-dashboard',
-      component: PetaniDashboardView
+      component: PetaniDashboardView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
     },
     {
       path: '/input-lahan',
       name: 'input-lahan',
-      component: InputLahanView
+      component: InputLahanView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
     },
     {
       path: '/riwayat',
       name: 'riwayat',
-      component: RiwayatPetaniView
+      component: RiwayatPetaniView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
     },
     {
       path: '/profil',
       name: 'profil',
-      component: ProfilPetaniView
+      component: ProfilPetaniView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
+    },
+    {
+      path: '/kabar-tani',
+      name: 'kabar-tani',
+      component: KabarTaniView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
+    },
+    {
+      path: '/admin/kabar-tani',
+      redirect: '/kabar-tani'
+    },
+    {
+      path: '/prediksi-pasar',
+      name: 'prediksi-pasar',
+      component: PrediksiPasarView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
     },
     {
       path: '/admin',
       name: 'admin-dashboard',
-      component: AdminDashboardView
+      component: AdminDashboardView,
+      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
     },
     {
       path: '/admin/lahan',
       name: 'admin-lahan',
-      component: AdminLahanView
+      component: AdminLahanView,
+      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
     },
     {
       path: '/admin/log',
       name: 'admin-log',
-      component: AdminLogView
+      component: AdminLogView,
+      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
     },
     {
       path: '/admin/pengaturan',
       name: 'admin-pengaturan',
-      component: AdminPengaturanView
+      component: AdminPengaturanView,
+      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
+    },
+    {
+      path: '/tentang-kami',
+      redirect: '/#tentang'
     }
   ]
+})
+
+router.beforeEach((to) => {
+  const { token, role } = getStoredSession()
+
+  if (to.name === 'login') {
+    if (token) {
+      return (role === 'ADMIN' || role === 'PENYULUH') ? '/admin' : '/petani'
+    }
+    return true
+  }
+
+  if (to.meta.requiresAuth) {
+    if (!token) {
+      return { name: 'login', query: { redirect: to.fullPath } }
+    }
+    const allowedRoles = (to.meta.roles as Array<'PETANI' | 'ADMIN' | 'PENYULUH'> | undefined) ?? []
+    if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
+      return (role === 'ADMIN' || role === 'PENYULUH') ? '/admin' : '/petani'
+    }
+  }
+
+  return true
 })
 
 export default router

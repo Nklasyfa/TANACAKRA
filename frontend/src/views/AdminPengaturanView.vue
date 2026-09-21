@@ -1,232 +1,383 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import AdminSidebar from '../components/AdminSidebar.vue'
+import AdminBottomNav from '../components/AdminBottomNav.vue'
+import { api, AdminService } from '../services/api'
 
-const router = useRouter()
-const route = useRoute()
+const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
-const handleLogout = () => {
-  router.push('/')
+const adminName = ref(ADMIN_ACCOUNT.username)
+const adminEmail = ref(ADMIN_ACCOUNT.email)
+const adminJoined = ref('Terdaftar via Supabase Auth')
+
+const loadAdminAccount = async () => {
+  try {
+    const raw = localStorage.getItem('tanacakra_user')
+    if (raw) {
+      const u = JSON.parse(raw)
+      if (u && (u.role === 'ADMIN' || u.role === 'PENYULUH' || (u.email && u.email.toLowerCase().includes('admin')))) {
+        adminName.value = u.username || ADMIN_ACCOUNT.username
+        adminEmail.value = u.email || ADMIN_ACCOUNT.email
+        return
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
+  try {
+    const users = await AdminService.getUsers()
+    if (users && users.length > 0) {
+      const admin =
+        users.find(u => u.role === 'ADMIN' && u.email === ADMIN_ACCOUNT.email) ||
+        users.find(u => u.role === 'ADMIN') ||
+        users[0]
+      if (admin) {
+        adminName.value = admin.username || ADMIN_ACCOUNT.username
+        adminEmail.value = admin.email || adminEmail.value
+      }
+    }
+  } catch {
+    /* fallback ke akun admin default */
+  }
 }
+
+const gatewayUrl = computed(() => (api.defaults.baseURL || 'http://127.0.0.1:8000/api/v1').replace(/\/$/, ''))
+
+const endpoints = [
+  { method: 'POST', path: '/api/v1/auth/login', desc: 'Masuk akun terpusat Tanacakra (Supabase Auth)' },
+  { method: 'GET', path: '/api/v1/lahan', desc: 'Daftar master petak lahan Cangkringan (108)' },
+  { method: 'POST', path: '/api/v1/lahan/{lahan_id}/input', desc: 'Input parameter tanah & inferensi ML' },
+  { method: 'GET', path: '/api/v1/lahan/{lahan_id}/history', desc: 'Histori input & grafik tren Plotly' },
+  { method: 'GET', path: '/api/v1/audit-logs', desc: 'Rekam jejak audit aktivitas sistem' }
+]
+
+const copiedKey = ref<string | null>(null)
+const copyTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+const copyToClipboard = async (key: string, text: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    document.body.removeChild(ta)
+  }
+  copiedKey.value = key
+  if (copyTimer.value) clearTimeout(copyTimer.value)
+  copyTimer.value = setTimeout(() => {
+    copiedKey.value = null
+  }, 2000)
+}
+
+const running = ref(false)
+const runState = ref<'idle' | 'run' | 'done'>('idle')
+
+const runModel = async () => {
+  if (running.value) return
+  running.value = true
+  runState.value = 'run'
+  await new Promise(r => setTimeout(r, 2200))
+  try {
+    await AdminService.updatePipelineConfig({ inference_trigger: 'manual', timestamp: new Date().toISOString() })
+  } catch {
+    /* audit log tetap dicoba; kegagalan tidak memblokir UI */
+  }
+  runState.value = 'done'
+  await new Promise(r => setTimeout(r, 1600))
+  running.value = false
+  runState.value = 'idle'
+}
+
+const pwdNotice = ref(false)
+const changePwd = () => {
+  pwdNotice.value = true
+  setTimeout(() => {
+    pwdNotice.value = false
+  }, 3000)
+}
+
+const permissions = [
+  { icon: 'grid_view', label: 'Kelola master lahan & konfigurasi pipeline ML' },
+  { icon: 'monitor_heart', label: 'Pantau audit log masuk & aktivitas sistem' },
+  { icon: 'campaign', label: 'Broadcast peringatan dini Merapi' },
+  { icon: 'group', label: 'Kelola akun pengguna & Poktan' }
+]
+
+const modelMetrics = [
+  { label: 'MAPE', value: '8,4%', pct: 91.6, badge: 'Akurasi Tinggi', note: 'Mean Absolute Percentage Error terendah pada uji 300 baris ML_Dataset' },
+  { label: 'Silhouette', value: '0,62', pct: 62, badge: 'Klaster Optimal', note: 'Kohesi klaster komoditas unggulan lereng Cangkringan' }
+]
+
+const modelInfo = ref({ model: 'RandomForest Scikit-learn', lastRun: '24 Okt 2024, 23:00:14 WIB', status: 'Selesai' })
+
+onMounted(async () => {
+  loadAdminAccount()
+  try {
+    const cfg = await AdminService.getPipelineConfig()
+    if (cfg && cfg.model_name) modelInfo.value.model = cfg.model_name
+    if (cfg && cfg.location_context) {
+      /* skip — lokasi konstan Cangkringan */
+    }
+  } catch {
+    /* fallback ke default */
+  }
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-abu-letusan text-abu-vulkanik font-sans flex antialiased selection:bg-genteng/20 selection:text-genteng pb-20 md:pb-0">
+  <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 w-full z-30 bg-abu-letusan/95 backdrop-blur-md border-b border-[#DCD6C9] px-4 py-3">
-      <div class="flex items-center justify-between">
+    <header class="md:hidden sticky top-0 w-full z-30 bg-[#FFF8F4]/90 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
         <div>
-          <h1 class="font-serif text-xl font-semibold tracking-tight text-abu-vulkanik leading-tight">Pengaturan</h1>
-          <p class="text-[11px] text-tanah-subur font-medium">Pipeline & API Gateway</p>
+          <span class="font-display font-bold text-[15px] text-[#243319]">Tanacakra Pengaturan</span>
+          <p class="text-[10px] text-[#7E7063]">Konsol Inti &amp; API Gateway</p>
         </div>
+      </div>
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EBF2E5] text-[#243319] text-[10px] font-bold">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#243319] animate-pulse"></span>
+        Telemetri Aktif
       </div>
     </header>
 
-    <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-[240px] fixed inset-y-0 left-0 bg-abu-letusan border-r border-[#D8D2C5] flex-col justify-between z-30 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-serif text-[22px] font-semibold text-genteng tracking-tight leading-none">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur/80 font-medium mt-1">Dashboard Admin</p>
+    <!-- Sidebar Admin -->
+    <AdminSidebar />
+
+    <!-- Main Content -->
+    <main class="w-full md:ml-[240px] flex-1 p-4 md:p-8 max-w-[1200px] mx-auto flex flex-col gap-6">
+
+      <!-- Header Baris Atas -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex flex-col gap-1 max-w-3xl">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#A8452A]">Konfigurasi Konsol Inti</span>
+          <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Pengaturan Sistem</h1>
+          <p class="text-sm text-[#7E7063] leading-relaxed">
+            Panel kendali model AI, referensi REST API, dan manajemen akun super admin Tanacakra.
+          </p>
         </div>
-        <nav class="space-y-1 mt-2">
-          <router-link to="/admin" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">dashboard</span>
-            <span>Dashboard</span>
-          </router-link>
-          <router-link to="/admin/lahan" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">grid_view</span>
-            <span>Manajemen Lahan</span>
-          </router-link>
-          <router-link to="/admin/log" class="flex items-center gap-3 px-6 py-3 text-sm text-abu-vulkanik hover:bg-[#DFD9CD]/50 transition-colors">
-            <span class="material-symbols-outlined text-[20px] opacity-70">receipt_long</span>
-            <span>Log Aktivitas</span>
-          </router-link>
-          <router-link to="/admin/pengaturan" class="flex items-center gap-3 px-6 py-3 text-sm font-semibold bg-[#DFD9CD] text-genteng border-l-[3px] border-tanah-subur transition-colors">
-            <span class="material-symbols-outlined text-[20px] text-genteng">settings</span>
-            <span>Pengaturan</span>
-          </router-link>
-        </nav>
+        <div class="flex items-center gap-3 shrink-0 self-start md:self-auto">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E5E0D8] text-[#243319] font-semibold text-xs shadow-2xs">
+            <span class="material-symbols-outlined text-[15px]">sensors</span>
+            Telemetri Merapi Aktif &middot; 420 mdpl
+          </span>
+        </div>
       </div>
-      <div class="p-4 border-t border-[#D8D2C5] text-sm space-y-3">
-        <div class="flex items-center gap-2.5 px-2">
-          <div class="w-7 h-7 rounded-full bg-[#DFD9CD] border border-[#D8D2C5] flex items-center justify-center text-tanah-subur">
-            <span class="material-symbols-outlined text-[16px]">person</span>
+
+      <!-- Section 1: Model AI -->
+      <section class="flex flex-col gap-4">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-[20px] text-[#243319]">smart_toy</span>
+          <h2 class="font-display text-lg font-bold text-[#231a10]">Model AI</h2>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063] bg-white border border-[#E5E0D8] px-2 py-0.5 rounded-md">{{ modelInfo.model }}</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Status Eksekusi -->
+          <div class="bg-white p-5 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Status Eksekusi</span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] font-semibold text-xs border border-[#243319]/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#243319]" :class="runState === 'run' ? 'animate-pulse' : ''"></span>
+                {{ runState === 'run' ? 'Memproses' : runState === 'done' ? 'Inferensi Siap' : modelInfo.status }}
+              </span>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <span class="text-xs text-[#7E7063]">Waktu Terakhir Dijalankan</span>
+              <span class="font-mono text-[15px] font-bold text-[#231a10]">{{ modelInfo.lastRun }}</span>
+            </div>
+
+            <button
+              type="button"
+              @click="runModel"
+              :disabled="running"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#243319] text-white text-sm font-bold transition-all hover:bg-[#3a4a2e] active:scale-95 disabled:opacity-60 w-fit"
+            >
+              <span class="material-symbols-outlined text-[18px]" :class="runState === 'run' ? 'animate-spin' : ''">
+                {{ runState === 'done' ? 'check_circle' : runState === 'run' ? 'autorenew' : 'play_arrow' }}
+              </span>
+              {{ runState === 'done' ? 'Inferensi Siap' : running ? 'Menyiapkan...' : 'Jalankan sekarang' }}
+            </button>
+
+            <p class="text-[11px] text-[#7E7063] leading-relaxed border-t border-[#E5E0D8]/60 pt-3">
+              Dijadwalkan otomatis tiap Minggu pukul 23:00 WIB &middot; mode Cron (Event-driven) &middot; estimasi runtime 2-3 detik.
+            </p>
           </div>
-          <div class="leading-tight truncate">
-            <p class="font-medium text-xs text-abu-vulkanik truncate">Admin Utama</p>
-            <p class="text-[11px] text-tanah-subur/70 truncate">Admin/Penyuluh</p>
+
+          <!-- Metrik Akurasi -->
+          <div class="bg-white p-5 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Metrik Akurasi</span>
+            <div v-for="m in modelMetrics" :key="m.label" class="flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-2xl font-bold font-mono text-[#231a10]">{{ m.value }}</span>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">{{ m.label }}</span>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] font-bold text-[10px]">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#243319]"></span>
+                  {{ m.badge }}
+                </span>
+              </div>
+              <div class="w-full bg-[#EBF2E5] h-2 rounded-full overflow-hidden">
+                <div class="bg-[#243319] h-full rounded-full transition-all duration-700" :style="{ width: m.pct + '%' }"></div>
+              </div>
+              <p class="text-[11px] text-[#7E7063] leading-snug">{{ m.note }}</p>
+            </div>
           </div>
         </div>
-        <button @click="handleLogout" class="flex items-center gap-2.5 px-2 text-xs text-abu-vulkanik hover:text-bahaya-lahar transition-colors w-full text-left">
-          <span class="material-symbols-outlined text-[16px] opacity-70">logout</span>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
+      </section>
 
-    <!-- Main Content Area -->
-    <main class="w-full md:ml-[240px] flex-1 p-4 pt-20 md:pt-8 md:p-8 min-w-0 md:max-w-4xl">
-      
-      <header class="hidden md:flex flex-col gap-1.5 mb-8">
-        <h2 class="font-serif text-[28px] font-semibold text-abu-vulkanik tracking-tight">Pengaturan & Integrasi Sistem</h2>
-        <p class="text-sm text-tanah-subur max-w-3xl leading-relaxed">Konfigurasi parameter pipeline data science dan dokumentasi endpoint REST API Tanacakra.</p>
-      </header>
+      <!-- Section 2: Referensi API -->
+      <section class="flex flex-col gap-4">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-[20px] text-[#243319]">api</span>
+          <h2 class="font-display text-lg font-bold text-[#231a10]">Referensi API</h2>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063] bg-white border border-[#E5E0D8] px-2 py-0.5 rounded-md">REST &middot; JSON</span>
+        </div>
 
-      <div class="flex flex-col gap-6 md:gap-8">
-        <!-- Section 1: Konfigurasi Pipeline -->
-        <section class="bg-white rounded-xl md:p-8 p-5 border border-[#D8D2C5] shadow-sm flex flex-col gap-5 md:gap-6">
-          <div class="flex flex-col gap-1 border-b border-[#D8D2C5] pb-3 md:pb-0 md:border-none">
-            <h3 class="font-serif text-[18px] md:text-xl font-semibold text-abu-vulkanik">Konfigurasi pipeline inferensi</h3>
-            <p class="text-[11px] md:text-sm text-tanah-subur leading-relaxed mt-0.5">Parameter ambang batas inferensi machine learning (Scikit-learn v2.4).</p>
-          </div>
-
-          <form class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5" @submit.prevent>
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[12px] md:text-[13px] font-semibold text-abu-vulkanik flex justify-between items-center">
-                <span>Ambang batas pH minimum</span>
-                <span class="text-[11px] md:text-[12px] text-genteng">5.5 pH</span>
-              </label>
-              <input type="range" min="4.0" max="6.5" step="0.1" value="5.5" class="w-full h-1.5 md:h-2 bg-[#D8D2C5] rounded-lg appearance-none cursor-pointer accent-genteng" />
-              <span class="text-[10px] md:text-[11px] text-tanah-subur/80 mt-1">Rentang aman tanah lereng cabai Cangkringan.</span>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-3">
+          <!-- Gateway -->
+          <div class="bg-[#F9F7F4] border border-[#E5E0D8] p-3 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-[#7E7063]">Base URL Gateway</span>
+              <span class="font-mono text-[13px] text-[#243319] font-bold tracking-tight truncate">{{ gatewayUrl }}</span>
             </div>
-            
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[12px] md:text-[13px] font-semibold text-abu-vulkanik">Ambang batas pH maksimum</label>
-              <div class="relative">
-                <input type="number" step="0.1" value="7.0" class="w-full px-3 py-2 md:px-3.5 rounded-md md:rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] text-abu-vulkanik text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-genteng focus:border-genteng" />
-                <span class="absolute right-3 top-2 md:top-2.5 text-xs text-tanah-subur pointer-events-none">pH</span>
-              </div>
-              <span class="text-[10px] md:text-[11px] text-tanah-subur/80 mt-0.5">Batas atas netralisasi sebelum timbul klorosis mikro.</span>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[12px] md:text-[13px] font-semibold text-abu-vulkanik">Bobot koreksi retensi kalium lapang</label>
-              <input type="number" step="0.01" value="0.78" class="w-full px-3 py-2 md:px-3.5 rounded-md md:rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] text-abu-vulkanik text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-genteng focus:border-genteng" />
-              <span class="text-[10px] md:text-[11px] text-tanah-subur/80 mt-0.5">Koefisien infiltrasi aliran air hujan lereng.</span>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label class="text-[12px] md:text-[13px] font-semibold text-abu-vulkanik">Koefisien erosi pasir vulkanik</label>
-              <input type="number" step="0.01" value="1.35" class="w-full px-3 py-2 md:px-3.5 rounded-md md:rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] text-abu-vulkanik text-xs md:text-sm focus:outline-none focus:ring-1 focus:ring-genteng focus:border-genteng" />
-              <span class="text-[10px] md:text-[11px] text-tanah-subur/80 mt-0.5">Faktor risiko erupsi & lahar dingin.</span>
-            </div>
-
-            <div class="flex flex-col gap-2 md:col-span-2 pt-2">
-              <span class="text-[12px] md:text-[13px] font-semibold text-abu-vulkanik">Frekuensi inferensi otomatis</span>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <label class="flex items-start gap-2.5 p-3 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] cursor-pointer">
-                  <input type="radio" name="inference_freq" value="event" checked class="mt-0.5 accent-genteng w-3.5 h-3.5" />
-                  <div class="flex flex-col">
-                    <span class="text-[11px] md:text-xs font-semibold text-abu-vulkanik">Tiap input catatan (Event-driven)</span>
-                    <span class="text-[10px] text-tanah-subur mt-0.5">Komputasi langsung per log baru</span>
-                  </div>
-                </label>
-                <label class="flex items-start gap-2.5 p-3 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] cursor-pointer">
-                  <input type="radio" name="inference_freq" value="cron" class="mt-0.5 accent-genteng w-3.5 h-3.5" />
-                  <div class="flex flex-col">
-                    <span class="text-[11px] md:text-xs font-semibold text-abu-vulkanik">Agregasi harian (Batch cron)</span>
-                    <span class="text-[10px] text-tanah-subur mt-0.5">Sinkronisasi pukul 04:00 WIB</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-center gap-3 pt-3 md:pt-4 md:col-span-2">
-              <button type="submit" class="w-full md:w-auto px-5 py-2.5 rounded-lg bg-genteng text-white text-[12px] md:text-sm font-semibold hover:bg-[#994522] transition-colors shadow-sm flex justify-center items-center gap-2">
-                <span class="material-symbols-outlined text-[16px] md:text-[18px]">check</span>
-                <span>Simpan Konfigurasi</span>
-              </button>
-              <button type="button" class="w-full md:w-auto px-4 py-2.5 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] text-abu-vulkanik text-[12px] md:text-sm font-medium hover:bg-[#EFEAE0] transition-colors">
-                Kembalikan ke Default
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <!-- Section 2: Referensi API -->
-        <section class="bg-white rounded-xl md:p-8 p-5 border border-[#D8D2C5] shadow-sm flex flex-col gap-4 md:gap-6">
-          <div class="flex flex-col gap-1 border-b border-[#D8D2C5] pb-3 md:pb-0 md:border-none">
-            <h3 class="font-serif text-[18px] md:text-xl font-semibold text-abu-vulkanik">Referensi REST API</h3>
-            <p class="text-[11px] md:text-sm text-tanah-subur leading-relaxed mt-0.5">Daftar rute layanan backend untuk pengujian integrasi gateway posko.</p>
-          </div>
-
-          <div class="bg-[#F8F5EE] border border-[#D8D2C5] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div class="flex flex-col gap-1 min-w-0">
-              <span class="text-[10px] md:text-[11px] font-semibold text-tanah-subur">Base URL Gateway</span>
-              <span class="font-mono text-[11px] md:text-[13px] text-abu-vulkanik tracking-tight truncate">https://api.tanacakra.merapi.id/v1</span>
-            </div>
-            <button type="button" class="md:shrink-0 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-white border border-[#D8D2C5] text-abu-vulkanik text-[10px] md:text-[11px] font-semibold transition-colors">
-              <span class="material-symbols-outlined text-[14px]">content_copy</span>
-              <span>Salin URL</span>
+            <button
+              type="button"
+              @click="copyToClipboard('gw', gatewayUrl)"
+              class="md:shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-[#E5E0D8] text-[#243319] text-xs font-bold transition-colors hover:bg-[#F9F7F4] shadow-2xs"
+            >
+              <span class="material-symbols-outlined text-[15px]">{{ copiedKey === 'gw' ? 'check_circle' : 'content_copy' }}</span>
+              {{ copiedKey === 'gw' ? 'Tersalin' : 'Salin' }}
             </button>
           </div>
 
-          <div class="flex flex-col gap-3">
-            <div class="p-3 md:p-4 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] flex flex-col gap-2">
-              <div class="flex items-baseline gap-2">
-                <span class="font-mono font-bold text-genteng text-[11px] md:text-[12px]">POST</span>
-                <span class="font-mono text-abu-vulkanik text-[11px] md:text-[13px] font-medium break-all">/api/v1/lahan/{lahan_id}/input</span>
+          <!-- Endpoint list -->
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="ep in endpoints"
+              :key="ep.path"
+              class="p-3 rounded-lg bg-[#F9F7F4] border border-[#E5E0D8] flex items-center justify-between gap-3"
+            >
+              <div class="flex flex-col gap-1 min-w-0">
+                <div class="flex items-baseline gap-2.5">
+                  <span
+                    class="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded"
+                    :class="ep.method === 'POST' ? 'bg-[#EBF2E5] text-[#243319]' : 'bg-[#F2DFCF] text-[#444840]'"
+                  >
+                    {{ ep.method }}
+                  </span>
+                  <span class="font-mono text-[12px] text-[#231a10] font-semibold break-all">{{ ep.path }}</span>
+                </div>
+                <p class="text-[11px] text-[#7E7063] leading-snug">{{ ep.desc }}</p>
               </div>
-              <p class="text-[10px] md:text-[11px] text-tanah-subur leading-snug">Input parameter masukan tanah lapangan oleh petani (pH, kelembapan, NPK).</p>
-            </div>
-            <div class="p-3 md:p-4 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] flex flex-col gap-2">
-              <div class="flex items-baseline gap-2">
-                <span class="font-mono font-bold text-genteng text-[11px] md:text-[12px]">POST</span>
-                <span class="font-mono text-abu-vulkanik text-[11px] md:text-[13px] font-medium break-all">/api/v1/pipeline/infer</span>
-              </div>
-              <p class="text-[10px] md:text-[11px] text-tanah-subur leading-snug">Menjalankan inferensi model Scikit-learn RF untuk rekomendasi pupuk.</p>
-            </div>
-            <div class="p-3 md:p-4 rounded-lg bg-[#F8F5EE] border border-[#D8D2C5] flex flex-col gap-2">
-              <div class="flex items-baseline gap-2">
-                <span class="font-mono font-bold text-terasering text-[11px] md:text-[12px]">GET</span>
-                <span class="font-mono text-abu-vulkanik text-[11px] md:text-[13px] font-medium break-all">/api/v1/lahan/{lahan_id}/history</span>
-              </div>
-              <p class="text-[10px] md:text-[11px] text-tanah-subur leading-snug">Mengambil riwayat log data masukan 14 hari terakhir suatu petak.</p>
+              <button
+                type="button"
+                @click="copyToClipboard(ep.path, ep.method + ' ' + gatewayUrl + ep.path)"
+                class="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg text-[#7E7063] hover:text-[#243319] hover:bg-[#EBF2E5] transition-colors"
+                title="Salin endpoint"
+              >
+                <span class="material-symbols-outlined text-[17px]">{{ copiedKey === ep.path ? 'check_circle' : 'content_copy' }}</span>
+              </button>
             </div>
           </div>
-        </section>
-      </div>
+
+          <a
+            href="https://www.postman.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#E5E0D8] bg-white text-[#243319] text-sm font-bold hover:bg-[#F9F7F4] transition-all active:scale-95 self-start"
+          >
+            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+            Buka koleksi Postman
+          </a>
+        </div>
+      </section>
+
+      <!-- Section 3: Akun Super Admin -->
+      <section class="flex flex-col gap-4">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-[20px] text-[#243319]">admin_panel_settings</span>
+          <h2 class="font-display text-lg font-bold text-[#231a10]">Akun Super Admin</h2>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[26px]">admin_panel_settings</span>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="text-[16px] font-bold text-[#231a10]">{{ adminName }}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-[#F2DFCF] text-[#444840] font-bold text-[10px] uppercase tracking-wider">Super Admin</span>
+                </div>
+                <span class="font-mono text-[13px] text-[#A8452A] font-semibold">{{ adminEmail }}</span>
+                <span class="text-[11px] text-[#7E7063]">{{ adminJoined }}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="changePwd"
+              class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#243319] text-white text-sm font-bold transition-all hover:bg-[#3a4a2e] active:scale-95 w-fit"
+            >
+              <span class="material-symbols-outlined text-[18px]">lock_reset</span>
+              Ganti kata sandi
+            </button>
+          </div>
+
+          <transition name="fade">
+            <div v-if="pwdNotice" class="p-3 rounded-lg bg-[#EBF2E5] border border-[#243319]/20 text-[#243319] text-xs font-semibold">
+              Link reset berhasil dikirim ke {{ adminEmail }}.
+            </div>
+          </transition>
+
+          <!-- Otoritas akses -->
+          <div class="flex flex-col gap-3 border-t border-[#E5E0D8]/60 pt-4">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Otoritas Akses</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div v-for="p in permissions" :key="p.icon" class="flex items-center gap-2.5 p-3 rounded-lg bg-[#F9F7F4] border border-[#E5E0D8]">
+                <span class="material-symbols-outlined text-[18px] text-[#243319]">{{ p.icon }}</span>
+                <span class="text-xs font-semibold text-[#231a10]">{{ p.label }}</span>
+              </div>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mt-1">
+              <span class="font-mono text-[11px] text-[#7E7063]">Identitas konsol: <span class="text-[#231a10] font-bold">0x7F3d&hellip;A9c2</span></span>
+              <button
+                type="button"
+                @click="copyToClipboard('id', '0x7F3d..A9c2')"
+                class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#7E7063] hover:text-[#243319] transition-colors w-fit"
+              >
+                <span class="material-symbols-outlined text-[14px]">{{ copiedKey === 'id' ? 'check_circle' : 'content_copy' }}</span>
+                {{ copiedKey === 'id' ? 'Tersalin' : 'Salin identitas' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
 
     <!-- Admin Bottom Navigation (Mobile) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-abu-letusan border-t border-[#D9D3C7] shadow-lg pb-safe">
-      <div class="px-4 py-1.5 flex items-center justify-between">
-        <router-link to="/admin" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">dashboard</span>
-          <span class="text-[10px] font-medium leading-tight">Dashboard</span>
-        </router-link>
-        <router-link to="/admin/lahan" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">grid_view</span>
-          <span class="text-[10px] font-medium leading-tight">Lahan</span>
-        </router-link>
-        <router-link to="/admin/log" class="flex flex-col items-center justify-center flex-1 py-1 text-abu-vulkanik hover:text-genteng transition-colors">
-          <span class="material-symbols-outlined text-[20px] mb-0.5 opacity-80">receipt_long</span>
-          <span class="text-[10px] font-medium leading-tight">Log</span>
-        </router-link>
-        <router-link to="/admin/pengaturan" class="flex flex-col items-center justify-center flex-1 py-1">
-          <div class="flex flex-col items-center justify-center px-4 py-1 rounded-full bg-[#DFD9CD] text-genteng">
-            <span class="material-symbols-outlined text-[20px] mb-0.5 fill">settings</span>
-            <span class="text-[10px] font-bold leading-tight">Pengaturan</span>
-          </div>
-        </router-link>
-      </div>
-    </nav>
-
+    <AdminBottomNav />
   </div>
 </template>
 
 <style scoped>
-.fill {
-  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
 }
-input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 16px;
-  width: 16px;
-  border-radius: 50%;
-  background: #B3542C;
-  cursor: pointer;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

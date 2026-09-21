@@ -19,19 +19,38 @@ class TanacakraMLEngine:
         self._train_from_excel_dataset()
 
     def _train_from_excel_dataset(self):
-        dataset_path = r"D:\TANACAKRA\data\data pendukung\TANACAKRA_Data_Analysis.xlsx"
-        if os.path.exists(dataset_path):
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        possible_paths = [
+            os.path.join(base_dir, "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx"),
+            os.path.join(base_dir, "data", "TANACAKRA_Data_Analysis.xlsx"),
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx"))
+        ]
+        dataset_path = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                dataset_path = path
+                break
+
+        if dataset_path and os.path.exists(dataset_path):
             try:
                 df = pd.read_excel(dataset_path, sheet_name="ML_Dataset")
-                # Features: [soil_ph, humidity_percent, rainfall_mm, temperature_C, NDVI]
-                X = df[['soil_ph', 'humidity_percent', 'rainfall_mm', 'temperature_C', 'NDVI']].values
+                # Normalize column names to lowercase for robust lookup
+                df.columns = [c.strip() for c in df.columns]
+                temp_col = [c for c in df.columns if c.lower() in ['temperature_c', 'temperature']][0]
+                ph_col = [c for c in df.columns if c.lower() in ['soil_ph', 'ph']][0]
+                hum_col = [c for c in df.columns if c.lower() in ['humidity_percent', 'kelembapan', 'humidity']][0]
+                rain_col = [c for c in df.columns if c.lower() in ['rainfall_mm', 'curah_hujan']][0]
+                ndvi_col = [c for c in df.columns if c.lower() in ['ndvi']][0]
+
+                # Features: [soil_ph, humidity_percent, rainfall_mm, temperature, NDVI]
+                X = df[[ph_col, hum_col, rain_col, temp_col, ndvi_col]].values
                 y_yield = df['yield_ton_ha'].values
 
                 # Categorical status label based on soil_ph and humidity
                 y_class = []
                 for _, row in df.iterrows():
-                    ph = row['soil_ph']
-                    hum = row['humidity_percent']
+                    ph = row[ph_col]
+                    hum = row[hum_col]
                     if ph < 6.0:
                         y_class.append(1) # Perlu Pembenahan pH
                     elif hum < 40:
@@ -69,7 +88,7 @@ class TanacakraMLEngine:
         ph = float(input_parameters.get('pH', input_parameters.get('soil_ph', 6.5)))
         kelembapan = float(input_parameters.get('kelembapan', input_parameters.get('humidity_percent', 60)))
         rainfall = float(input_parameters.get('rainfall_mm', 200))
-        temp = float(input_parameters.get('temperature_C', 26.5))
+        temp = float(input_parameters.get('temperature', input_parameters.get('temperature_c', input_parameters.get('temperature_C', 26.5))))
         ndvi = float(input_parameters.get('NDVI', 0.75))
 
         n = float(input_parameters.get('nitrogen', input_parameters.get('n', 100)))

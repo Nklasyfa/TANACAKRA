@@ -1,289 +1,571 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import PetaniSidebar from '../components/PetaniSidebar.vue'
 import BottomNav from '../components/BottomNav.vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { LahanService, AdminService } from '../services/api'
+import { fetchCuacaCangkringan, type CuacaInfo } from '../services/weather'
+import { KabarTaniService, type KabarTaniItem } from '../services/kabarTani'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
 const router = useRouter()
-const route = useRoute()
+const map = ref<any>(null)
+const markersGroup = ref<any>(null)
+const lahanList = ref<any[]>([])
+const dashboardData = ref<any>(null)
+const cuacaReal = ref<CuacaInfo | null>(null)
+const cuacaLoading = ref(true)
 
-// Function to handle logout
-const handleLogout = () => {
-  router.push('/')
+const kabarTaniItems = ref<KabarTaniItem[]>([])
+const kabarTaniLoading = ref(true)
+
+const loadKabarTani = async () => {
+  try {
+    const items = await KabarTaniService.getItems('all', 3)
+    kabarTaniItems.value = items
+  } catch (e) {
+    console.warn('Failed to load kabar tani:', e)
+  } finally {
+    kabarTaniLoading.value = false
+  }
 }
+
+const initMap = () => {
+  if (map.value) return
+  const container = document.getElementById('mapPetaniLeaflet')
+  if (!container) return
+
+  map.value = L.map('mapPetaniLeaflet', {
+    zoomControl: true,
+    scrollWheelZoom: true
+  }).setView([-7.64, 110.44], 12)
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map.value)
+
+  markersGroup.value = (L as any).markerClusterGroup({
+    chunkedLoading: true,
+    maxClusterRadius: 45,
+    iconCreateFunction: (cluster: any) => {
+      const markers = cluster.getAllChildMarkers()
+      let sehatCount = 0
+      markers.forEach((m: any) => {
+        if (m.options.status === 'sehat') sehatCount++
+      })
+      const total = markers.length
+      const ratio = sehatCount / total
+      const bgColor = ratio >= 0.75 ? '#6FA05C' : ratio >= 0.4 ? '#D98E26' : '#B23A24'
+
+      return L.divIcon({
+        html: `<div style="background-color: ${bgColor}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 13px; border: 2.5px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${total}</div>`,
+        className: 'custom-cluster-icon',
+        iconSize: L.point(36, 36)
+      })
+    }
+  })
+
+  map.value.addLayer(markersGroup.value)
+
+  setTimeout(() => {
+    map.value?.invalidateSize()
+  }, 200)
+}
+
+const renderMarkers = (items: any[]) => {
+  if (!map.value || !markersGroup.value) return
+  markersGroup.value.clearLayers()
+
+  items.forEach((item: any, idx: number) => {
+    const params = item.input_parameters || item
+    let lat = parseFloat(params.latitude)
+    let lng = parseFloat(params.longitude)
+
+    if (isNaN(lat) || isNaN(lng)) {
+      const baseLats = [-7.64, -7.65, -7.63, -7.66, -7.62]
+      const baseLngs = [110.44, 110.43, 110.45, 110.42, 110.46]
+      lat = baseLats[idx % 5] + (Math.random() - 0.5) * 0.03
+      lng = baseLngs[idx % 5] + (Math.random() - 0.5) * 0.03
+    }
+
+    const farmId = params.farm_id || ('CGK' + String(item.id || idx + 1).padStart(3, '0'))
+    const desa = params.desa || 'Cangkringan'
+    const ph = parseFloat(params.soil_ph || 6.5)
+    const soilType = params.soil_type || 'Regosol Vulkanik'
+    const areaHa = params.area_ha || 1.0
+    const isSehat = ph >= 6.0
+
+    const markerColor = isSehat ? '#6FA05C' : '#D98E26'
+    const marker = L.circleMarker([lat, lng], {
+      radius: 7,
+      fillColor: markerColor,
+      color: '#FFFFFF',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.9,
+      status: isSehat ? 'sehat' : 'atensi'
+    } as any)
+
+    const popupContent = `
+      <div style="font-family: sans-serif; padding: 2px; min-width: 180px;">
+        <div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Petak ${farmId}</span>
+          <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; background-color: ${isSehat ? '#6FA05C' : '#D98E26'};">
+            ${isSehat ? 'Subur' : 'Perlu Perhatian'}
+          </span>
+        </div>
+        <div style="font-size: 12px; color: #555; line-height: 1.5;">
+          <strong>Desa:</strong> ${desa}<br/>
+          <strong>pH Tanah:</strong> ${ph} (${isSehat ? 'Ideal' : 'Kurang Ideal'})<br/>
+          <strong>Jenis Tanah:</strong> ${soilType}<br/>
+          <strong>Luas Lahan:</strong> ${areaHa} Ha
+        </div>
+        <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #eee; font-size: 11px; color: #777;">
+          ${isSehat ? 'Tanah subur, cocok untuk ditanami.' : 'Tanah agak kering, coba tambah pupuk atau air.'}
+        </div>
+      </div>
+    `
+    marker.bindPopup(popupContent)
+    markersGroup.value.addLayer(marker)
+  })
+}
+
+const loadPetaniData = async () => {
+  initMap()
+
+  const [lahans, trends] = await Promise.all([
+    LahanService.getAllLahan(),
+    AdminService.getDashboardTrends()
+  ])
+
+  lahanList.value = lahans || []
+  if (trends) {
+    dashboardData.value = trends
+  }
+
+  renderMarkers(lahanList.value)
+}
+
+const reloadCuaca = async () => {
+  cuacaLoading.value = true
+  try {
+    const c = await fetchCuacaCangkringan()
+    if (c) cuacaReal.value = c
+  } catch {
+    /* ignore */
+  } finally {
+    cuacaLoading.value = false
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    loadPetaniData()
+  }, 50)
+  reloadCuaca()
+  loadKabarTani()
+})
+
+const userName = ref('Pak Supardi')
+;(() => {
+  try {
+    const raw = localStorage.getItem('tanacakra_user')
+    if (raw) {
+      const u = JSON.parse(raw)
+      if (u && u.username) userName.value = u.username
+    }
+  } catch {
+    /* ignore */
+  }
+})()
+
+const greetingLabel = computed(() => {
+  const h = new Date().getHours()
+  if (h < 11) return 'Selamat pagi'
+  if (h < 15) return 'Selamat siang'
+  if (h < 19) return 'Selamat sore'
+  return 'Selamat malam'
+})
+
+const todayLabel = computed(() =>
+  new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+)
+
+const formatDate = (isoStr?: string) => {
+  if (!isoStr) return 'Terbaru'
+  const d = new Date(isoStr)
+  if (isNaN(d.getTime())) return 'Terbaru'
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const formatKabarTime = (iso: string) => {
+  if (!iso) return 'Terbaru'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return 'Terbaru'
+  const today = new Date()
+  const isToday = d.toDateString() === today.toDateString()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday = d.toDateString() === yesterday.toDateString()
+  const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return `Hari ini, ${timeStr} WIB`
+  if (isYesterday) return `Kemarin, ${timeStr} WIB`
+  return `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}, ${timeStr} WIB`
+}
+
+const todaySummary = computed(() => {
+  const trends = (dashboardData.value?.price_trends || []) as Record<string, any>[]
+  const best = dashboardData.value?.best_commodity
+  let commodityLabel = best?.title?.split('&')[0]?.trim() || 'Cabai Merah'
+  let direction = 'stabil'
+  if (trends.length >= 2) {
+    const keys = Object.keys(trends[0]).filter(k => k !== 'month')
+    if (keys.length) {
+      const key = keys.find(k => k.toLowerCase().includes(commodityLabel.toLowerCase())) || keys[0]
+      const values = trends
+        .map((t) => parseFloat(t[key]))
+        .filter((v) => !isNaN(v) && v > 0)
+      if (values.length >= 2) {
+        const first = values[0]
+        const last = values[values.length - 1]
+        direction = last > first ? 'naik' : last < first ? 'turun' : 'stabil'
+      }
+      commodityLabel = key
+    }
+  }
+  const moistureRaw = dashboardData.value?.avg_moisture
+  const moistureNum = parseInt(String(moistureRaw).replace('%', ''))
+  const kondisi = isNaN(moistureNum) ? 'lembab' : moistureNum < 40 ? 'kering' : moistureNum <= 62 ? 'lembab' : 'basah'
+  const ph = dashboardData.value?.avg_ph
+  return { commodityLabel, direction, kondisi, ph }
+})
+
+const lahanStatus = computed(() => {
+  const phNum = parseFloat(dashboardData.value?.avg_ph)
+  if (!isNaN(phNum) && phNum >= 6.0) {
+    return {
+      label: 'Subur',
+      message: 'Tanah Anda dalam kondisi subur. Cocok untuk menanam cabai atau sayuran.',
+      color: 'text-[#3A4A2E]',
+      bg: 'bg-[#EBF2E5] border-[#3A4A2E]/20'
+    }
+  }
+  return {
+    label: 'Perlu Perhatian',
+    message: 'Tanah Anda sedikit asam. Disarankan menambah dolomit sebelum tanam.',
+    color: 'text-[#92400E]',
+    bg: 'bg-[#FBF0DB] border-[#D97706]/25'
+  }
+})
+
+const cuacaHariIni = computed(() => {
+  const kondisi = todaySummary.value.kondisi
+  if (kondisi === 'kering') {
+    return { emoji: '☀️', label: 'Cerah & Kering', message: 'Tanah agak kering. Tambah air jika perlu.' }
+  }
+  if (kondisi === 'basah') {
+    return { emoji: '🌧️', label: 'Hujan / Basah', message: 'Tanah basah. Jaga saluran air agar tidak tergenang.' }
+  }
+  return { emoji: '🌤️', label: 'Lembab', message: 'Cuaca lembab, kondisi yang baik untuk bercocok tanam.' }
+})
+
+const cuacaDisplay = computed(() => cuacaReal.value || cuacaHariIni.value)
+
+const lokasiPendek = computed(() => {
+  if (!cuacaReal.value) return 'Cangkringan'
+  const parts = cuacaReal.value.lokasi.split(',')
+  return parts[0]?.trim() || 'Cangkringan'
+})
+
+const catatanList = computed(() => {
+  const items = (lahanList.value || []).slice(0, 3)
+  if (!items.length) {
+    return [
+      { icon: 'grass', tone: 'positive', title: 'Blok A • Padi Rojolele', date: '23 Okt 2024', label: 'Subur / Kelembapan Optimal' },
+      { icon: 'water_drop', tone: 'warn', title: 'Blok B • Cabai Rawit', date: '21 Okt 2024', label: 'Perlu Irigasi Tambahan' },
+      { icon: 'compost', tone: 'positive', title: 'Blok A • Padi Rojolele', date: '18 Okt 2024', label: 'Pemupukan Organik Selesai' }
+    ]
+  }
+  return items.map((it: any) => {
+    const p = it.input_parameters || it
+    const ph = parseFloat(p.soil_ph || 6.5)
+    const ok = ph >= 6.0
+    return {
+      icon: ok ? 'grass' : 'water_drop',
+      tone: ok ? 'positive' : 'warn',
+      title: `${p.farm_id || 'CGK'} • ${p.desa || 'Cangkringan'}`,
+      date: formatDate(it.created_at),
+      label: ok ? 'Subur / Kelembapan Optimal' : 'Tanah Perlu Irigasi'
+    }
+  })
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-abu-letusan antialiased text-abu-vulkanik flex flex-col md:flex-row pb-24 md:pb-0 font-sans">
-    
-    <!-- Mobile Clean Header -->
-    <header class="md:hidden px-5 pt-5 pb-3 border-b border-[#DED7CA]/60 flex items-center justify-between bg-abu-letusan sticky top-0 z-10">
-      <div>
-        <h1 class="font-display font-semibold text-lg text-genteng leading-tight">Tanacakra</h1>
-        <p class="text-[11px] text-tanah-subur">Desa Cangkringan</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#DED7CA] text-[11px] text-tanah-subur">
-          <span class="w-2 h-2 rounded-full bg-terasering"></span>
-          <span>Sensor aktif</span>
-        </span>
+  <div class="min-h-screen bg-surface antialiased text-on-surface flex flex-col md:flex-row pb-[88px] md:pb-0 font-sans">
+
+    <header class="md:hidden fixed top-0 left-0 right-0 z-30 pt-safe bg-surface/85 backdrop-blur-xl border-b border-[#F0EDE6]">
+      <div class="h-14 px-4 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-8 w-auto object-contain shrink-0" />
+          <div class="flex flex-col leading-none min-w-0">
+            <span class="font-display text-[15px] text-primary tracking-tight leading-none">Tanacakra</span>
+            <span class="text-[11px] text-on-surface-variant mt-0.5 truncate">Beranda</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" aria-label="Pemberitahuan">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+          </button>
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- Desktop Sidebar (~240px) -->
-    <aside class="hidden md:flex w-[240px] flex-shrink-0 bg-abu-letusan border-r border-[#DED7CA] flex-col justify-between fixed h-full z-20 select-none">
-      <div>
-        <div class="px-6 pt-7 pb-6">
-          <h1 class="font-display font-semibold text-[21px] tracking-tight text-genteng leading-tight">Tanacakra</h1>
-          <p class="text-xs text-tanah-subur font-medium mt-0.5">Dashboard Petani</p>
-        </div>
+    <PetaniSidebar />
 
-        <nav class="space-y-1">
-          <router-link to="/petani" 
-            :class="route.path === '/petani' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/petani' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <span>Beranda</span>
-          </router-link>
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[68px] md:pt-8">
+      <div class="max-w-[720px] mx-auto flex flex-col gap-5 md:gap-6 pb-12">
 
-          <router-link to="/input-lahan" 
-            :class="route.path === '/input-lahan' ? 'flex items-center gap-3 px-6 py-3 bg-abu-letusan-dark border-l-[3px] border-tanah-subur text-genteng font-semibold text-sm transition-colors' : 'flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors'">
-            <svg class="w-5 h-5 flex-shrink-0" :class="route.path === '/input-lahan' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            <span>Catat</span>
-          </router-link>
-
-          <a href="#" class="flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span>Riwayat</span>
-          </a>
-
-          <a href="#" class="flex items-center gap-3 px-6 py-3 text-abu-vulkanik hover:bg-black/5 font-medium text-sm transition-colors">
-            <svg class="w-5 h-5 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span>Profil</span>
-          </a>
-        </nav>
-      </div>
-
-      <div class="p-6 border-t border-[#DED7CA]/80 space-y-3">
-        <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-abu-letusan-dark border border-tanah-subur/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg class="w-4 h-4 text-tanah-subur" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
+        <!-- 1. Sapaan -->
+        <header class="flex flex-col gap-1.5 pt-2">
+          <h1 class="font-display text-[28px] leading-[34px] font-bold tracking-tight text-[#241F1B]">
+            {{ greetingLabel }}, <span class="italic font-normal">{{ userName }}</span>
+          </h1>
+          <div class="flex items-center gap-1.5 text-on-surface-variant">
+            <span class="material-symbols-outlined text-[15px] text-secondary">calendar_today</span>
+            <span class="text-[13px] text-secondary">{{ todayLabel }} · Cangkringan, Sleman</span>
           </div>
-          <div class="min-w-0">
-            <p class="text-xs font-semibold text-abu-vulkanik truncate">Suparman Wignyosukarto</p>
-            <p class="text-[11px] text-tanah-subur/80 truncate">Petani Lahan Blok A</p>
-          </div>
-        </div>
+        </header>
 
-        <button @click="handleLogout" class="flex items-center gap-2.5 text-xs text-abu-vulkanik/80 hover:text-genteng font-medium pt-1 transition-colors w-full text-left">
-          <svg class="w-4 h-4 text-abu-vulkanik/70 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-          <span>Keluar</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="md:ml-[240px] flex-1 px-5 pt-4 md:p-10 max-w-7xl flex flex-col gap-5 md:gap-8">
-      
-      <!-- Header sentence -->
-      <header class="md:mb-0">
-        <h2 class="font-display text-lg md:text-2xl font-semibold text-abu-vulkanik leading-snug">
-          Lahan Blok A — data terakhir dimasukkan 12 Mei 2024
-        </h2>
-        <p class="text-xs md:text-sm text-tanah-subur mt-0.5 md:mt-1">
-          <span class="md:hidden">Petak 14 • Suparman Wignyosukarto</span>
-          <span class="hidden md:inline">Evaluasi harian kondisi kimia-fisik tanah vulkanik petak lereng Cangkringan.</span>
-        </p>
-      </header>
-
-      <!-- Grid Layout for Content -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-8 items-start">
-        
-        <!-- Primary Left Column (Full on mobile, 7 cols on desktop) -->
-        <div class="md:col-span-7 space-y-5 md:space-y-8">
-          
-          <!-- ONE Large Primary Status Card -->
-          <section class="bg-white rounded-xl p-5 md:p-7 border border-[#DED7CA] shadow-sm">
-            <div class="flex items-center justify-between pb-3 md:pb-4 border-b border-[#EFEAE0]">
-              <div class="flex items-center gap-2 md:gap-2.5">
-                <span class="inline-block w-2.5 h-2.5 rounded-full bg-terasering"></span>
-                <span class="text-xs font-semibold text-terasering md:tracking-wide">Kondisi tanah optimal</span>
-              </div>
-              <span class="text-[11px] md:text-xs text-tanah-subur">Cabai rawit<span class="hidden md:inline"> • 1.450 m²</span></span>
+        <!-- 2. Strip Cuaca Hari Ini -->
+        <section class="card p-4 md:p-5 flex flex-col gap-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-primary text-[18px]">partly_cloudy_day</span>
+              <span class="text-[13px] font-medium text-secondary">Cuaca hari ini di Cangkringan</span>
             </div>
-
-            <!-- Recommendation Sentence -->
-            <div class="py-4 md:py-6">
-              <p class="text-[11px] md:text-xs text-tanah-subur mb-1.5 md:mb-2">Rekomendasi tindakan lapangan hari ini</p>
-              <p class="font-display text-base md:text-xl font-medium text-abu-vulkanik leading-snug md:leading-relaxed">
-                Kondisi tanah optimal untuk pembungaan cabai; berikan pupuk kalium 150 kg/ha dan pertahankan drainase bedengan sebelum intensitas hujan lereng meningkat.
-              </p>
-              <p class="text-xs md:text-sm text-abu-vulkanik/75 md:text-abu-vulkanik/80 mt-2.5 md:mt-3.5 leading-normal">
-                Kadar air pori tanah berada di 68% dengan pH 6.5. Retensi hara stabil untuk 18 hari ke depan selama tidak terjadi limpasan pasir Kali Gendol.
-              </p>
-            </div>
-
-            <!-- Primary CTA Button -->
-            <div class="pt-1 md:pt-2">
-              <button @click="router.push('/input-lahan')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 md:gap-2.5 px-4 md:px-6 py-3 md:py-3.5 rounded-lg bg-genteng hover:bg-genteng-hover text-white text-sm font-semibold tracking-wide transition-all shadow-sm active:scale-[0.99]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span>Catat Kegiatan Hari Ini</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+                {{ cuacaReal?.sumber || 'BMKG' }} · {{ cuacaReal?.lokasi || lokasiPendek }}
+              </span>
+              <button @click="reloadCuaca" class="text-secondary hover:text-[#241F1B] transition-colors p-0.5" title="Perbarui data cuaca" type="button">
+                <span class="material-symbols-outlined text-[15px] align-middle">sync</span>
               </button>
             </div>
-          </section>
+          </div>
 
-          <!-- Ringkasan Parameter (Mobile only layout here, Desktop has it on right col but let's keep it responsive) -->
-          <section class="grid grid-cols-3 gap-2.5 md:hidden">
-            <div class="bg-white/80 rounded-lg p-3 border border-[#DED7CA]/70 text-center">
-              <p class="text-[10px] text-tanah-subur">pH Tanah</p>
-              <p class="font-display text-base font-medium text-abu-vulkanik mt-0.5">6.5</p>
-              <p class="text-[10px] text-terasering font-medium">Ideal</p>
+          <div v-if="cuacaLoading" class="py-3 flex items-center gap-2 text-[13px] text-secondary">
+            <div class="h-2 w-20 rounded-full bg-surface-container overflow-hidden">
+              <div class="h-full w-1/2 rounded-full bg-primary animate-pulse"></div>
             </div>
-            <div class="bg-white/80 rounded-lg p-3 border border-[#DED7CA]/70 text-center">
-              <p class="text-[10px] text-tanah-subur">Kelembapan</p>
-              <p class="font-display text-base font-medium text-abu-vulkanik mt-0.5">68%</p>
-              <p class="text-[10px] text-terasering font-medium">Optimal</p>
-            </div>
-            <div class="bg-white/80 rounded-lg p-3 border border-[#DED7CA]/70 text-center">
-              <p class="text-[10px] text-tanah-subur">Kalium Lapang</p>
-              <p class="font-display text-base font-medium text-genteng mt-0.5">78</p>
-              <p class="text-[10px] text-tanah-subur">mg/kg</p>
-            </div>
-          </section>
+            Memuat prakiraan cuaca...
+          </div>
 
-          <!-- Aktivitas Terbaru -->
-          <section class="bg-white rounded-xl p-5 md:p-7 border border-[#DED7CA] shadow-sm">
-            <div class="flex items-center justify-between mb-3 md:mb-4">
-              <h3 class="font-display text-sm md:text-base font-semibold text-abu-vulkanik">Aktivitas terbaru</h3>
-              <span class="text-[11px] md:text-xs text-tanah-subur">Terakhir dicatat</span>
-            </div>
-
-            <div class="divide-y divide-[#EFEAE0]">
-              <div class="py-2.5 md:py-3.5 first:pt-1">
-                <div class="flex items-baseline justify-between">
-                  <p class="text-xs md:text-sm font-semibold md:font-medium text-abu-vulkanik">Input data sampel tanah</p>
-                  <span class="text-[10px] md:text-xs text-tanah-subur whitespace-nowrap ml-4">12 Mei, 08:30</span>
-                </div>
-                <p class="text-[11px] md:text-xs text-tanah-subur mt-0.5">pH 6.5, kelembapan 68%, NPK 120:45:70</p>
-              </div>
-
-              <div class="py-2.5 md:py-3.5">
-                <div class="flex items-baseline justify-between">
-                  <p class="text-xs md:text-sm font-semibold md:font-medium text-abu-vulkanik">Konfirmasi sebar dolomit</p>
-                  <span class="text-[10px] md:text-xs text-tanah-subur whitespace-nowrap ml-4">10 Mei, 07:15</span>
-                </div>
-                <p class="text-[11px] md:text-xs text-tanah-subur mt-0.5">Dosis 150 kg/ha selesai dilaksanakan</p>
-              </div>
-
-              <div class="py-2.5 md:py-3.5 last:pb-1">
-                <div class="flex items-baseline justify-between">
-                  <p class="text-xs md:text-sm font-semibold md:font-medium text-abu-vulkanik">Peringatan siaga lahar</p>
-                  <span class="text-[10px] md:text-xs text-bahaya-lahar font-medium whitespace-nowrap ml-4">08 Mei, 16:40</span>
-                </div>
-                <p class="text-[11px] md:text-xs text-bahaya-lahar mt-0.5">Periksa tanggul saluran pembuang barat</p>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        <!-- Secondary Right Column (Hidden on mobile mostly, except combined sections) -->
-        <div class="hidden md:block md:col-span-5 space-y-6">
-          
-          <!-- Tren retensi hara 7 hari -->
-          <section class="bg-white rounded-xl p-7 border border-[#DED7CA] shadow-sm">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-display text-base font-semibold text-abu-vulkanik">Tren retensi hara 7 hari</h3>
-              <span class="text-xs text-tanah-subur">mg/kg tanah</span>
-            </div>
-            <p class="text-xs text-tanah-subur leading-relaxed mb-6">
-              Kadar kalium harian petak cabai dibandingkan ambang aman serapan akar.
-            </p>
-
-            <div class="space-y-4">
-              <div>
-                <div class="flex justify-between text-xs mb-1.5">
-                  <span class="font-medium text-abu-vulkanik">Hari ini (12 Mei)</span>
-                  <span class="font-semibold text-genteng">78 mg/kg <span class="text-tanah-subur font-normal text-[11px]">(Optimal)</span></span>
-                </div>
-                <div class="w-full h-3 bg-abu-letusan rounded-sm overflow-hidden flex items-center">
-                  <div class="h-full bg-genteng rounded-sm" style="width: 78%;"></div>
+          <template v-else>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 py-1">
+              <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
+                <span class="text-[11px] text-secondary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">thermostat</span> Suhu
+                </span>
+                <div class="mt-1 flex items-baseline gap-0.5">
+                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? Math.round(cuacaReal.suhu) : '—' }}</span>
+                  <span class="text-[11px] text-secondary font-semibold">°C</span>
                 </div>
               </div>
-              <div>
-                <div class="flex justify-between text-xs mb-1.5">
-                  <span class="font-medium text-abu-vulkanik">11 Mei</span>
-                  <span class="font-medium text-abu-vulkanik">74 mg/kg</span>
-                </div>
-                <div class="w-full h-3 bg-abu-letusan rounded-sm overflow-hidden flex items-center">
-                  <div class="h-full bg-genteng rounded-sm" style="width: 74%;"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between text-xs mb-1.5">
-                  <span class="font-medium text-abu-vulkanik">10 Mei</span>
-                  <span class="font-medium text-abu-vulkanik">82 mg/kg</span>
-                </div>
-                <div class="w-full h-3 bg-abu-letusan rounded-sm overflow-hidden flex items-center">
-                  <div class="h-full bg-genteng rounded-sm" style="width: 82%;"></div>
+              <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
+                <span class="text-[11px] text-secondary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">humidity_mid</span> Kelembapan
+                </span>
+                <div class="mt-1 flex items-baseline gap-0.5">
+                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? Math.round(cuacaReal.kelembaban) : '—' }}</span>
+                  <span class="text-[11px] text-secondary font-semibold">%</span>
                 </div>
               </div>
-              <div>
-                <div class="flex justify-between text-xs mb-1.5">
-                  <span class="font-medium text-abu-vulkanik">09 Mei</span>
-                  <span class="font-medium text-abu-vulkanik">65 mg/kg</span>
+              <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
+                <span class="text-[11px] text-secondary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">rainy</span> Kondisi
+                </span>
+                <div class="mt-1 flex items-baseline gap-0.5">
+                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaDisplay.emoji }}</span>
                 </div>
-                <div class="w-full h-3 bg-abu-letusan rounded-sm overflow-hidden flex items-center">
-                  <div class="h-full bg-tanah-subur rounded-sm" style="width: 65%;"></div>
+              </div>
+              <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
+                <span class="text-[11px] text-secondary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">air</span> Lokasi
+                </span>
+                <div class="mt-1 flex items-baseline gap-0.5 min-w-0">
+                  <span class="text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-8 truncate">{{ lokasiPendek }}</span>
                 </div>
               </div>
             </div>
-
-            <div class="mt-6 pt-4 border-t border-[#EFEAE0] flex items-center justify-between text-xs text-tanah-subur">
-              <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-sm bg-genteng"></span>
-                <span>Kadar hara aman (&gt;70)</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-sm bg-tanah-subur"></span>
-                <span>Batas minimum (60)</span>
-              </div>
+            <div class="pt-3 border-t border-[#F3ECE0] flex items-start gap-2">
+              <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">nature_people</span>
+              <p class="text-[13px] md:text-[15px] leading-6 text-[#4A3F35]">
+                <span class="font-semibold text-[#3A4A2E]">{{ cuacaDisplay.label }}.</span> {{ cuacaDisplay.message }}
+              </p>
             </div>
-          </section>
+          </template>
+        </section>
 
-          <!-- Desktop Parameter Lapang Singkat -->
-          <section class="bg-surface-card rounded-xl p-6 border border-[#DED7CA]">
-            <h4 class="text-xs font-semibold text-tanah-subur uppercase tracking-wider mb-3">Ringkasan parameter tanah</h4>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-xs text-tanah-subur">Keasaman (pH)</p>
-                <p class="font-display text-lg font-medium text-abu-vulkanik mt-0.5">6.5 pH</p>
-                <span class="text-[11px] text-terasering">Ideal cabai</span>
-              </div>
-              <div>
-                <p class="text-xs text-tanah-subur">Kelembapan</p>
-                <p class="font-display text-lg font-medium text-abu-vulkanik mt-0.5">68%</p>
-                <span class="text-[11px] text-terasering">Kapasitas baik</span>
-              </div>
+        <!-- 3. Kartu Kondisi Lahan -->
+        <section class="card p-5 md:p-6 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-medium uppercase tracking-wider text-secondary">Kondisi lahan Anda hari ini</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#D97706] animate-pulse"></span>
+          </div>
+          <div class="flex items-start gap-3 mt-0.5">
+            <span class="w-3 h-3 rounded-full bg-[#D97706] shrink-0 mt-1.5 ring-4 ring-[#D97706]/15"></span>
+            <div class="min-w-0">
+              <p class="text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-7">
+                <span :class="lahanStatus.color">{{ lahanStatus.label }}</span> &mdash; {{ lahanStatus.message }}
+              </p>
+              <p v-if="todaySummary.ph" class="text-[13px] text-secondary mt-2">
+                pH rata-rata: <strong class="text-[#241F1B]">{{ todaySummary.ph }}</strong> · Tanah: <strong class="text-[#241F1B]">{{ todaySummary.kondisi }}</strong>
+              </p>
             </div>
-          </section>
+          </div>
+          <div class="pt-2 flex justify-end">
+            <button @click="router.push('/riwayat')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-surface-container text-on-surface font-semibold text-[13px] px-4 py-2 rounded-lg hover:bg-surface-container-high transition-colors">
+              <span>Lihat detail lahan</span>
+              <span class="material-symbols-outlined text-[16px] leading-none">arrow_forward</span>
+            </button>
+          </div>
+        </section>
 
-        </div>
+        <!-- 4. Tombol Aksi Utama -->
+        <button @click="router.push('/input-lahan')" class="w-full h-[52px] rounded-[12px] bg-cta hover:bg-cta-hover text-white flex items-center justify-center gap-2 text-[16px] font-semibold shadow-[0_3px_12px_rgba(168,69,42,0.22)] transition-all hover:shadow-[0_5px_16px_rgba(168,69,42,0.3)] active:scale-[0.99]">
+          <span class="material-symbols-outlined text-[20px]">add_circle</span>
+          <span>Catat Data Lahan</span>
+        </button>
+
+        <!-- 5. Peta Lahan -->
+        <section class="card p-4 md:p-5">
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#F3ECE0]">
+            <div>
+              <h3 class="text-[15px] font-bold text-[#241F1B]">Peta Lahan Desa Cangkringan</h3>
+              <p class="text-[12px] text-secondary mt-0.5">{{ lahanList.length }} petak lahan terdaftar</p>
+            </div>
+          </div>
+
+          <div id="mapPetaniLeaflet" class="w-full h-[240px] md:h-[300px] rounded-[10px] overflow-hidden z-10"></div>
+
+          <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+            <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#6FA05C] inline-block"></span> Hijau = tanah subur</span>
+            <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#D98E26] inline-block"></span> Oranye = perlu perhatian</span>
+            <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#B23A24] inline-block"></span> Merah = perlu tindakan</span>
+          </div>
+          <p class="text-[13px] text-secondary mt-3 leading-relaxed">Ketuk titik di peta untuk melihat kondisi satu petak lahan.</p>
+        </section>
+
+        <!-- 6. Kabar Tani Hari Ini -->
+        <section class="flex flex-col gap-3 pt-2">
+          <div class="flex items-center justify-between px-0.5">
+            <h2 class="font-display text-[22px] leading-7 font-bold text-[#241F1B]">Kabar Tani Hari Ini</h2>
+            <router-link to="/kabar-tani" class="text-cta hover:text-cta-hover text-[14px] font-semibold inline-flex items-center gap-0.5 transition-colors">
+              <span>Lihat semua</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+            </router-link>
+          </div>
+          <div class="card overflow-hidden" v-if="kabarTaniLoading">
+            <div class="p-4 space-y-3">
+              <div v-for="i in 3" :key="i" class="h-16 bg-[#E5E0D8] rounded animate-pulse"></div>
+            </div>
+          </div>
+          <div class="card overflow-hidden" v-else>
+            <article v-for="item in kabarTaniItems" :key="item.id" class="p-4 border-b border-[#E2D8C7] flex items-start justify-between gap-4 hover:bg-surface-container-low transition-colors last:border-0">
+              <div class="flex items-start gap-2.5 min-w-0">
+                <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5" :class="item.severity === 'danger' ? 'text-error' : item.severity === 'warning' ? 'text-[#D97706]' : 'text-primary'">
+                  {{ item.category === 'pasar' ? 'trending_up' : item.category === 'lahan' ? 'warning' : item.category === 'cuaca' ? 'cloud' : item.category === 'hama' ? 'bug_report' : 'psychology' }}
+                </span>
+                <p class="text-[15px] leading-6 text-[#241F1B] font-medium">{{ item.title }}</p>
+              </div>
+              <time class="text-[11px] text-secondary shrink-0 mt-1">{{ formatKabarTime(item.timestamp) }}</time>
+            </article>
+            <div v-if="kabarTaniItems.length === 0" class="p-4 text-center text-secondary">
+              Tidak ada berita terbaru saat ini
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. Catatan Terakhir Anda -->
+        <section class="flex flex-col gap-3">
+          <div class="flex items-center justify-between px-0.5">
+            <h2 class="font-display text-[18px] leading-6 font-bold text-[#241F1B]">Catatan Terakhir Anda</h2>
+            <span class="text-[11px] text-secondary">{{ catatanList.length }} Entri Terkini</span>
+          </div>
+          <div class="card overflow-hidden">
+            <template v-for="(note, i) in catatanList" :key="i">
+              <router-link
+                to="/riwayat"
+                class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors"
+                :class="i < catatanList.length - 1 ? 'border-b border-[#E2D8C7]' : ''"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0" :class="note.tone === 'warn' ? 'text-[#D97706]' : 'text-primary'">
+                    <span class="material-symbols-outlined text-[18px]">{{ note.icon }}</span>
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-[14px] font-semibold text-[#241F1B] truncate">{{ note.title }}</span>
+                    <span class="text-[12px] text-secondary">{{ note.date }}</span>
+                  </div>
+                </div>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium shrink-0 ml-2"
+                  :class="note.tone === 'warn' ? 'bg-[#D97706]/15 text-[#92400E]' : 'bg-[#3A4A2E]/10 text-[#3A4A2E]'"
+                >
+                  {{ note.label }}
+                </span>
+              </router-link>
+            </template>
+          </div>
+        </section>
+
+        <!-- 8. Saran Tanam ML (data live) -->
+        <section v-if="dashboardData?.best_commodity" class="card bg-surface-container p-5 md:p-6 flex flex-col gap-4">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-[24px] text-primary shrink-0">insights</span>
+            <div class="flex flex-col gap-1">
+              <p class="text-[15px] font-bold leading-[22px] text-[#241F1B]">
+                Saran tanam: {{ dashboardData.best_commodity.title.split('&').join('dan') }}
+              </p>
+              <p class="text-[13px] md:text-[15px] leading-[22px] text-[#4A3F35]">{{ dashboardData.best_commodity.reason }}</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="chip-positive normal-case tracking-normal">Harga: {{ dashboardData.best_commodity.avg_price }}</span>
+            <span class="chip-positive normal-case tracking-normal">Hasil: {{ dashboardData.best_commodity.expected_yield }}</span>
+          </div>
+        </section>
+
+        <!-- 9. Kartu Ajakan Dasbor -->
+        <section class="card bg-surface-container p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary shrink-0">
+              <span class="material-symbols-outlined text-[20px]">insights</span>
+            </div>
+            <div>
+              <p class="text-[15px] font-medium leading-relaxed text-[#241F1B]">
+                Ingin lihat prediksi lengkap hasil panen &amp; tren harga pasar komoditas?
+              </p>
+              <p class="text-[13px] text-secondary mt-1">Dihitung berbasis data agroklimat mikro lereng Merapi.</p>
+            </div>
+          </div>
+          <button @click="router.push('/prediksi-pasar')" class="w-full sm:w-auto shrink-0 bg-surface-container-lowest border border-[#E2D8C7] px-4 py-2 rounded-lg text-sm font-semibold text-[#241F1B] hover:border-[#D0C4B0] hover:shadow-sm transition-all whitespace-nowrap">
+            Buka Panel Dasbor
+          </button>
+        </section>
+
       </div>
     </main>
 
-    <!-- Mobile Bottom Tab Bar -->
     <BottomNav />
 
   </div>

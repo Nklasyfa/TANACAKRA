@@ -3,18 +3,156 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-background: #fff8f4;
+    --color-foreground: #231a10;
+    --color-primary: #243319;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #645d58;
+    --color-secondary-foreground: #ffffff;
+    --color-muted: #f8e5d5;
+    --color-muted-foreground: #645d58;
+    --color-accent: #f2dfcf;
+    --color-accent-foreground: #231a10;
+    --color-destructive: #ba1a1a;
+    --color-destructive-foreground: #ffffff;
+    --color-border: #e5e0d8;
+    --color-input: #e5e0d8;
+    --color-ring: #243319;
+    --spacing-gutter: 1.5rem;
+    --spacing-stack: 2rem;
+    --spacing-section: 3rem;
+    --radius-small: 0.25rem;
+    --radius-medium: 0.5rem;
+    --radius-large: 0.875rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-surface text-on-surface antialiased font-body-md min-h-screen;
+    @apply bg-background text-foreground font-sans antialiased min-h-screen;
+    overscroll-behavior-y: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e2d8c7;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Material Symbols — default variable axis */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    line-height: 1;
+  }
+  .msr-fill {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* Card envelope (Level 1) — white, hairline earthen border, 14px radius */
+  .card {
+    @apply bg-white border border-[#E2D8C7] rounded-[14px];
+    box-shadow: 0 2px 8px rgba(36, 31, 27, 0.04);
+  }
+
+  /* Recessed telemetry well (Level 2) */
+  .well {
+    @apply bg-[#F3ECE0]/60 border border-[#E2D8C7] rounded-[10px];
+  }
+
+  /* Pill chip */
+  .chip {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em];
+  }
+  .chip-positive {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-[#EBF2E5] text-[#2A3622] border-[#3A4A2E]/20;
+  }
+  .chip-warn {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-[#FBF0DB] text-[#92400E] border-[#D97706]/25;
+  }
+  .chip-danger {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-error-container text-error border-error/20;
+  }
+  .chip-neutral {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-[#F0EDE6] text-[#4A4036] border-[#E5E0D8];
+  }
+
+  /* Primary CTA pill (burned orange per mockup) */
+  .btn-cta {
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-cta text-white font-semibold transition-all hover:bg-cta-hover active:scale-[0.99];
+    box-shadow: 0 3px 12px rgba(168, 69, 42, 0.22);
+  }
+  .btn-cta:hover {
+    box-shadow: 0 5px 16px rgba(168, 69, 42, 0.3);
+  }
+
+  /* Secondary/ghost control */
+  .btn-subtle {
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-white border border-[#E2D8C7] text-[#241F1B] font-semibold transition-colors hover:bg-[#F3ECE0]/40 hover:border-[#D0C4B0];
+  }
+
+  /* Editorial eyebrow label */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.05em] text-[#6B5B4A];
+  }
+
+  /* --- Custom range slider thumb --- */
+  input[type='range'].tnc-range {
+    @apply w-full h-2 rounded-lg appearance-none cursor-pointer bg-[#E2D8C7];
+    accent-color: #3a4a2e;
+  }
+  input[type='range'].tnc-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3a4a2e;
+    border: 3px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(36, 31, 27, 0.25);
+    cursor: pointer;
+  }
+  input[type='range'].tnc-range::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3a4a2e;
+    border: 3px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(36, 31, 27, 0.25);
+    cursor: pointer;
+  }
+
+  /* Decorative topographic contour lines */
+  .topo-lines {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(58, 74, 46, 0.12) 1px, transparent 0),
+      linear-gradient(120deg, transparent 0%, transparent 55%, rgba(58, 74, 46, 0.05) 55%, rgba(58, 74, 46, 0.05) 56%, transparent 56%);
+    background-size: 22px 22px, 380px 380px;
   }
 }
 
 @layer utilities {
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-  
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+
   .bg-tilled-soil {
-    background-color: #EFEAE0;
+    background-color: #f3ece0;
     background-image: radial-gradient(circle at 1px 1px, rgba(58, 55, 51, 0.09) 1px, transparent 0),
                       linear-gradient(to right, rgba(58, 55, 51, 0.04) 1px, transparent 1px);
     background-size: 24px 24px, 48px 48px;
+  }
+
+  .text-shadow-soft {
+    text-shadow: 0 1px 10px rgba(36, 31, 27, 0.35);
   }
 }
