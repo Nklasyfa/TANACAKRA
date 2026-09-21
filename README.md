@@ -40,6 +40,89 @@ Mengombinasikan analisis hara tanah Regosol Vulkanik lereng Gunung Merapi dengan
 
 ---
 
+## 🔄 Alur Kerja Sistem (System Workflow)
+
+### 🌾 1. Alur Pengguna (Petani)
+
+```mermaid
+graph TD
+    A(["Mulai (Buka Web TANACAKRA)"]) --> B{"Sudah Login?"}
+    
+    B -- "Belum" --> C["Halaman Login / Google OAuth"]
+    C --> D["Verifikasi Auth Supabase"]
+    D --> E["Tampilan Beranda Petani"]
+    B -- "Sudah" --> E
+
+    E --> F["Pantau Informasi Cuaca Mikroklimat Merapi"]
+    E --> G["Pilih Menu 'Catat Lahan'"]
+    E --> H["Pilih Menu 'Prediksi Pasar'"]
+
+    subgraph "Proses Catat Lahan & Inferensi AI"
+        G --> I["Step 1: Tentukan Lokasi di Peta Leaflet / GPS"]
+        I --> J["Step 2: Input Parameter pH & Hara N-P-K"]
+        J --> K["Step 3: Konfirmasi & Klik 'Kirim Data'"]
+        K --> L["Eksekusi Model Machine Learning (Random Forest)"]
+        L --> M["Tampil Rekomendasi Tanaman, Estimasi Ton/Ha & Dosis Pupuk"]
+        M --> N["Data Tersimpan di 'Riwayat Lahan'"]
+    end
+
+    subgraph "Analisis Pasar"
+        H --> O["Tampil Grafik Tren Harga Komoditas (Plotly.js)"]
+        O --> P["Petani Mengetahui Estimasi Waktu Panen Terbaik"]
+    end
+
+    N --> Q(["Selesai / Kembali ke Beranda"])
+    P --> Q
+```
+
+### 👨‍💼 2. Alur Pengelola (Admin / Penyuluh)
+
+```mermaid
+graph TD
+    A1(["Mulai (Buka TANACAKRA Admin Console)"]) --> B1["Login Akun Admin / Penyuluh"]
+    B1 --> C1{"Peran Terverifikasi?"}
+    
+    C1 -- "Role: PETANI" --> D1["Ditolak (Akses Terbatas)"]
+    C1 -- "Role: ADMIN / PENYULUH" --> E1["Dashboard Pengelola"]
+
+    subgraph "Tata Kelola Operasional"
+        E1 --> F1["Peta Sebaran 108+ Petak Lahan Cangkringan"]
+        E1 --> G1["Menu 'Manajemen Lahan'"]
+        E1 --> H1["Menu 'Log Aktivitas'"]
+        E1 --> I1["Menu 'Kabar Tani' & 'Pengaturan'"]
+    end
+
+    subgraph "Aksi Admin & Pelaporan"
+        G1 --> J1["Tambah / Edit Data Lahan Anggota"]
+        G1 --> K1["Klik 'Ekspor CSV'"]
+        K1 --> L1["Unduh Berkas Laporan Excel (UTF-8 BOM)"]
+        
+        H1 --> M1["Pantau Audit Log & Eksekusi Sistem"]
+        I1 --> N1["Buat Siaran Pengumuman / Kelola User"]
+    end
+
+    L1 --> O1(["Selesai / Sesi Berakhir"])
+    M1 --> O1
+    N1 --> O1
+```
+
+### ⚡ 3. Pemrosesan Data & Machine Learning Engine
+
+```mermaid
+graph LR
+    Input["Input Parameter Lahan (pH, N, P, K, Elevasi)"] --> API["Django REST Framework API (/api/v1/lahan/input)"]
+    API --> ML["Scikit-Learn ML Engine (Random Forest Regressor)"]
+    API --> Audit["Audit Log Service (Pencatatan Audit Trail)"]
+    
+    ML --> Output["Hasil Prediksi: Komoditas + Estimasi Panen"]
+    Output --> Plotly["Plotly Engine (JSON Radar & Line Schema)"]
+    
+    Audit --> DB[(Database PostgreSQL / Supabase)]
+    Plotly --> JSON["Response JSON ke Frontend Vue 3"]
+```
+
+---
+
 ## 🛠️ Arsitektur & Teknologi
 
 Sistem Tanacakra dibangun secara *decoupled* (Frontend & Backend terpisah sepenuhnya):
