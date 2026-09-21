@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../services/supabase'
+import { resolveSession } from '../services/session'
 import { AuthService } from '../services/api'
 
 const router = useRouter()
@@ -29,42 +30,21 @@ const roleToDashboard = (role: string) => {
   router.push(role === 'ADMIN' ? '/admin' : '/petani')
 }
 
-const getRoleFromProfile = async (userId: string): Promise<'ADMIN' | 'PETANI'> => {
-  try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (profile && profile.role === 'ADMIN') return 'ADMIN'
-  } catch {
-    // abaikan, default PETANI
+const finishAuthIfSession = async () => {
+  const session = await resolveSession()
+  if (session) {
+    roleToDashboard(session.role === 'ADMIN' ? 'ADMIN' : 'PETANI')
   }
-  return 'PETANI'
-}
-
-const redirectAuthenticated = (userId?: string) => {
-  if (!userId) {
-    router.push('/petani')
-    return
-  }
-  getRoleFromProfile(userId).then(role => roleToDashboard(role))
 }
 
 onMounted(() => {
   window.addEventListener('offline', updateOfflineStatus)
   window.addEventListener('online', updateOfflineStatus)
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session) {
-      redirectAuthenticated(session.user?.id)
-    }
-  })
+  finishAuthIfSession()
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    if (session) {
-      redirectAuthenticated(session.user?.id)
-    }
+  supabase.auth.onAuthStateChange(() => {
+    finishAuthIfSession()
   })
 })
 

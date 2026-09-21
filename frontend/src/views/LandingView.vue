@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getStoredSession, resolveSession } from '../services/session'
 import { KabarTaniService, type KabarTaniItem } from '../services/kabarTani'
 
 const router = useRouter()
@@ -33,6 +34,8 @@ const initReveal = () => {
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   initReveal()
+  applySession()
+  resolveSession().then(applySession)
   loadWartaItems()
 })
 onUnmounted(() => {
@@ -42,18 +45,13 @@ onUnmounted(() => {
 
 const hasSession = ref(false)
 const sessionRole = ref<'PETANI' | 'ADMIN'>('PETANI')
-;(() => {
-  try {
-    const raw = localStorage.getItem('tanacakra_user')
-    if (raw) {
-      const u = JSON.parse(raw)
-      hasSession.value = !!(u && u.username)
-      if (u && u.role === 'ADMIN') sessionRole.value = 'ADMIN'
-    }
-  } catch {
-    hasSession.value = false
-  }
-})()
+
+const applySession = () => {
+  const { token, role } = getStoredSession()
+  hasSession.value = !!token
+  if (role === 'ADMIN') sessionRole.value = 'ADMIN'
+  else if (role === 'PENYULUH') sessionRole.value = 'PETANI'
+}
 
 const primaryCta = () => {
   if (hasSession.value) {

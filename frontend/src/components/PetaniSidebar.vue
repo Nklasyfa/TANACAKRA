@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { supabase } from '../services/supabase'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,6 +22,7 @@ const userEmail = ref('petani@cangkringan.desa.id')
 })()
 
 const handleLogout = () => {
+  supabase.auth.signOut()
   localStorage.removeItem('tanacakra_token')
   localStorage.removeItem('tanacakra_user')
   router.push('/')

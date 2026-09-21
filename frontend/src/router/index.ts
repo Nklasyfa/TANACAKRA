@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { getStoredSession, resolveSession } from '../services/session'
 import LandingView from '../views/LandingView.vue'
 import LoginView from '../views/LoginView.vue'
 import PetaniDashboardView from '../views/PetaniDashboardView.vue'
@@ -17,21 +18,6 @@ declare module 'vue-router' {
     requiresAuth?: boolean
     roles?: Array<'PETANI' | 'ADMIN' | 'PENYULUH'>
   }
-}
-
-function getStoredSession(): { token: string | null; role: 'PETANI' | 'ADMIN' | 'PENYULUH' | null } {
-  let role: 'PETANI' | 'ADMIN' | 'PENYULUH' | null = null
-  try {
-    const raw = localStorage.getItem('tanacakra_user')
-    if (raw) {
-      const u = JSON.parse(raw)
-      if (u && (u.role === 'ADMIN' || u.role === 'PENYULUH' || u.role === 'PETANI')) role = u.role
-    }
-  } catch {
-    role = null
-  }
-  const token = localStorage.getItem('tanacakra_token')
-  return { token, role }
 }
 
 const router = createRouter({
@@ -118,8 +104,16 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to) => {
-  const { token, role } = getStoredSession()
+router.beforeEach(async (to) => {
+  let { token, role } = getStoredSession()
+
+  if (!token) {
+    const bridged = await resolveSession()
+    if (bridged) {
+      token = bridged.token
+      role = bridged.role
+    }
+  }
 
   if (to.name === 'login') {
     if (token) {
