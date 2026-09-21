@@ -87,3 +87,43 @@ class CostData(models.Model):
     def __str__(self):
         return f"{self.planting_id} - {self.category}: Rp {self.amount}"
 
+
+class WeatherData(models.Model):
+    date = models.DateField()
+    rainfall_mm = models.DecimalField(max_digits=10, decimal_places=2)
+    temperature_c = models.DecimalField(max_digits=6, decimal_places=2)
+    humidity_percent = models.DecimalField(max_digits=6, decimal_places=2)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Weather {self.date} - Rain: {self.rainfall_mm}mm, Temp: {self.temperature_c}°C, Humidity: {self.humidity_percent}%"
+
+
+class PestDiseaseData(models.Model):
+    date = models.DateField()
+    commodity = models.CharField(max_length=50)
+    pest_disease = models.CharField(max_length=100)
+    severity = models.CharField(max_length=20, choices=[('Low', 'Low'), ('Medium', 'Medium'), ('High', 'High')])
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.commodity} - {self.pest_disease} ({self.severity}) on {self.date}"
+
+
+class GISData(models.Model):
+    farm_id = models.CharField(max_length=20)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7)
+    ndvi = models.DecimalField(max_digits=5, decimal_places=3)
+    land_cover = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ['farm_id']
+
+    def __str__(self):
+        return f"GIS {self.farm_id} - NDVI: {self.ndvi}"
+

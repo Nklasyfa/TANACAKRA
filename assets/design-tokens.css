@@ -1,0 +1,147 @@
+/* Design Tokens - Auto-generated */
+/* Do not edit directly - modify tokens.json instead */
+
+/* === PRIMITIVES === */
+:root {
+  --primitive-color-green-50: #F0FDF4;
+  --primitive-color-green-100: #DCFCE7;
+  --primitive-color-green-200: #BBF7D0;
+  --primitive-color-green-300: #86EFAC;
+  --primitive-color-green-400: #4ADE80;
+  --primitive-color-green-500: #22C55E;
+  --primitive-color-green-600: #16A34A;
+  --primitive-color-green-700: #15803D;
+  --primitive-color-green-800: #166534;
+  --primitive-color-green-900: #14532D;
+  --primitive-color-green-950: #052E16;
+  --primitive-color-brown-50: #FFF7ED;
+  --primitive-color-brown-100: #FFFBEB;
+  --primitive-color-brown-200: #FEF3C7;
+  --primitive-color-brown-300: #FDE68A;
+  --primitive-color-brown-400: #FACC15;
+  --primitive-color-brown-500: #EAB308;
+  --primitive-color-brown-600: #CA8A04;
+  --primitive-color-brown-700: #A16207;
+  --primitive-color-brown-800: #854D0E;
+  --primitive-color-brown-900: #713F12;
+  --primitive-color-brown-950: #422006;
+  --primitive-color-cream-50: #FFFFFA;
+  --primitive-color-cream-100: #FFFFF0;
+  --primitive-color-cream-200: #FFFFE0;
+  --primitive-color-cream-300: #FFFFCC;
+  --primitive-color-cream-400: #FFFFB3;
+  --primitive-color-cream-500: #FFFF99;
+  --primitive-color-cream-600: #FFFF80;
+  --primitive-color-cream-700: #FFFF66;
+  --primitive-color-cream-800: #FFFF4D;
+  --primitive-color-cream-900: #FFFF33;
+  --primitive-color-cream-950: #FFFF1A;
+  --primitive-color-red-50: #FEF2F2;
+  --primitive-color-red-100: #FEE2E2;
+  --primitive-color-red-200: #FECACA;
+  --primitive-color-red-300: #FCA5A5;
+  --primitive-color-red-400: #F87171;
+  --primitive-color-red-500: #EF4444;
+  --primitive-color-red-600: #DC2626;
+  --primitive-color-red-700: #B91C1C;
+  --primitive-color-red-800: #991B1B;
+  --primitive-color-red-900: #7F1D1D;
+  --primitive-color-red-950: #450A0A;
+  --primitive-color-blue-50: #EFF6FF;
+  --primitive-color-blue-100: #DBEAFE;
+  --primitive-color-blue-200: #BFDBFE;
+  --primitive-color-blue-300: #93C5FD;
+  --primitive-color-blue-400: #60A5FA;
+  --primitive-color-blue-500: #3B82F6;
+  --primitive-color-blue-600: #2563EB;
+  --primitive-color-blue-700: #1D4ED8;
+  --primitive-color-blue-800: #1E40AF;
+  --primitive-color-blue-900: #1E3A8A;
+  --primitive-color-blue-950: #0F172A;
+  --primitive-spacing-0: 0px;
+  --primitive-spacing-1: 0.25rem;
+  --primitive-spacing-2: 0.5rem;
+  --primitive-spacing-3: 0.75rem;
+  --primitive-spacing-4: 1rem;
+  --primitive-spacing-5: 1.25rem;
+  --primitive-spacing-6: 1.5rem;
+  --primitive-spacing-7: 1.75rem;
+  --primitive-spacing-8: 2rem;
+  --primitive-spacing-9: 2.25rem;
+  --primitive-spacing-10: 2.5rem;
+  --primitive-spacing-11: 2.75rem;
+  --primitive-spacing-12: 3rem;
+  --primitive-spacing-14: 3.5rem;
+  --primitive-spacing-16: 4rem;
+  --primitive-spacing-20: 5rem;
+  --primitive-spacing-24: 6rem;
+  --primitive-spacing-28: 7rem;
+  --primitive-spacing-32: 8rem;
+  --primitive-spacing-36: 9rem;
+  --primitive-spacing-40: 10rem;
+  --primitive-spacing-44: 11rem;
+  --primitive-spacing-48: 12rem;
+  --primitive-spacing-52: 13rem;
+  --primitive-spacing-56: 14rem;
+  --primitive-spacing-60: 15rem;
+  --primitive-spacing-64: 16rem;
+  --primitive-spacing-72: 18rem;
+  --primitive-spacing-80: 20rem;
+  --primitive-spacing-96: 24rem;
+  --primitive-radius-none: 0px;
+  --primitive-radius-sm: 0.125rem;
+  --primitive-radius-md: 0.25rem;
+  --primitive-radius-lg: 0.5rem;
+  --primitive-radius-xl: 0.75rem;
+  --primitive-radius-2xl: 1rem;
+  --primitive-radius-3xl: 1.5rem;
+  --primitive-radius-full: 9999px;
+}
+
+/* === SEMANTIC === */
+:root {
+  --color-background: #FFFFFA;
+  --color-foreground: #713F12;
+  --color-primary: #22C55E;
+  --color-primary-foreground: #FFFFFA;
+  --color-secondary: #FDE68A;
+  --color-secondary-foreground: #713F12;
+  --color-muted: #FFFFE0;
+  --color-muted-foreground: #EAB308;
+  --color-accent: #3B82F6;
+  --color-accent-foreground: #FFFFFA;
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #FFFFFA;
+  --color-border: #FEF3C7;
+  --color-input: #FEF3C7;
+  --color-ring: #86EFAC;
+  --color-chart-1: #4ADE80;
+  --color-chart-2: #60A5FA;
+  --color-chart-3: #FACC15;
+  --color-chart-4: #FFFFB3;
+  --color-chart-5: #F87171;
+  --spacing-gutter: 1rem;
+  --spacing-stack: 0.75rem;
+  --spacing-section: 2rem;
+  --radius-small: 0.25rem;
+  --radius-medium: 0.5rem;
+  --radius-large: 0.75rem;
+}
+
+/* === COMPONENTS === */
+:root {
+  --button-background: #22C55E;
+  --button-foreground: #FFFFFA;
+  --button-border: #FEF3C7;
+  --button-hover-background: #16A34A;
+  --button-hover-foreground: #FFFFFA;
+  --button-disabled-background: #FFFBEB;
+  --button-disabled-foreground: #FACC15;
+  --input-background: #FFFFFA;
+  --input-foreground: #713F12;
+  --input-border: #FEF3C7;
+  --input-ring: #86EFAC;
+  --card-background: #FFFFFA;
+  --card-foreground: #713F12;
+  --card-border: #FEF3C7;
+}

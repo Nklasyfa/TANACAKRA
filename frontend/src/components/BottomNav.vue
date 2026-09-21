@@ -1,45 +1,51 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+
 const route = useRoute()
+
+const leftItems = [
+  { to: '/petani', icon: 'potted_plant', label: 'Beranda' },
+  { to: '/riwayat', icon: 'nature', label: 'Lahan' }
+]
+const rightItems = [
+  { to: '/prediksi-pasar', icon: 'storefront', label: 'Pasar' },
+  { to: '/profil', icon: 'account_circle', label: 'Profil' }
+]
 </script>
 
 <template>
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-abu-letusan border-t border-[#DED7CA] px-3 py-2 flex items-center justify-around z-30 select-none pb-safe">
-    
-    <!-- Beranda -->
-    <router-link to="/petani" 
-      :class="route.path === '/petani' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
-      <svg class="w-5 h-5" :class="route.path === '/petani' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-      </svg>
-      <span class="text-[10px]" :class="route.path === '/petani' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Beranda</span>
-    </router-link>
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(36,31,27,0.06)] border-t border-[#E5E0D8]">
+    <div class="flex items-center justify-around h-16 px-1">
+      <router-link
+        v-for="item in leftItems"
+        :key="item.to"
+        :to="item.to"
+        class="flex flex-col items-center justify-center w-14 h-14 transition-colors"
+        :class="route.path === item.to ? 'text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+      >
+        <span class="material-symbols-outlined text-[22px]" :class="route.path === item.to ? 'msr-fill' : ''">{{ item.icon }}</span>
+        <span class="text-[11px] mt-0.5" :class="route.path === item.to ? 'font-semibold' : 'font-medium'">{{ item.label }}</span>
+      </router-link>
 
-    <!-- Catat -->
-    <router-link to="/input-lahan" 
-      :class="route.path === '/input-lahan' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
-      <svg class="w-5 h-5" :class="route.path === '/input-lahan' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-      </svg>
-      <span class="text-[10px]" :class="route.path === '/input-lahan' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Catat</span>
-    </router-link>
+      <router-link to="/input-lahan" class="flex flex-col items-center justify-center w-14 h-14" aria-label="Catat Data">
+        <div
+          class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md transition-all active:scale-95"
+          :class="route.path === '/input-lahan' ? 'ring-4 ring-[#3A4A2E]/20' : ''"
+        >
+          <span class="material-symbols-outlined text-[22px]">add</span>
+        </div>
+      </router-link>
 
-    <!-- Riwayat -->
-    <router-link to="/riwayat" 
-      :class="route.path === '/riwayat' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
-      <svg class="w-5 h-5" :class="route.path === '/riwayat' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <span class="text-[10px]" :class="route.path === '/riwayat' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Riwayat</span>
-    </router-link>
-
-    <!-- Profil -->
-    <router-link to="/profil" 
-      :class="route.path === '/profil' ? 'flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-full bg-abu-letusan-dark text-genteng transition-all' : 'flex flex-col items-center justify-center gap-0.5 px-3 py-1 text-abu-vulkanik hover:text-genteng transition-all'">
-      <svg class="w-5 h-5" :class="route.path === '/profil' ? 'text-genteng' : 'text-abu-vulkanik/70'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-      </svg>
-      <span class="text-[10px]" :class="route.path === '/profil' ? 'font-semibold text-genteng' : 'font-medium text-abu-vulkanik'">Profil</span>
-    </router-link>
+      <router-link
+        v-for="item in rightItems"
+        :key="item.to"
+        :to="item.to"
+        class="flex flex-col items-center justify-center w-14 h-14 transition-colors"
+        :class="route.path === item.to ? 'text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+      >
+        <span class="material-symbols-outlined text-[22px]" :class="route.path === item.to ? 'msr-fill' : ''">{{ item.icon }}</span>
+        <span class="text-[11px] mt-0.5" :class="route.path === item.to ? 'font-semibold' : 'font-medium'">{{ item.label }}</span>
+      </router-link>
+    </div>
   </nav>
 </template>

@@ -67,28 +67,90 @@ class TanacakraPlotlyEngineTests(TestCase):
 class TanacakraAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        self.petani = User.objects.create_user(
+            username="petani_test", email="petani_test@test.id", password="password123", role="PETANI"
+        )
+        self.admin = User.objects.create_user(
+            username="admin_test", email="admin_test@test.id", password="adminpass", role="ADMIN"
+        )
 
-    def test_auth_login_endpoint(self):
-        response = self.client.post(reverse('auth-login'), {"username": "admin_test", "role": "ADMIN"}, format='json')
+    def _login(self, username, password):
+        return self.client.post(
+            reverse('auth-login'),
+            {"username": username, "password": password},
+            format='json'
+        )
+
+    def test_auth_login_valid(self):
+        response = self._login("petani_test", "password123")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["role"], "PETANI")
+
+    def test_auth_login_wrong_password(self):
+        response = self._login("petani_test", "salah-password")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_auth_login_rejects_unknown_user(self):
+        response = self._login("bukan_user", "password123")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_auth_login_ignores_role_claim(self):
+        # Role diabaikan: klien mengaku ADMIN tetapi user aslinya PETANI
+        response = self._login("petani_test", "password123")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        resp2 = self.client.post(
+            reverse('auth-login'),
+            {"username": "petani_test", "password": "password123", "role": "ADMIN"},
+            format='json'
+        )
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data["user"]["role"], "PETANI")
+
+    def test_unauthenticated_access_rejected(self):
+        response = self.client.get(reverse('lahan-list'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_input_lahan_requires_auth(self):
+        payload = {"pH": 6.5, "kelembapan": 65, "nitrogen": 100, "fosfor": 35, "kalium": 130}
+        response = self.client.post(reverse('input-lahan', kwargs={'lahan_id': 'CGK001'}), payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_input_lahan_valid(self):
+        self.client.force_authenticate(user=self.petani)
         payload = {"pH": 6.5, "kelembapan": 65, "nitrogen": 100, "fosfor": 35, "kalium": 130}
         response = self.client.post(reverse('input-lahan', kwargs={'lahan_id': 'CGK001'}), payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("engine_output", response.data)
 
     def test_input_lahan_invalid_schema(self):
+        self.client.force_authenticate(user=self.petani)
         payload = {"pH": 99.0} # pH > 14 is invalid
         response = self.client.post(reverse('input-lahan', kwargs={'lahan_id': 'CGK001'}), payload, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
     def test_lahan_list_endpoint(self):
+        self.client.force_authenticate(user=self.petani)
         response = self.client.get(reverse('lahan-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_audit_logs_list_endpoint(self):
+    def test_audit_logs_admin_only(self):
+        # Petani ditolak
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.get(reverse('audit-logs-list'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Admin diizinkan
+        self.client.force_authenticate(user=self.admin)
         response = self.client.get(reverse('audit-logs-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_users_admin_only(self):
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.get(reverse('users-list'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_broadcast_admin_only(self):
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.post(reverse('broadcast-alert'), {"pesan": "uji"}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -15,7 +15,10 @@ const navItems = [
 <template>
   <aside class="w-64 bg-surface-bright border-r border-outline-variant h-screen sticky top-0 flex flex-col hidden lg:flex shadow-sm">
     <div class="p-stack-md border-b border-outline-variant flex items-center justify-center">
-      <h1 class="font-display-lg-mobile text-[24px] text-primary tracking-tight font-bold">Tanacakra</h1>
+      <div class="flex items-center gap-1.5">
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
+        <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
+      </div>
     </div>
     
     <nav class="flex-grow p-4 flex flex-col gap-2">
@@ -38,7 +41,10 @@ const navItems = [
 
   <!-- Mobile Top Bar for Admin -->
   <header class="lg:hidden w-full bg-surface-bright border-b border-outline-variant p-4 flex justify-between items-center sticky top-0 z-50">
-    <h1 class="font-display-lg-mobile text-[20px] text-primary tracking-tight font-bold">Tanacakra</h1>
+    <div class="flex items-center gap-1.5">
+      <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
+      <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
+    </div>
     <button class="text-on-surface hover:text-primary">
       <span class="material-symbols-outlined">menu</span>
     </button>

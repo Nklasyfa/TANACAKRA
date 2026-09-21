@@ -7,18 +7,19 @@ class TanacakraPlotlyEngine:
         """
         Menghasilkan skema Radar Chart (Spider Plot) untuk keseimbangan nutrisi tanah.
         """
-        ph = float(parameters.get('pH', 6.5))
-        kelembapan = float(parameters.get('kelembapan', 60))
-        n = float(parameters.get('nitrogen', 100))
-        p = float(parameters.get('fosfor', 35))
-        k = float(parameters.get('kalium', 130))
+        ph = float(parameters.get('pH', parameters.get('soil_ph', 6.5)))
+        kelembapan = float(parameters.get('kelembapan', parameters.get('humidity_percent', 60)))
+        n = float(parameters.get('nitrogen', parameters.get('n', 100)))
+        p = float(parameters.get('fosfor', parameters.get('p', 35)))
+        k = float(parameters.get('kalium', parameters.get('k', 130)))
 
-        # Normalisasi ke skala 0-100% dari target optimal
-        norm_ph = min(100, (ph / 7.0) * 100)
-        norm_kelembapan = min(100, (kelembapan / 80.0) * 100)
-        norm_n = min(100, (n / 140.0) * 100)
-        norm_p = min(100, (p / 50.0) * 100)
-        norm_k = min(100, (k / 160.0) * 100)
+        # Normalisasi ke skala 0-100% dari target optimal (pH ideal = 6.5)
+        ph_dev = abs(ph - 6.5)
+        norm_ph = max(0.0, min(100.0, 100.0 - ph_dev * 25.0))
+        norm_kelembapan = min(100.0, (kelembapan / 80.0) * 100.0)
+        norm_n = min(100.0, (n / 140.0) * 100.0)
+        norm_p = min(100.0, (p / 50.0) * 100.0)
+        norm_k = min(100.0, (k / 160.0) * 100.0)
 
         categories = ['pH Tanah', 'Kelembapan', 'Nitrogen (N)', 'Fosfor (P)', 'Kalium (K)']
         values = [norm_ph, norm_kelembapan, norm_n, norm_p, norm_k]
@@ -64,8 +65,14 @@ class TanacakraPlotlyEngine:
         Menghasilkan Line Chart historis perubahan pH dan Kelembapan.
         """
         dates = [rec.get('created_at', '')[:10] for rec in history_records] or ['Hari 1', 'Hari 2', 'Hari 3', 'Hari 4', 'Hari 5']
-        ph_list = [rec.get('input_parameters', {}).get('pH', 6.0) for rec in history_records] or [6.2, 6.1, 5.8, 6.4, 6.5]
-        moisture_list = [rec.get('input_parameters', {}).get('kelembapan', 65) for rec in history_records] or [65, 60, 58, 70, 72]
+        ph_list = [
+            float(rec.get('input_parameters', {}).get('pH', rec.get('input_parameters', {}).get('soil_ph', 6.0)))
+            for rec in history_records
+        ] or [6.2, 6.1, 5.8, 6.4, 6.5]
+        moisture_list = [
+            float(rec.get('input_parameters', {}).get('kelembapan', rec.get('input_parameters', {}).get('humidity_percent', 65)))
+            for rec in history_records
+        ] or [65, 60, 58, 70, 72]
 
         return {
             "data": [
@@ -104,48 +111,60 @@ class TanacakraPlotlyEngine:
         }
 
     @staticmethod
-    def generate_price_trend_chart(trends: list) -> dict:
+    def generate_price_trend_chart(trends: list, volume_trends: list = None) -> dict:
         """
         Menghasilkan Line & Bar Chart interaktif berbasis Plotly.js untuk Tren Harga & Volume Panen.
+        Baris harga digenerated dinamis dari seluruh komoditas yang ada di database.
         """
         months = [t.get('month', '') for t in trends]
-        harga_cabai = [t.get('harga_cabai', 0) for t in trends]
-        harga_salak = [t.get('harga_salak', 0) for t in trends]
-        volume_panen = [t.get('volume_panen', 350) for t in trends]
+        commodity_keys = [k for k in (trends[0].keys() if trends else []) if k != 'month']
+
+        colors = {
+            'Cabai Merah': '#C84C32',
+            'Salak Pondoh': '#4A5B3A',
+            'Bawang Merah': '#8B3A62',
+            'Padi': '#D99B26',
+            'Jagung': '#E07A5F',
+            'Kacang Tanah': '#7E5A3C',
+            'Tomat': '#E63946',
+        }
+        palette = ['#C84C32', '#4A5B3A', '#8B3A62', '#D99B26', '#E07A5F', '#7E5A3C', '#E63946', '#2F4A2C']
+
+        data = []
+        for idx, key in enumerate(commodity_keys):
+            series = [t.get(key) for t in trends]
+            color = colors.get(key, palette[idx % len(palette)])
+            data.append({
+                "x": months,
+                "y": series,
+                "type": "scatter",
+                "mode": "lines+markers",
+                "name": f"{key} (Rp/kg)",
+                "line": {"color": color, "width": 2.5, "shape": "spline"},
+                "marker": {"size": 6, "color": color},
+                "hovertemplate": f"<b>%{{x}}</b><br>{key}: Rp %{{y:,.0f}}/kg<extra></extra>"
+            })
+
+        volume_data = volume_trends or []
+        volume_months = [v.get('month', '') for v in volume_data]
+        volume_vals = [v.get('volume_ton', 0) for v in volume_data]
+        if not volume_vals:
+            volume_months = months
+            volume_vals = [350 for _ in months]
+
+        data.append({
+            "x": volume_months,
+            "y": volume_vals,
+            "type": "bar",
+            "name": "Volume Panen (Ton)",
+            "yaxis": "y2",
+            "opacity": 0.35,
+            "marker": {"color": "#D97706"},
+            "hovertemplate": "<b>%{x}</b><br>Volume Panen: %{y:.1f} Ton<extra></extra>"
+        })
 
         return {
-            "data": [
-                {
-                    "x": months,
-                    "y": harga_cabai,
-                    "type": "scatter",
-                    "mode": "lines+markers",
-                    "name": "Cabai Merah (Rp/kg)",
-                    "line": {"color": "#B3542C", "width": 3, "shape": "spline"},
-                    "marker": {"size": 8, "color": "#B3542C"},
-                    "hovertemplate": "<b>%{x}</b><br>Cabai Merah: Rp %{y:,.0f}/kg<extra></extra>"
-                },
-                {
-                    "x": months,
-                    "y": harga_salak,
-                    "type": "scatter",
-                    "mode": "lines+markers",
-                    "name": "Salak Pondoh (Rp/kg)",
-                    "line": {"color": "#4E7C40", "width": 3, "shape": "spline"},
-                    "marker": {"size": 8, "color": "#4E7C40"},
-                    "hovertemplate": "<b>%{x}</b><br>Salak Pondoh: Rp %{y:,.0f}/kg<extra></extra>"
-                },
-                {
-                    "x": months,
-                    "y": volume_panen,
-                    "type": "bar",
-                    "name": "Volume Panen (Ton)",
-                    "yaxis": "y2",
-                    "opacity": 0.35,
-                    "marker": {"color": "#D97706"},
-                    "hovertemplate": "<b>%{x}</b><br>Volume Panen: %{y:.1f} Ton<extra></extra>"
-                }
-            ],
+            "data": data,
             "layout": {
                 "title": {
                     "text": "<b>Fluktuasi Harga Pasar & Volume Panen Cangkringan</b>",
@@ -176,8 +195,8 @@ class TanacakraPlotlyEngine:
                 "legend": {
                     "orientation": "h",
                     "x": 0,
-                    "y": 1.15,
-                    "font": {"size": 11, "color": "#2C2622"}
+                    "y": 1.3,
+                    "font": {"size": 10, "color": "#2C2622"}
                 },
                 "paper_bgcolor": "transparent",
                 "plot_bgcolor": "transparent",
