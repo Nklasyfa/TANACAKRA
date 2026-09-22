@@ -108,7 +108,7 @@ const handleLogin = async () => {
       return
     }
     const msg = error?.message || ''
-    if (msg.toLowerCase().includes('email not confirmed')) {
+    if (msg.toLowerCase().includes('email not confirmed') || msg.toLowerCase().includes('email logins are disabled')) {
       offlineDemoLogin()
       return
     }

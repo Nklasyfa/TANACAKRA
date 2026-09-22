@@ -312,12 +312,13 @@ export const LahanService = {
         output: {
           prediction_result: {
             estimasi_hasil_panen_ton_ha: '16.8',
-            status_kesehatan: 'Sangat Baik (Offline Mode)',
-            catatan_lokasi: `Tersimpan secara luring untuk lahan ${lahanId} karena server offline.`,
+            status_kesehatan: parameters.pH < 6.0 ? 'Perlu Pembenahan pH' : 'Subur & Stabil',
+            catatan_lokasi: `Tersimpan secara luring untuk lahan ${lahanId}.`,
             rekomendasi_tindakan: [
-              'Data Anda disimpan dengan aman di penyimpanan lokal.',
-              'Disarankan pemberian pupuk organik cair secara berkala.',
-              'Jaga tingkat kelembapan tanah sesuai standar.'
+              parameters.pH < 6.0 
+                ? 'Butuh Pupuk NPK & Kapur Dolomit untuk menstabilkan tanah yang terlalu asam.' 
+                : 'Butuh Pupuk NPK Susulan (150 kg/ha) & Pupuk Kandang Organik untuk menstabilkan nutrisi tanah.',
+              'Jaga penyiraman & kelembapan tanah di tingkat ideal (50-70%).'
             ]
           }
         }
@@ -347,10 +348,10 @@ export const LahanService = {
     try {
       const res = await api.get('/lahan')
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return [...local, ...res.data]
+      return [...local, ...(res.data || [])]
     } catch {
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return local.length ? local : generateFallbackLahan()
+      return local
     }
   },
   async getAllLahan() {

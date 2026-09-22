@@ -396,8 +396,8 @@ watch(
             </span>
             <input v-model="searchQuery" type="text" placeholder="Cari ID lahan (misal: CGK001), nama desa..." class="w-full pl-9 pr-4 py-2 md:py-2 text-xs md:text-sm bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none" />
           </div>
-          <div class="hidden md:block w-48">
-            <select v-model="selectedDesa" class="w-full py-2 px-3 text-xs bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none">
+          <div class="hidden md:block min-w-[180px]">
+            <select v-model="selectedDesa" class="w-full py-2 pl-3 pr-8 text-xs bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none cursor-pointer">
               <option value="all">Semua Desa (Cangkringan)</option>
               <option value="Wukirsari">Wukirsari</option>
               <option value="Argomulyo">Argomulyo</option>

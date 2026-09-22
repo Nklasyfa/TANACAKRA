@@ -127,7 +127,7 @@ const statusLabel = (item: any) => {
             </div>
             <div class="flex items-center gap-2">
               <label class="text-xs font-semibold text-[#6B5B4A] whitespace-nowrap">Desa:</label>
-              <select v-model="selectedDesa" class="bg-white border border-[#E2D8C7] rounded-lg px-3 py-1.5 text-[13px] text-[#241F1B] font-medium focus:outline-none focus:border-[#A8452A] transition">
+              <select v-model="selectedDesa" class="bg-white border border-[#E2D8C7] rounded-lg pl-3 pr-8 py-1.5 text-[13px] text-[#241F1B] font-medium focus:outline-none focus:border-[#A8452A] transition cursor-pointer min-w-[140px]">
                 <option value="all">Semua Desa</option>
                 <option value="Cangkringan">Cangkringan</option>
                 <option value="Umbulharjo">Umbulharjo</option>
@@ -162,7 +162,13 @@ const statusLabel = (item: any) => {
                   <td colspan="5" class="py-10 text-center text-[#6B5B4A]">Memuat riwayat data lahan Anda...</td>
                 </tr>
                 <tr v-else-if="filteredHistory.length === 0">
-                  <td colspan="5" class="py-10 text-center text-[#6B5B4A]">Tidak ada catatan lahan yang ditemukan.</td>
+                  <td colspan="5" class="py-12 text-center text-[#6B5B4A]">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <span class="material-symbols-outlined text-[36px] text-[#A99A87]">landscape</span>
+                      <p class="font-bold text-[15px] text-[#241F1B]">Belum Ada Catatan Lahan</p>
+                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "+ Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
+                    </div>
+                  </td>
                 </tr>
                 <tr v-else v-for="item in filteredHistory" :key="item.id" class="hover:bg-[#FAF8F3] transition-colors align-top">
                   <td class="py-3 px-4 font-medium tabular-nums text-[#241F1B]">{{ formatDate(item.created_at) }}</td>
@@ -193,7 +199,9 @@ const statusLabel = (item: any) => {
                       </div>
                     </template>
                     <template v-else>
-                      {{ item.output?.prediction_result || item.engine_output?.prediction_result || 'Kondisi tanah vulkanik ideal. Rekomendasi komoditas: Cabai Merah & Tomat Vulkanik.' }}
+                      <div class="text-xs text-[#241F1B] leading-relaxed">
+                        <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> Butuh Pupuk NPK Susulan &amp; Pupuk Kandang Organik untuk menstabilkan nutrisi tanah.
+                      </div>
                     </template>
                   </td>
                   <td class="py-3 px-4 text-center">

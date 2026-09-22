@@ -103,21 +103,21 @@ class TanacakraMLEngine:
 
         status_kesehatan = self.classes_labels[pred_class_idx]
 
-        # Logika Rekomendasi Berbasis Hasil ML & Parameter Cangkringan
+        # Logika Rekomendasi Pemupukan Sederhana & Stabilisasi Tanah
         rekomendasi_tindakan = []
         if ph < 6.0:
-            rekomendasi_tindakan.append(f"Aplikasi Kapur Dolomit: {round((6.5 - ph) * 200, 0)} kg/ha untuk menaikkan pH tanah ke batas netral.")
+            rekomendasi_tindakan.append(f"Butuh Pupuk NPK & Kapur Dolomit ({round((6.5 - ph) * 200, 0)} kg/ha) untuk menstabilkan tanah yang terlalu asam.")
         elif ph > 7.5:
-            rekomendasi_tindakan.append("Aplikasi Belerang / Sulfur tanah untuk menurunkan derajat keasaman.")
+            rekomendasi_tindakan.append("Butuh Pupuk Sulfur/Belerang untuk menstabilkan tanah yang terlalu basa.")
 
         if kelembapan < 40:
-            rekomendasi_tindakan.append("Penyiraman intensif / irigasi tetes 2x sehari.")
+            rekomendasi_tindakan.append("Butuh penyiraman rutin / irigasi 2x sehari untuk menstabilkan kelembapan tanah.")
 
         if n < 80 or p < 25 or k < 100:
-            rekomendasi_tindakan.append("Pemupukan Susulan NPK 16-16-16 dosis 150 kg/ha + Kompos Organik.")
+            rekomendasi_tindakan.append("Butuh Pupuk NPK Susulan (150 kg/ha) + Pupuk Kandang Organik untuk menstabilkan nutrisi hara tanah.")
 
         if not rekomendasi_tindakan:
-            rekomendasi_tindakan.append("Kondisi lahan dalam batas optimum. Lanjutkan perawatan berkala.")
+            rekomendasi_tindakan.append("Kondisi tanah sudah subur & stabil. Berikan pupuk organik rutin untuk menjaga kesehatan tanah.")
 
         return {
             "status_kesehatan": status_kesehatan,
