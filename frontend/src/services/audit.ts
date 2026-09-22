@@ -20,7 +20,7 @@ export interface RichLogItem {
   payload: string
 }
 
-const STORAGE_KEY = 'tanacakra_audit_logs_v3'
+const STORAGE_KEY = 'tanacakra_audit_logs_v4'
 
 function formatLogTime(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
@@ -67,7 +67,7 @@ function generateInitialLogs(): RichLogItem[] {
       avatar: 'NS',
       avatarBg: 'bg-[#f2dfcf] text-[#444840]',
       userName: 'Nakula Syafa',
-      userRole: 'Admin (nakulasaputra08@gmail.com)',
+      userRole: 'Petani (nakulasaputra08@gmail.com)',
       title: 'Eksekusi inferensi peramalan harga Pasar Giwangan',
       subtitle: 'Model: VolcAgro-Regr-v2.1 · Horizon: 7 hari kedepan',
       method: 'POST',
@@ -124,7 +124,7 @@ function generateInitialLogs(): RichLogItem[] {
       avatar: 'SS',
       avatarBg: 'bg-[#dee5d8] text-[#171d16]',
       userName: '279_Shofie A Shafina',
-      userRole: 'Penyuluh (25051204279@mhs.unesa.ac.id)',
+      userRole: 'Petani (25051204279@mhs.unesa.ac.id)',
       title: 'Unduh warta pasar mingguan & tren komoditas cabai',
       subtitle: 'Laporan agregat DIY & Magelang (PDF 1.8MB)',
       method: 'GET',

@@ -81,6 +81,16 @@ const statusLabel = (item: any) => {
   if (rec?.status_kesehatan) return rec.status_kesehatan
   return phOf(item) >= 6.0 ? 'Sehat' : 'Perlu Atensi'
 }
+
+const fallbackRecommendation = (item: any) => {
+  const ph = phOf(item)
+  if (ph < 6.0) {
+    return 'Tanah asam. Taburkan Kapur Pertanian (Dolomit) yang mengandung Kalsium (Ca) & Magnesium (Mg) untuk menaikkan pH.'
+  } else if (ph > 7.0) {
+    return 'Tanah basa. Tambahkan unsur Belerang (Sulfur) pertanian untuk menurunkan pH tanah.'
+  }
+  return 'Kondisi stabil. Gunakan Pupuk NPK Seimbang (contoh: NPK Mutiara 16-16-16) untuk merawat nutrisi.'
+}
 </script>
 
 <template>
@@ -200,7 +210,7 @@ const statusLabel = (item: any) => {
                     </template>
                     <template v-else>
                       <div class="text-xs text-[#241F1B] leading-relaxed">
-                        <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> Butuh Pupuk NPK Susulan &amp; Pupuk Kandang Organik untuk menstabilkan nutrisi tanah.
+                        <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> {{ fallbackRecommendation(item) }}
                       </div>
                     </template>
                   </td>
@@ -255,6 +265,10 @@ const statusLabel = (item: any) => {
                 <span class="material-symbols-outlined text-[13px]">agriculture</span>
                 Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
               </div>
+            </div>
+            <div v-else class="rounded-lg border border-[#E2D8C7] bg-white p-2.5">
+              <p class="text-[10px] text-[#645d58] font-semibold mb-1">Rekomendasi Pemupukan</p>
+              <p class="text-[11px] text-[#241F1B] leading-relaxed">{{ fallbackRecommendation(item) }}</p>
             </div>
           </article>
         </section>
