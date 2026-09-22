@@ -301,15 +301,10 @@ const avgLatency = computed(() => {
                 v-model="selectedUser"
                 class="appearance-none bg-[#F9F7F4] text-[#231a10] border border-[#E5E0D8] text-xs font-semibold px-3.5 py-2 pr-9 rounded-lg focus:outline-none cursor-pointer hover:bg-[#F2EBDC] transition-colors"
               >
-                <option value="all">Semua Pengguna ({{ registeredUsers.length || 6 }} Terdaftar)</option>
-                <option value="admin">Super Admin (Administrator)</option>
+                <option value="all">Semua Pengguna ({{ registeredUsers.length || 7 }} Terdaftar)</option>
                 <option v-for="u in registeredUsers" :key="'opt-' + u.id" :value="u.username">
-                  {{ u.username }} ({{ u.role }})
+                  {{ u.username }} ({{ u.email }})
                 </option>
-                <option value="supardi">Pak Supardi (Poktan Merapi Makmur)</option>
-                <option value="darmi">Bu Darmi (Poktan Kinahrejo)</option>
-                <option value="telemetri">Node Telemetri (IoT Gateway)</option>
-                <option value="cron">Sistem Cron AI (Worker)</option>
               </select>
               <span class="material-symbols-outlined text-[18px] text-[#7E7063] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
             </div>

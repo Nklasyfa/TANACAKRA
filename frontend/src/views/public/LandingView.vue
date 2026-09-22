@@ -207,7 +207,7 @@ const scrollToSection = (id: string) => {
     <section class="relative w-full h-[90vh] min-h-[620px] max-h-[860px] overflow-hidden flex flex-col justify-end">
       <!-- Image with overlay -->
       <img
-        src="/img/hero-merapi.png"
+        src="@/assets/landing page/atas.jpg"
         alt="Petani di lereng terasering Gunung Merapi pada pagi hari"
         class="absolute inset-0 w-full h-full object-cover select-none transform scale-105 transition-transform duration-1000"
       />
@@ -390,7 +390,7 @@ const scrollToSection = (id: string) => {
           <div class="lg:col-span-5 bg-white border border-[#E5E0D8] rounded-2xl overflow-hidden p-6 flex flex-col justify-between shadow-sm">
             <div>
               <div class="aspect-[4/3] w-full rounded-xl overflow-hidden mb-5 relative">
-                <img src="/img/farmer-portrait.png" alt="Petani memegang hasil panen" class="w-full h-full object-cover" />
+                <img src="@/assets/landing page/bawah.jpg" alt="Petani memegang hasil panen" class="w-full h-full object-cover" />
                 <div class="absolute bottom-2.5 right-2.5 bg-[#241F1B]/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 border border-white/20">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Telemetri IoT Aktif
                 </div>

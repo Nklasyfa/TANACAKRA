@@ -20,7 +20,7 @@ export interface RichLogItem {
   payload: string
 }
 
-const STORAGE_KEY = 'tanacakra_audit_logs_v2'
+const STORAGE_KEY = 'tanacakra_audit_logs_v3'
 
 function formatLogTime(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
@@ -45,17 +45,17 @@ function generateInitialLogs(): RichLogItem[] {
       timestamp: mkDate(5).toISOString(),
       latency: '38ms',
       category: 'input',
-      avatar: 'PS',
+      avatar: 'SM',
       avatarBg: 'bg-[#d5e9c3] text-[#111f08]',
-      userName: 'Pak Supardi',
-      userRole: 'Petani Cangkringan (Blok B)',
+      userName: 'Suparman',
+      userRole: 'Petani Cangkringan (suparman@gmail.com)',
       title: 'Input data observasi tanah vulkanik petak B-04',
       subtitle: 'Kelembaban: 24.2% · pH: 6.4 · Suhu tanah: 21.8°C',
       method: 'POST',
       endpoint: '/api/v1/telemetri/observasi',
       statusText: 'Tercatat (201)',
       statusCode: 201,
-      payload: JSON.stringify({ actor_id: 'usr_cangkringan_09', device_ip: '114.122.45.18', user_agent: 'TanacakraPWA/1.4 Android', payload: { plot: 'MR-BLK-B04', humidity: 24.2, ph: 6.4, strata: 'merapi_ash_2010', node_id: 'NODE_B04_MANUAL' } })
+      payload: JSON.stringify({ actor_id: 'usr_suparman', device_ip: '114.122.45.18', user_agent: 'TanacakraPWA/1.4 Android', payload: { plot: 'MR-BLK-B04', humidity: 24.2, ph: 6.4, strata: 'merapi_ash_2010', node_id: 'NODE_B04_MANUAL' } })
     },
     {
       id: 102,
@@ -64,10 +64,10 @@ function generateInitialLogs(): RichLogItem[] {
       timestamp: mkDate(18).toISOString(),
       latency: '242ms',
       category: 'ai',
-      avatar: 'CR',
+      avatar: 'NS',
       avatarBg: 'bg-[#f2dfcf] text-[#444840]',
-      userName: 'Sistem Cron AI',
-      userRole: 'Tanacakra Core Worker',
+      userName: 'Nakula Syafa',
+      userRole: 'Admin (nakulasaputra08@gmail.com)',
       title: 'Eksekusi inferensi peramalan harga Pasar Giwangan',
       subtitle: 'Model: VolcAgro-Regr-v2.1 · Horizon: 7 hari kedepan',
       method: 'POST',
@@ -86,7 +86,7 @@ function generateInitialLogs(): RichLogItem[] {
       avatar: 'SA',
       avatarBg: 'bg-[#243319] text-white',
       userName: 'Super Admin',
-      userRole: 'Admin Tanacakra',
+      userRole: 'Admin (admin@cangkringan.desa.id)',
       title: 'Pembaruan parameter batas ambang erosi Blok C',
       subtitle: 'Penyesuaian rekomendasi pasca-hujan lebat Kalikuning',
       method: 'PATCH',
@@ -102,17 +102,17 @@ function generateInitialLogs(): RichLogItem[] {
       timestamp: mkDate(90).toISOString(),
       latency: '35ms',
       category: 'input',
-      avatar: 'sensors',
+      avatar: 'TF',
       avatarBg: 'bg-[#e8ded7] text-[#444840]',
-      userName: 'Node-02 Telemetri',
-      userRole: 'Gateway LoraWAN Kaliurang',
+      userName: 'TIA FITRIANINGSIH',
+      userRole: 'Petani (25051204259@mhs.unesa.ac.id)',
       title: 'Sinkronisasi otomatis debit bendung & kanopi mikro',
       subtitle: '48 paket data telemetri terkonsolidasi',
       method: 'POST',
       endpoint: '/api/v1/telemetri/sync-bulk',
       statusText: 'Berhasil (200)',
       statusCode: 200,
-      payload: JSON.stringify({ lora_gateway: 'GW-MERAPI-SOUTH-02', rssi: -84, snr: 9.2, packets_ingested: 48, drop_rate: 0.0 })
+      payload: JSON.stringify({ user: 'TIA FITRIANINGSIH', rssi: -84, snr: 9.2, packets_ingested: 48, drop_rate: 0.0 })
     },
     {
       id: 105,
@@ -121,10 +121,10 @@ function generateInitialLogs(): RichLogItem[] {
       timestamp: mkDate(140).toISOString(),
       latency: '128ms',
       category: 'download',
-      avatar: 'BD',
+      avatar: 'SS',
       avatarBg: 'bg-[#dee5d8] text-[#171d16]',
-      userName: 'Bu Darmi',
-      userRole: 'Petani Hortikultura Kinahrejo',
+      userName: '279_Shofie A Shafina',
+      userRole: 'Penyuluh (25051204279@mhs.unesa.ac.id)',
       title: 'Unduh warta pasar mingguan & tren komoditas cabai',
       subtitle: 'Laporan agregat DIY & Magelang (PDF 1.8MB)',
       method: 'GET',

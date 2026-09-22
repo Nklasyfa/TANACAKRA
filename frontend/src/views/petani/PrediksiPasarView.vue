@@ -348,19 +348,6 @@ const createSchedule = () => {
         <span class="text-on-surface font-semibold">Cangkringan Sektor 4</span>
       </div>
       <div class="flex items-center gap-4">
-        <div class="flex items-center gap-3 bg-surface-container-high px-3 py-1.5 rounded-full">
-          <div class="flex items-center gap-1 text-on-surface">
-            <span class="material-symbols-outlined text-primary text-[18px]">thermostat</span>
-            <span class="text-[12px] font-semibold">{{ cuacaReal ? Math.round(cuacaReal.suhu) + '°C' : '—' }}</span>
-          </div>
-          <div class="w-1 h-1 rounded-full bg-outline-variant"></div>
-          <div class="flex items-center gap-1 text-on-surface">
-            <span class="material-symbols-outlined text-primary text-[18px]">humidity_percentage</span>
-            <span class="text-[12px] font-semibold">{{ cuacaReal ? Math.round(cuacaReal.kelembaban) + '%' : '—' }}</span>
-          </div>
-          <div class="w-1 h-1 rounded-full bg-outline-variant"></div>
-          <span class="text-[11px] text-primary font-medium">Lereng Merapi</span>
-        </div>
         <button class="relative p-2 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" aria-label="Pemberitahuan">
           <span class="material-symbols-outlined text-[20px]">notifications</span>
           <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span>

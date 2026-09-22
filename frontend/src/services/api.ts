@@ -24,7 +24,7 @@ export interface User {
   id: number
   username: string
   email: string
-  role: 'PETANI' | 'ADMIN'
+  role: 'PETANI' | 'ADMIN' | 'PENYULUH'
 }
 
 export interface AuditLogItem {
@@ -401,12 +401,13 @@ export const AdminService = {
   },
   async getUsers(): Promise<User[]> {
     const defaultUsers: User[] = [
-      { id: 1, username: 'Super Admin', email: 'admin@cangkringan.desa.id', role: 'ADMIN' },
-      { id: 2, username: 'petani_wukirsari', email: 'wukirsari@cangkringan.desa.id', role: 'PETANI' },
-      { id: 3, username: 'petani_argomulyo', email: 'argomulyo@cangkringan.desa.id', role: 'PETANI' },
-      { id: 4, username: 'petani_glagaharjo', email: 'glagaharjo@cangkringan.desa.id', role: 'PETANI' },
-      { id: 5, username: 'petani_kepuharjo', email: 'kepuharjo@cangkringan.desa.id', role: 'PETANI' },
-      { id: 6, username: 'petani_umbulharjo', email: 'umbulharjo@cangkringan.desa.id', role: 'PETANI' },
+      { id: 1, username: 'TIA FITRIANINGSIH', email: '25051204259@mhs.unesa.ac.id', role: 'PETANI' },
+      { id: 2, username: '279_Shofie A Shafina', email: '25051204279@mhs.unesa.ac.id', role: 'PENYULUH' },
+      { id: 3, username: 'Super Admin', email: 'admin@cangkringan.desa.id', role: 'ADMIN' },
+      { id: 4, username: 'Nakula Syafa', email: 'nakulasaputra08@gmail.com', role: 'ADMIN' },
+      { id: 5, username: 'Nakula Saputra', email: 'nakulasaputra082@gmail.com', role: 'PETANI' },
+      { id: 6, username: 'Petani Muda', email: 'petanimuda@gmail.com', role: 'PETANI' },
+      { id: 7, username: 'Suparman', email: 'suparman@gmail.com', role: 'PETANI' }
     ]
     try {
       const res = await api.get('/users')
@@ -428,7 +429,7 @@ export const AdminService = {
     return defaultUsers
   },
 
-  async addUser(newUser: { username: string; email: string; role: 'ADMIN' | 'PETANI' }): Promise<User[]> {
+  async addUser(newUser: { username: string; email: string; role: 'ADMIN' | 'PETANI' | 'PENYULUH' }): Promise<User[]> {
     const current = await this.getUsers()
     const created: User = {
       id: Date.now(),
