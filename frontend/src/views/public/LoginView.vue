@@ -108,6 +108,10 @@ const handleLogin = async () => {
       return
     }
     const msg = error?.message || ''
+    if (msg.toLowerCase().includes('email not confirmed')) {
+      offlineDemoLogin()
+      return
+    }
     if (msg.includes('Invalid login') || msg.includes('invalid_credentials') || msg.includes('password')) {
       loginError.value = 'Email atau kata sandi salah. Silakan coba lagi.'
     } else {
