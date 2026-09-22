@@ -28,6 +28,66 @@ const coords = ref({ lat: -7.664200, lng: 110.418900 })
 const isLocating = ref(false)
 const locateMsg = ref('Gunakan lokasi saya')
 
+// Map Location Search state
+const searchMapQuery = ref('')
+const isSearchingMap = ref(false)
+const searchStatusMsg = ref('')
+
+const searchLocationOnMap = async () => {
+  const queryText = searchMapQuery.value.trim() || fieldName.value.trim()
+  if (!queryText) {
+    searchStatusMsg.value = 'Ketik nama desa atau blok terlebih dahulu.'
+    return
+  }
+
+  isSearchingMap.value = true
+  searchStatusMsg.value = ''
+
+  try {
+    const fullQuery = encodeURIComponent(`${queryText}, Cangkringan, Sleman, Yogyakarta`)
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fullQuery}`)
+    const data = await res.json()
+
+    if (data && data.length > 0) {
+      const lat = parseFloat(data[0].lat)
+      const lng = parseFloat(data[0].lon)
+
+      coords.value = { lat, lng }
+      if (map && mapMarker) {
+        map.flyTo([lat, lng], 15)
+        mapMarker.setLatLng([lat, lng])
+      }
+      searchStatusMsg.value = `📍 Peta berpindah ke lokasi: ${data[0].display_name.split(',')[0]}`
+    } else {
+      const fallbackQuery = encodeURIComponent(`${queryText}, Sleman, Yogyakarta`)
+      const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fallbackQuery}`)
+      const fallbackData = await fallbackRes.json()
+
+      if (fallbackData && fallbackData.length > 0) {
+        const lat = parseFloat(fallbackData[0].lat)
+        const lng = parseFloat(fallbackData[0].lon)
+        coords.value = { lat, lng }
+        if (map && mapMarker) {
+          map.flyTo([lat, lng], 15)
+          mapMarker.setLatLng([lat, lng])
+        }
+        searchStatusMsg.value = `📍 Peta berpindah ke: ${fallbackData[0].display_name.split(',')[0]}`
+      } else {
+        searchStatusMsg.value = '⚠️ Nama lokasi tidak ditemukan di pencarian peta. Silakan geser pin secara manual.'
+      }
+    }
+  } catch (err) {
+    searchStatusMsg.value = '⚠️ Gagal mencari lokasi. Silakan geser pin pada peta secara manual.'
+  } finally {
+    isSearchingMap.value = false
+  }
+}
+
+const quickSelectDesa = (desaName: string) => {
+  searchMapQuery.value = desaName
+  searchLocationOnMap()
+}
+
 // Soil Condition state
 const kondisiTanah = ref<'Kering' | 'Lembab' | 'Basah'>('Lembab')
 const phValue = ref(6.5)
@@ -361,11 +421,52 @@ const resetForm = () => {
               </div>
 
               <!-- Peta Preview Interaktif Leaflet -->
-              <div class="space-y-2 pt-1">
+              <div class="space-y-2.5 pt-1">
                 <div class="flex items-center justify-between">
                   <span class="text-xs text-[#241F1B] font-bold">Peta Petak Lahan</span>
-                  <span class="text-[11px] text-[#7E7063]">Seret pin ke titik lokasi petak</span>
+                  <span class="text-[11px] text-[#7E7063]">Cari desa/lokasi atau seret pin</span>
                 </div>
+
+                <!-- Input Pencarian Lokasi Peta Otimatis -->
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#7E7063] text-[18px]">search</span>
+                    <input
+                      v-model="searchMapQuery"
+                      @keyup.enter="searchLocationOnMap"
+                      type="text"
+                      placeholder="Cari lokasi desa/blok (misal: Kepuharjo, Argomulyo)..."
+                      class="w-full h-10 pl-9 pr-3 bg-[#F9F7F4] text-[#241F1B] text-xs font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    @click="searchLocationOnMap"
+                    :disabled="isSearchingMap"
+                    class="h-10 px-3.5 bg-[#243319] hover:bg-[#1b2613] text-white text-xs font-bold rounded-xl flex items-center gap-1 shrink-0 transition disabled:opacity-50 cursor-pointer shadow-sm"
+                  >
+                    <span class="material-symbols-outlined text-[16px]" :class="isSearchingMap ? 'animate-spin' : ''">{{ isSearchingMap ? 'sync' : 'location_searching' }}</span>
+                    <span>Cari</span>
+                  </button>
+                </div>
+
+                <!-- Quick Village Preset Chips -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span class="text-[11px] text-[#7E7063] font-semibold">Pilih Desa:</span>
+                  <button
+                    v-for="desa in ['Cangkringan', 'Argomulyo', 'Wukirsari', 'Kepuharjo', 'Glagahharjo', 'Umbulharjo']"
+                    :key="desa"
+                    type="button"
+                    @click="quickSelectDesa(desa)"
+                    class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#EBF2E5] text-[#243319] hover:bg-[#243319] hover:text-white border border-[#d5e9c3] transition cursor-pointer"
+                  >
+                    📍 {{ desa }}
+                  </button>
+                </div>
+
+                <p v-if="searchStatusMsg" class="text-[11px] font-semibold text-[#A8452A] bg-[#FBF2EC] px-3 py-1.5 rounded-lg border border-[#F3ECE0] leading-snug">
+                  {{ searchStatusMsg }}
+                </p>
                 <div class="relative rounded-2xl overflow-hidden shadow-inner h-[320px] bg-[#E5E0D8] border border-[#E5E0D8]">
                   <!-- Leaflet Map Div Container -->
                   <div id="leafletMapContainer" class="w-full h-full z-10"></div>
