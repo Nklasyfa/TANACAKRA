@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { api, AdminService } from '@/services/api'
+import { AuditLogger } from '@/services/audit'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
@@ -88,6 +89,13 @@ const runModel = async () => {
   } catch {
     /* audit log tetap dicoba; kegagalan tidak memblokir UI */
   }
+  AuditLogger.addLog({
+    title: 'Pemicu manual pipeline inferensi Scikit-learn',
+    subtitle: 'Model: RandomForest · Status: Inferensi Siap · Runtime: 2.2s',
+    category: 'ai',
+    endpoint: '/api/v1/pipeline/trigger'
+  })
+  modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' })
   runState.value = 'done'
   await new Promise(r => setTimeout(r, 1600))
   running.value = false

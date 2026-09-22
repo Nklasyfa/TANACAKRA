@@ -7,6 +7,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import { LahanService, AdminService, generateFallbackDashboard, downloadCsv, generatePlotlySchema } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
+import { AuditLogger } from '@/services/audit'
 
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
@@ -96,27 +97,57 @@ const handleAddUser = async () => {
   })
   usersList.value = updated
   isUserModalOpen.value = false
+
+  AuditLogger.addLog({
+    title: `Tambah pengguna baru (${newUsername.value})`,
+    subtitle: `Email: ${newEmail.value} · Peran: ${newRole.value}`,
+    category: 'auth',
+    endpoint: '/api/v1/users/add'
+  })
+  activityLogs.value = AuditLogger.getStoredLogs()
 }
 
 const handleToggleRole = async (userId: number) => {
   const updated = await AdminService.toggleUserRole(userId)
   usersList.value = updated
+  AuditLogger.addLog({
+    title: `Ubah peran pengguna #${userId}`,
+    subtitle: `Penyesuaian otorisasi peran pengguna`,
+    category: 'auth',
+    endpoint: `/api/v1/users/${userId}/role`
+  })
+  activityLogs.value = AuditLogger.getStoredLogs()
 }
 
 const handleDeleteUser = async (userId: number) => {
   if (!confirm('Apakah Anda yakin ingin menghapus/menonaktifkan pengguna ini?')) return
   const updated = await AdminService.deleteUser(userId)
   usersList.value = updated
+  AuditLogger.addLog({
+    title: `Hapus/nonaktifkan akun pengguna #${userId}`,
+    subtitle: `Akses pengguna dicabut oleh Super Admin`,
+    category: 'auth',
+    endpoint: `/api/v1/users/${userId}/delete`
+  })
+  activityLogs.value = AuditLogger.getStoredLogs()
 }
 
 // Export functions
 const exportLogsCsv = () => {
   downloadCsv('tanacakra_audit_logs.csv', activityLogs.value.map(l => ({
-    Waktu: l.time,
-    Aktivitas: l.title,
-    Operator: l.operator,
-    Status: l.status
+    Waktu: l.time || l.timestamp,
+    Aktivitas: l.title || l.action,
+    Operator: l.userName || l.user?.username || 'Sistem',
+    Status: l.statusText || l.status || 'Berhasil (200)'
   })))
+
+  AuditLogger.addLog({
+    title: 'Unduh berkas CSV log aktivitas',
+    subtitle: `Mengekspor ${activityLogs.value.length} baris log dari Dashboard Pengelola`,
+    category: 'download',
+    endpoint: '/api/v1/audit-logs/export-csv'
+  })
+  activityLogs.value = AuditLogger.getStoredLogs()
 }
 
 const exportUsersCsv = () => {
@@ -126,6 +157,14 @@ const exportUsersCsv = () => {
     Email: u.email,
     Peran: u.role
   })))
+
+  AuditLogger.addLog({
+    title: 'Unduh daftar pengguna terdaftar (CSV)',
+    subtitle: `Mengekspor ${usersList.value.length} data pengguna terdaftar`,
+    category: 'download',
+    endpoint: '/api/v1/users/export-csv'
+  })
+  activityLogs.value = AuditLogger.getStoredLogs()
 }
 
 // UI Interactive states
@@ -279,7 +318,7 @@ const loadData = async () => {
     dashboardStats.value = { ...dashboardStats.value, ...trends }
   }
   usersList.value = users || []
-  activityLogs.value = logs || []
+  activityLogs.value = (logs && logs.length > 0) ? logs : AuditLogger.getStoredLogs()
 
   // Initialize selected commodities
   if (allCommodities.value.length > 0) {

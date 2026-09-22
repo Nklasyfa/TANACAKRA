@@ -351,7 +351,7 @@ export const LahanService = {
       return [...local, ...(res.data || [])]
     } catch {
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return local
+      return [...local, ...generateFallbackLahan()]
     }
   },
   async getAllLahan() {
@@ -361,7 +361,8 @@ export const LahanService = {
       return [...local, ...res.data]
     } catch {
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return local.length ? local : generateFallbackLahan()
+      // Ensure the hardcoded "real" offline data is combined with any offline user inputs
+      return [...local, ...generateFallbackLahan()]
     }
   }
 }

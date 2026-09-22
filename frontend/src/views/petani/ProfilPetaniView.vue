@@ -4,9 +4,9 @@ import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 
 const userProfile = ref<any>({
-  username: 'Pak Supardi',
-  email: 'petani@cangkringan.desa.id',
-  phone: '081234567890',
+  username: '',
+  email: '',
+  phone: '',
   role: 'Petani',
   desa: 'Cangkringan, Sleman'
 })
@@ -18,8 +18,9 @@ onMounted(() => {
   if (savedUser) {
     try {
       const parsed = JSON.parse(savedUser)
-      userProfile.value.username = parsed.username || 'Pak Supardi'
+      userProfile.value.username = parsed.username || 'Petani'
       userProfile.value.email = parsed.email || 'petani@cangkringan.desa.id'
+      userProfile.value.phone = parsed.phone || ''
       userProfile.value.role = parsed.role === 'ADMIN' ? 'Pengelola' : parsed.role || 'Petani'
     } catch (e) {
       console.error(e)
@@ -134,7 +135,7 @@ const handleSave = () => {
               <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6 min-w-0">
                   <span class="text-[13px] text-[#645d58] w-36 shrink-0">Telepon / WA</span>
-                  <input v-model="userProfile.phone" type="tel" class="w-full sm:w-64 h-10 px-3 bg-[#FFF1E6] text-[#231a10] text-sm font-medium rounded-lg border border-[#E2D8C7] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition" />
+                  <input v-model="userProfile.phone" type="tel" placeholder="Belum diisi (opsional)" class="w-full sm:w-64 h-10 px-3 bg-[#FFF1E6] text-[#231a10] text-sm font-medium rounded-lg border border-[#E2D8C7] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition" />
                 </div>
               </div>
 

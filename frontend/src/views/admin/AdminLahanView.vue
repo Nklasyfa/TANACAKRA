@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { LahanService, type LandInputPayload, downloadCsv } from '@/services/api'
+import { AuditLogger } from '@/services/audit'
 // Leaflet imports
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -47,6 +48,12 @@ const handleExportCsv = () => {
     }
   })
   downloadCsv('tanacakra_lahan_cangkringan.csv', dataToExport)
+  AuditLogger.addLog({
+    title: 'Ekspor data master lahan Cangkringan (CSV)',
+    subtitle: `Mengekspor ${dataToExport.length} petak lahan Cangkringan`,
+    category: 'download',
+    endpoint: '/api/v1/lahan/export-csv'
+  })
 }
 
 const fetchLahanData = async () => {
@@ -161,6 +168,12 @@ const submitSample = async () => {
     const res = await LahanService.inputLahan(sampleFarmId.value, payload)
     sampleResult.value = res.engine_output?.prediction_result
     samplePlotly.value = res.plotly_schema
+    AuditLogger.addLog({
+      title: `Catat sample ML petak ${sampleFarmId.value}`,
+      subtitle: `pH: ${samplePh.value} · Kelembapan: ${sampleMoisture.value}% · Kondisi: ${sampleKondisi.value}`,
+      category: 'ai',
+      endpoint: `/api/v1/lahan/${sampleFarmId.value}/input`
+    })
   } catch (err: any) {
     console.error('Error menjalankan rekomendasi ML:', err)
     const detail =
@@ -170,6 +183,16 @@ const submitSample = async () => {
     sampleError.value = detail
       ? `Gagal: ${detail}`
       : 'Gagal terhubung ke backend Django REST API. Pastikan server berjalan di 127.0.0.1:8000.'
+    
+    // Log exception in AuditLogger as anomaly
+    AuditLogger.addLog({
+      title: `Uji sampel ML petak ${sampleFarmId.value} (Fallback Mode)`,
+      subtitle: `pH: ${samplePh.value} · Kelembapan: ${sampleMoisture.value}% · Kondisi: ${sampleKondisi.value}`,
+      category: 'ai',
+      endpoint: `/api/v1/lahan/${sampleFarmId.value}/input`,
+      statusText: 'Offline Fallback (200)',
+      statusCode: 200
+    })
   } finally {
     isSubmittingSample.value = false
   }
@@ -296,20 +319,6 @@ watch(
       initMap()
       if (lahanList.value.length) {
         addMarkers(lahanList.value)
-      } else {
-        const fallbackList = Array.from({ length: 100 }, (_, i) => ({
-          id: i + 1,
-          input_parameters: {
-            farm_id: 'CGK' + String(i + 1).padStart(3, '0'),
-            desa: ['Wukirsari', 'Argomulyo', 'Glagahharjo', 'Kepuharjo', 'Umbulharjo'][i % 5],
-            soil_ph: (5.2 + (i % 25) * 0.1).toFixed(1),
-            soil_type: 'Regosol Vulkanik',
-            area_ha: (0.5 + (i % 4) * 0.5).toFixed(1),
-            elevation_m: 550 + (i % 10) * 20,
-            organic_carbon: (1.5 + (i % 5) * 0.3).toFixed(1)
-          }
-        }))
-        addMarkers(fallbackList)
       }
     } else {
       if (map.value) {
@@ -359,140 +368,143 @@ watch(
     <AdminSidebar />
 
     <!-- Main Content Area -->
-    <main class="w-full md:ml-[240px] flex-1 p-4 md:pt-8 md:p-8 min-w-0 max-w-[1200px] mx-auto">
+    <main class="w-full md:ml-[240px] flex-1 min-w-0">
+      <div class="max-w-[1200px] mx-auto w-full p-4 md:pt-8 md:p-8">
 
-      <!-- Content Header (Desktop) -->
-      <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 class="text-2xl md:text-[28px] font-bold text-[#231a10] tracking-tight">Manajemen Lahan Pertanian</h2>
-          <p class="text-[13px] text-[#645d58] mt-1">Inventarisasi {{ lahanList.length }} petak lahan lereng Merapi dan tata kelola pipeline data tanah.</p>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0">
-          <button @click="handleExportCsv" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] rounded-lg shadow-sm transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">download</span>
-            <span>Ekspor CSV Lahan</span>
-          </button>
-          <button @click="openSample()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-            <span>Catat Sample ML</span>
-          </button>
-          <button @click="fetchLahanData" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px] text-[#645d58]">refresh</span>
-            <span>Refresh Data</span>
-          </button>
-          <button @click="showMap = !showMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px] text-[#645d58]">{{ showMap ? 'grid_view' : 'map' }}</span>
-            <span>{{ showMap ? 'Tabel Data' : 'Peta Lahan' }}</span>
-          </button>
-        </div>
-      </header>
-
-      <!-- Filter Toolbar -->
-      <section class="bg-[#F3ECE0] border border-[#E2D8C7] rounded-xl p-3 md:p-3.5 mb-4 md:mb-6 shadow-sm">
-        <div class="flex flex-col md:flex-row md:flex-wrap items-center gap-3">
-          <div class="w-full md:flex-1 md:min-w-[260px] relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#75786f]/70 pointer-events-none">
-              <span class="material-symbols-outlined text-[18px]">search</span>
-            </span>
-            <input v-model="searchQuery" type="text" placeholder="Cari ID lahan (misal: CGK001), nama desa..." class="w-full pl-9 pr-4 py-2 md:py-2 text-xs md:text-sm bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none" />
+        <!-- Content Header (Desktop) -->
+        <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl md:text-[28px] font-bold text-[#231a10] tracking-tight">Manajemen Lahan Pertanian</h2>
+            <p class="text-[13px] text-[#645d58] mt-1">Inventarisasi {{ lahanList.length }} petak lahan lereng Merapi dan tata kelola pipeline data tanah.</p>
           </div>
-          <div class="hidden md:block min-w-[180px]">
-            <select v-model="selectedDesa" class="w-full py-2 pl-3 pr-8 text-xs bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none cursor-pointer">
-              <option value="all">Semua Desa (Cangkringan)</option>
-              <option value="Wukirsari">Wukirsari</option>
-              <option value="Argomulyo">Argomulyo</option>
-              <option value="Umbulharjo">Umbulharjo</option>
-              <option value="Kepuharjo">Kepuharjo</option>
-              <option value="Glagaharjo">Glagaharjo</option>
-            </select>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <button @click="handleExportCsv" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">download</span>
+              <span>Ekspor CSV Lahan</span>
+            </button>
+            <button @click="openSample()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+              <span>Catat Sample ML</span>
+            </button>
+            <button @click="fetchLahanData" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-[#645d58]">refresh</span>
+              <span>Refresh Data</span>
+            </button>
+            <button @click="showMap = !showMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-[#645d58]">{{ showMap ? 'grid_view' : 'map' }}</span>
+              <span>{{ showMap ? 'Tabel Data' : 'Peta Lahan' }}</span>
+            </button>
           </div>
-        </div>
-      </section>
+        </header>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="text-center py-12 bg-white border border-[#E2D8C7] rounded-xl">
-        <span class="material-symbols-outlined animate-spin text-3xl text-[#75786f]">sync</span>
-        <p class="text-xs text-[#645d58] mt-2">Memuat data 100 lahan Cangkringan dari PostgreSQL...</p>
+        <!-- Filter Toolbar -->
+        <section class="bg-[#F3ECE0] border border-[#E2D8C7] rounded-xl p-3 md:p-3.5 mb-4 md:mb-6 shadow-sm">
+          <div class="flex flex-col md:flex-row md:flex-wrap items-center gap-3">
+            <div class="w-full md:flex-1 md:min-w-[260px] relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#75786f]/70 pointer-events-none">
+                <span class="material-symbols-outlined text-[18px]">search</span>
+              </span>
+              <input v-model="searchQuery" type="text" placeholder="Cari ID lahan (misal: CGK001), nama desa..." class="w-full pl-9 pr-4 py-2 md:py-2 text-xs md:text-sm bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div class="hidden md:block min-w-[180px]">
+              <select v-model="selectedDesa" class="w-full py-2 pl-3 pr-8 text-xs bg-white border border-[#E2D8C7] rounded-lg focus:ring-1 focus:ring-[#A8452A] outline-none cursor-pointer">
+                <option value="all">Semua Desa (Cangkringan)</option>
+                <option value="Wukirsari">Wukirsari</option>
+                <option value="Argomulyo">Argomulyo</option>
+                <option value="Umbulharjo">Umbulharjo</option>
+                <option value="Kepuharjo">Kepuharjo</option>
+                <option value="Glagaharjo">Glagaharjo</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-12 bg-white border border-[#E2D8C7] rounded-xl">
+          <span class="material-symbols-outlined animate-spin text-3xl text-[#75786f]">sync</span>
+          <p class="text-xs text-[#645d58] mt-2">Memuat data 100 lahan Cangkringan dari PostgreSQL...</p>
+        </div>
+
+        <!-- Land Data Table (Desktop) -->
+        <section v-else class="hidden md:block bg-white border border-[#E2D8C7] rounded-xl shadow-sm overflow-hidden mb-6">
+          <div class="overflow-x-auto max-h-[600px]">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-[#F3ECE0] border-b border-[#E2D8C7] text-[11px] font-semibold text-[#645d58] tracking-wider sticky top-0 z-10">
+                <tr>
+                  <th class="py-3 px-4 w-28">ID Lahan</th>
+                  <th class="py-3 px-4 w-40">Desa</th>
+                  <th class="py-3 px-4 w-32">pH Tanah</th>
+                  <th class="py-3 px-4 w-36">Elevasi &amp; Luas</th>
+                  <th class="py-3 px-4 w-44">Tipe Tanah</th>
+                  <th class="py-3 px-4 w-32">Irigasi</th>
+                  <th class="py-3 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#FDEBDB] text-xs">
+                <tr v-for="item in filteredLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
+                  <td class="py-3 px-4 font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</td>
+                  <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
+                  <td class="py-3 px-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
+                      pH {{ item.input_parameters?.soil_ph || 6.5 }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 text-[#231a10]">
+                    <div>{{ item.input_parameters?.elevation_m || 600 }} mdpl</div>
+                    <div class="text-[10px] text-[#75786f]">{{ item.input_parameters?.area_ha || 1.0 }} ha</div>
+                  </td>
+                  <td class="py-3 px-4 text-[#645d58] text-[11px]">{{ item.input_parameters?.soil_type || 'Regosol Vulkanik' }}</td>
+                  <td class="py-3 px-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#FDEBDB] text-[#645d58]">
+                      {{ item.input_parameters?.irrigation || 'Teknis' }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 text-right whitespace-nowrap">
+                    <button class="px-2.5 py-1 text-xs font-medium text-[#3A4A2E] bg-[#EEF2E6] hover:bg-[#D5E9C3] rounded transition-colors" @click.stop="openSample(item)">
+                      Catat Sample
+                    </button>
+                    <button class="ml-1 px-2.5 py-1 text-xs font-medium text-[#645d58] bg-[#F3ECE0] hover:bg-[#E2D8C7] rounded transition-colors" @click.stop="openDrawer(item)">
+                      Detail
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Land Cards List (Mobile) -->
+        <section v-if="!isLoading" class="md:hidden space-y-3 mb-6">
+          <article v-for="item in filteredLahan" :key="'mob-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl p-3.5 shadow-sm" @click="openDrawer(item)">
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <span class="text-[10px] font-mono font-bold tracking-wider text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</span>
+                <h2 class="font-semibold text-[14px] text-[#231a10] leading-snug">Desa {{ item.input_parameters?.desa || 'Cangkringan' }}</h2>
+                <p class="text-[10px] text-[#645d58]">{{ item.input_parameters?.soil_type || 'Regosol Vulkanik' }}</p>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
+                pH {{ item.input_parameters?.soil_ph || 6.5 }}
+              </span>
+            </div>
+            <div class="bg-[#FFF1E6] rounded-lg p-2.5 my-2 grid grid-cols-2 gap-2 text-[11px] border border-[#F2DFCF]">
+              <div>
+                <span class="text-[9px] text-[#645d58] block uppercase tracking-wider">Luas Lahan</span>
+                <span class="font-semibold text-[#231a10]">{{ item.input_parameters?.area_ha || 1.0 }} ha</span>
+              </div>
+              <div>
+                <span class="text-[9px] text-[#645d58] block uppercase tracking-wider">Elevasi</span>
+                <span class="font-semibold text-[#231a10]">{{ item.input_parameters?.elevation_m || 600 }} mdpl</span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- Map View (Desktop) -->
+        <section v-if="showMap" class="hidden md:block w-full h-[500px] mt-4 rounded-xl overflow-hidden border border-[#E2D8C7] shadow-inner bg-[#EFECE6]">
+          <div ref="mapLeaflet" class="w-full h-full"></div>
+        </section>
+
       </div>
-
-      <!-- Land Data Table (Desktop) -->
-      <section v-else class="hidden md:block bg-white border border-[#E2D8C7] rounded-xl shadow-sm overflow-hidden mb-6">
-        <div class="overflow-x-auto max-h-[600px]">
-          <table class="w-full text-left border-collapse">
-            <thead class="bg-[#F3ECE0] border-b border-[#E2D8C7] text-[11px] font-semibold text-[#645d58] tracking-wider sticky top-0 z-10">
-              <tr>
-                <th class="py-3 px-4 w-28">ID Lahan</th>
-                <th class="py-3 px-4 w-40">Desa</th>
-                <th class="py-3 px-4 w-32">pH Tanah</th>
-                <th class="py-3 px-4 w-36">Elevasi &amp; Luas</th>
-                <th class="py-3 px-4 w-44">Tipe Tanah</th>
-                <th class="py-3 px-4 w-32">Irigasi</th>
-                <th class="py-3 px-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#FDEBDB] text-xs">
-              <tr v-for="item in filteredLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
-                <td class="py-3 px-4 font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</td>
-                <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
-                <td class="py-3 px-4">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
-                    pH {{ item.input_parameters?.soil_ph || 6.5 }}
-                  </span>
-                </td>
-                <td class="py-3 px-4 text-[#231a10]">
-                  <div>{{ item.input_parameters?.elevation_m || 600 }} mdpl</div>
-                  <div class="text-[10px] text-[#75786f]">{{ item.input_parameters?.area_ha || 1.0 }} ha</div>
-                </td>
-                <td class="py-3 px-4 text-[#645d58] text-[11px]">{{ item.input_parameters?.soil_type || 'Regosol Vulkanik' }}</td>
-                <td class="py-3 px-4">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#FDEBDB] text-[#645d58]">
-                    {{ item.input_parameters?.irrigation || 'Teknis' }}
-                  </span>
-                </td>
-                <td class="py-3 px-4 text-right whitespace-nowrap">
-                  <button class="px-2.5 py-1 text-xs font-medium text-[#3A4A2E] bg-[#EEF2E6] hover:bg-[#D5E9C3] rounded transition-colors" @click.stop="openSample(item)">
-                    Catat Sample
-                  </button>
-                  <button class="ml-1 px-2.5 py-1 text-xs font-medium text-[#645d58] bg-[#F3ECE0] hover:bg-[#E2D8C7] rounded transition-colors" @click.stop="openDrawer(item)">
-                    Detail
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Land Cards List (Mobile) -->
-      <section v-if="!isLoading" class="md:hidden space-y-3 mb-6">
-        <article v-for="item in filteredLahan" :key="'mob-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl p-3.5 shadow-sm" @click="openDrawer(item)">
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <div>
-              <span class="text-[10px] font-mono font-bold tracking-wider text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</span>
-              <h2 class="font-semibold text-[14px] text-[#231a10] leading-snug">Desa {{ item.input_parameters?.desa || 'Cangkringan' }}</h2>
-              <p class="text-[10px] text-[#645d58]">{{ item.input_parameters?.soil_type || 'Regosol Vulkanik' }}</p>
-            </div>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
-              pH {{ item.input_parameters?.soil_ph || 6.5 }}
-            </span>
-          </div>
-          <div class="bg-[#FFF1E6] rounded-lg p-2.5 my-2 grid grid-cols-2 gap-2 text-[11px] border border-[#F2DFCF]">
-            <div>
-              <span class="text-[9px] text-[#645d58] block uppercase tracking-wider">Luas Lahan</span>
-              <span class="font-semibold text-[#231a10]">{{ item.input_parameters?.area_ha || 1.0 }} ha</span>
-            </div>
-            <div>
-              <span class="text-[9px] text-[#645d58] block uppercase tracking-wider">Elevasi</span>
-              <span class="font-semibold text-[#231a10]">{{ item.input_parameters?.elevation_m || 600 }} mdpl</span>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <!-- Map View (Desktop) -->
-      <section v-if="showMap" class="hidden md:block w-full h-[500px] mt-4 rounded-xl overflow-hidden border border-[#E2D8C7] shadow-inner bg-[#EFECE6]">
-        <div ref="mapLeaflet" class="w-full h-full"></div>
-      </section>
     </main>
 
     <!-- Detail Drawer / Bottom Sheet -->
