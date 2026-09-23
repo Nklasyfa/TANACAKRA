@@ -310,7 +310,7 @@ const resetForm = () => {
 
     <PetaniSidebar />
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[72px] md:pt-8 flex flex-col items-center">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[calc(env(safe-area-inset-top,0px)+72px)] md:pt-8 flex flex-col items-center">
       <div class="w-full max-w-[640px] space-y-5 pb-16">
 
         <!-- Editorial Context Title -->

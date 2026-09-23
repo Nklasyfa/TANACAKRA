@@ -5,6 +5,9 @@ export interface CuacaInfo {
   message: string
   suhu: number
   kelembaban: number
+  curahHujanMm: number
+  curahHujanLabel: string
+  anginKmh: number
   lokasi: string
   sumber: string
 }
@@ -48,6 +51,24 @@ function bukaEmoji(kondisi: string): string {
   return '🌤️'
 }
 
+function estimasiHujan(kondisi: string): { mm: number; label: string } {
+  const k = kondisi.toLowerCase()
+  if (k.includes('hujan lebat') || k.includes('badai')) return { mm: 25, label: 'Lebat' }
+  if (k.includes('hujan sedang')) return { mm: 12, label: 'Sedang' }
+  if (k.includes('hujan ringan')) return { mm: 3, label: 'Ringan' }
+  if (k.includes('hujan')) return { mm: 3, label: 'Ringan' }
+  if (k.includes('kabut')) return { mm: 1, label: 'Gerimis' }
+  return { mm: 0, label: 'Tidak Hujan' }
+}
+
+function estimasiAngin(kondisi: string): number {
+  const k = kondisi.toLowerCase()
+  if (k.includes('badai') || k.includes('angin kencang')) return 24
+  if (k.includes('hujan')) return 12
+  if (k.includes('berawan')) return 9
+  return 6
+}
+
 function parseLokal(waktu: string): Date {
   const normal = waktu.replace(' ', 'T')
   return new Date(normal.includes('+') || normal.endsWith('Z') ? normal : normal + '+07:00')
@@ -58,6 +79,7 @@ interface BmkgEntry {
   hu: number
   weather_desc: string
   local_datetime: string
+  w_s?: number
 }
 
 async function cobaBmkg(): Promise<CuacaInfo | null> {
@@ -85,6 +107,8 @@ async function cobaBmkg(): Promise<CuacaInfo | null> {
   const kondisi = best.weather_desc || 'Cerah'
   const suhu = Math.round(Number(best.t) || 0)
   const kelembaban = Math.round(Number(best.hu) || 0)
+  const hujan = estimasiHujan(kondisi)
+  const anginKmh = Number(best.w_s) ? Math.round(Number(best.w_s) * 1.852) : estimasiAngin(kondisi)
 
   return {
     kondisi,
@@ -93,6 +117,9 @@ async function cobaBmkg(): Promise<CuacaInfo | null> {
     message: bukaPesan(kondisi),
     suhu,
     kelembaban,
+    curahHujanMm: hujan.mm,
+    curahHujanLabel: hujan.label,
+    anginKmh,
     lokasi: `${desa}, Kec. ${kecamatan}`,
     sumber: 'BMKG'
   }
@@ -125,6 +152,7 @@ async function cobaIbnux(): Promise<CuacaInfo | null> {
   const kondisi = best.cuaca || 'Cerah'
   const suhu = Math.round(Number(best.tempC) || 0)
   const kelembaban = Math.round(Number(best.humidity) || 0)
+  const hujan = estimasiHujan(kondisi)
 
   return {
     kondisi,
@@ -133,6 +161,9 @@ async function cobaIbnux(): Promise<CuacaInfo | null> {
     message: bukaPesan(kondisi),
     suhu,
     kelembaban,
+    curahHujanMm: hujan.mm,
+    curahHujanLabel: hujan.label,
+    anginKmh: estimasiAngin(kondisi),
     lokasi: 'Sleman, DIY',
     sumber: 'BMKG'
   }

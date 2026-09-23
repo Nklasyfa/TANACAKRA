@@ -147,7 +147,7 @@ const fallbackRecommendation = (item: any) => {
 
     <PetaniSidebar />
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[72px] md:pt-8">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[calc(env(safe-area-inset-top,0px)+72px)] md:pt-8">
       <div class="max-w-[860px] mx-auto w-full pb-12">
 
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">

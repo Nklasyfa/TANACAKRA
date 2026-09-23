@@ -324,7 +324,7 @@ const catatanList = computed(() => {
 
     <PetaniSidebar />
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[68px] md:pt-8">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[calc(env(safe-area-inset-top,0px)+68px)] md:pt-8">
       <div class="max-w-[720px] mx-auto flex flex-col gap-5 md:gap-6 pb-12">
 
         <!-- 1. Sapaan -->
@@ -363,7 +363,7 @@ const catatanList = computed(() => {
           </div>
 
           <template v-else>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 py-1">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 py-1">
               <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
                 <span class="text-[11px] text-secondary flex items-center gap-1">
                   <span class="material-symbols-outlined text-[14px]">thermostat</span> Suhu
@@ -384,7 +384,16 @@ const catatanList = computed(() => {
               </div>
               <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
                 <span class="text-[11px] text-secondary flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[14px]">rainy</span> Kondisi
+                  <span class="material-symbols-outlined text-[14px]">rainy</span> Curah Hujan
+                </span>
+                <div class="mt-1 flex items-baseline gap-0.5">
+                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? cuacaReal.curahHujanMm : '—' }}</span>
+                  <span class="text-[11px] text-secondary font-semibold">mm</span>
+                </div>
+              </div>
+              <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
+                <span class="text-[11px] text-secondary flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">filter_drama</span> Kondisi
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5">
                   <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaDisplay.emoji }}</span>

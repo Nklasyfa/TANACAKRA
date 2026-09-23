@@ -4,7 +4,6 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { AdminService, downloadCsv } from '@/services/api'
 import { AuditLogger, type RichLogItem } from '@/services/audit'
-import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const auditLogs = ref<RichLogItem[]>([])
 const isLoading = ref(true)
@@ -15,6 +14,7 @@ const expandedRows = ref<Record<string, boolean>>({})
 const exporting = ref(false)
 const exportSuccess = ref(false)
 const registeredUsers = ref<any[]>([])
+const showNotificationDropdown = ref(false)
 
 // Pagination state
 const currentPage = ref(1)
@@ -189,30 +189,68 @@ const avgLatency = computed(() => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
-      <div class="h-14 px-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
-          <div class="flex flex-col leading-none">
-            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
-            <span class="text-[10px] text-[#7E7063] mt-0.5 font-medium">Audit Trail &amp; Log</span>
-          </div>
-        </div>
-        <div class="flex items-center gap-1">
-          <button @click="fetchLogs" class="w-10 h-10 flex items-center justify-center rounded-full text-[#243319] hover:bg-[#EBF2E5] transition-colors" title="Perbarui Log">
-            <span class="material-symbols-outlined text-[20px]">refresh</span>
-          </button>
-          <NotifPanel />
+    <header class="md:hidden sticky top-0 w-full z-30 pt-safe bg-[#FFF8F4]/90 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
+        <div>
+          <span class="font-display font-bold text-[15px] text-[#243319]">Tanacakra Log</span>
+          <p class="text-[10px] text-[#7E7063]">Audit Trail Cangkringan</p>
         </div>
       </div>
+      <button class="p-1.5 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#243319] hover:bg-[#d5e9c3] transition-colors" title="Pemberitahuan" @click="showNotificationDropdown = !showNotificationDropdown">
+        <span class="material-symbols-outlined text-[18px]">notifications</span>
+      </button>
     </header>
+
+    <!-- Notification Dropdown (Mobile) -->
+    <div v-if="showNotificationDropdown" class="fixed inset-0 z-40 flex items-end">
+      <div class="relative w-[256px] bg-white rounded-xl border border-[#E5E0D8] shadow-2xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-[#E5E0D8] flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-[#243319]">notifications</span>
+            <h3 class="font-display text-base font-bold text-[#231a10]">Pemberitahuan</h3>
+          </div>
+          <button @click="showNotificationDropdown = false" class="p-1 rounded-full text-[#7E7063] hover:bg-[#E5E0D8]/40 transition-colors">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <div class="py-3">
+          <div v-if="auditLogs.length === 0" class="text-center py-6 text-[#7E7063]">
+            Tidak ada pemberitahuan baru
+          </div>
+          <div v-else class="space-y-2">
+            <template v-for="(log, index) in auditLogs.slice(0, 10)" :key="index">
+              <div class="px-3 py-2.5 border-b border-[#E5E0D8]/60 last:border-0 flex items-start gap-3">
+                <div class="w-8 h-8 flex items-center justify-center shrink-0" :class="log.statusCode >= 400 ? 'bg-[#FEE2E2] text-[#C84C32]' : 'bg-[#DCFCE7] text-[#243319]'">
+                  <span class="material-symbols-outlined text-[16px]">
+                    {{ log.statusCode >= 400 ? 'error' : 'check_circle' }}
+                  </span>
+                </div>
+                <div class="flex-1 flex-col gap-0.5">
+                  <p class="text-sm font-medium text-[#231a10] line-clamp-1">{{ log.title }}</p>
+                  <p class="text-xs text-[#7E7063] line-clamp-1">{{ log.subtitle }}</p>
+                  <span class="text-xs text-[#645d58] font-mono">{{ log.time }}</span>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <div class="px-4 py-3 border-t border-[#E5E0D8] text-center">
+          <button @click="showNotificationDropdown = false" class="w-full text-xs font-medium text-[#243319]">
+            Lihat Semua Log Aktivitas
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Sidebar Admin -->
     <AdminSidebar />
 
     <!-- Main Content Wrapper -->
     <div class="flex-1 md:ml-[240px] flex flex-col min-w-0">
-      <main class="w-full max-w-[1400px] mx-auto p-4 pt-[72px] md:pt-8 md:p-8 flex flex-col gap-6">
+      <main class="w-full max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

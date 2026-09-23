@@ -419,7 +419,7 @@ const createSchedule = () => {
       </div>
     </header>
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-6 lg:px-8 pt-[72px] md:pt-20">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-6 lg:px-8 pt-[calc(env(safe-area-inset-top,0px)+72px)] md:pt-20">
       <div class="max-w-[1100px] mx-auto flex flex-col gap-6 pb-12">
 
         <!-- 1. Judul & Selector -->
@@ -481,16 +481,16 @@ const createSchedule = () => {
                 <span class="text-[13px] text-[#6B5B4A]">Curah Hujan</span>
                 <span class="material-symbols-outlined text-[#3A4A2E] text-[18px]">rainy</span>
               </div>
-              <span class="text-[28px] leading-none font-bold text-[#241F1B] mb-1">—</span>
-              <span class="text-[11px] text-[#4A3F35]">Belum tersedia dari BMKG</span>
+              <span class="text-[28px] leading-none font-bold text-[#241F1B] mb-1">{{ cuacaReal ? cuacaReal.curahHujanMm + ' mm' : '—' }}</span>
+              <span class="text-[11px] text-[#4A3F35]">{{ cuacaReal ? cuacaReal.curahHujanLabel : 'Belum tersedia dari BMKG' }}</span>
             </div>
             <div class="flex flex-col bg-[#FFF8F4] p-3.5 rounded-lg">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[13px] text-[#6B5B4A]">Kecepatan Angin</span>
                 <span class="material-symbols-outlined text-[#6B5B4A] text-[18px]">air</span>
               </div>
-              <span class="text-[28px] leading-none font-bold text-[#241F1B] mb-1">—</span>
-              <span class="text-[11px] text-[#4A3F35]">Belum tersedia dari BMKG</span>
+              <span class="text-[28px] leading-none font-bold text-[#241F1B] mb-1">{{ cuacaReal ? cuacaReal.anginKmh + ' km/j' : '—' }}</span>
+              <span class="text-[11px] text-[#4A3F35]">{{ cuacaReal ? 'Arah angin dari perkiraan BMKG' : 'Belum tersedia dari BMKG' }}</span>
             </div>
           </div>
         </section>

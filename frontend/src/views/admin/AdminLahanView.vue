@@ -11,7 +11,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
-import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
@@ -226,6 +225,99 @@ const submitSample = async () => {
   }
 }
 
+// ============ EDIT / DELETE LAHAN ============
+const DESA_OPTIONS = ['Wukirsari', 'Argomulyo', 'Umbulharjo', 'Kepuharjo', 'Glagaharjo']
+const IRIGASI_OPTIONS = ['Tadah Hujan', 'Semi-Teknis', 'Teknis']
+const SOIL_OPTIONS = ['Regosol Vulkanik', 'Andosol', 'Mediteran', 'Grumusol', 'Aluvial']
+const isEditOpen = ref(false)
+const isSavingEdit = ref(false)
+const isDeleting = ref(false)
+const editError = ref('')
+const editLahan = ref<any>(null)
+const editForm = ref<Record<string, any>>({})
+
+const openEdit = (item: any) => {
+  const p = item.input_parameters || {}
+  editLahan.value = item
+  editForm.value = {
+    farm_id: p.farm_id || ('LHN-' + item.id),
+    field_name: p.field_name || '',
+    desa: p.desa || 'Wukirsari',
+    soil_type: p.soil_type || 'Regosol Vulkanik',
+    soil_ph: parseFloat(p.soil_ph || p.pH || 6.5),
+    kelembapan: parseFloat(p.kelembapan || p.humidity_percent || 55),
+    nitrogen: parseFloat(p.nitrogen || p.n || 100),
+    fosfor: parseFloat(p.fosfor || p.p || 35),
+    kalium: parseFloat(p.kalium || p.k || 130),
+    area_ha: parseFloat(p.area_ha || 1.0),
+    elevation_m: parseFloat(p.elevation_m || 600),
+    organic_carbon: parseFloat(p.organic_carbon || 2.1),
+    irrigation: p.irrigation || 'Teknis'
+  }
+  editError.value = ''
+  isEditOpen.value = true
+  closeDrawer()
+}
+
+const closeEdit = () => {
+  isEditOpen.value = false
+  editLahan.value = null
+}
+
+const saveEdit = async () => {
+  isSavingEdit.value = true
+  editError.value = ''
+  try {
+    const fid = String(editForm.value.farm_id || '').trim()
+    if (!fid) throw new Error('ID lahan tidak boleh kosong')
+    const ph = parseFloat(editForm.value.soil_ph)
+    await LahanService.updateLahan(fid, {
+      ...editForm.value,
+      soil_ph: ph,
+      pH: ph
+    })
+    await fetchLahanData()
+    AuditLogger.addLog({
+      title: `Perbarui data lahan ${fid}`,
+      subtitle: `pH: ${ph} · Desa: ${editForm.value.desa} · Luas: ${editForm.value.area_ha} ha`,
+      category: 'lahan',
+      method: 'PATCH',
+      endpoint: `/api/v1/lahan/${fid}`
+    })
+    closeEdit()
+  } catch (err: any) {
+    console.error('Gagal memperbarui lahan:', err)
+    editError.value = err?.response?.data?.error || err?.message || 'Gagal menyimpan data lahan'
+  } finally {
+    isSavingEdit.value = false
+  }
+}
+
+const confirmDelete = async (item: any) => {
+  const fid = item.input_parameters?.farm_id || ('LHN-' + item.id)
+  const desa = item.input_parameters?.desa || 'Cangkringan'
+  const ok = window.confirm(`Hapus data lahan ${fid} (Desa ${desa})?\n\nTindakan ini tidak dapat dibatalkan.`)
+  if (!ok) return
+  isDeleting.value = true
+  try {
+    await LahanService.deleteLahan(fid)
+    await fetchLahanData()
+    if (selectedLahan.value?.input_parameters?.farm_id === fid) closeDrawer()
+    AuditLogger.addLog({
+      title: `Hapus data lahan ${fid}`,
+      subtitle: `Menghapus petak ${desa} dari registry lahan Cangkringan`,
+      category: 'lahan',
+      method: 'DELETE',
+      endpoint: `/api/v1/lahan/${fid}`
+    })
+  } catch (err: any) {
+    console.error('Gagal menghapus lahan:', err)
+    window.alert('Gagal menghapus lahan: ' + (err?.message || 'kesalahan tidak diketahui'))
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 // Pre-select first lahan when the form is opened
 const onSampleFarmChange = (farmId: string) => {
   sampleFarmId.value = farmId
@@ -370,20 +462,22 @@ watch(
   <div class="min-h-screen bg-[#fff8f4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
-      <div class="h-14 px-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
-          <div class="flex flex-col leading-none">
-            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
-            <span class="text-[10px] text-[#7E7063] mt-0.5 font-medium">Manajemen Lahan · {{ lahanList.length }} petak</span>
+    <header class="md:hidden sticky top-0 w-full z-30 pt-safe bg-[#fff8f4]/95 backdrop-blur-md border-b border-[#E8E3DA] px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
+            <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
           </div>
+          <p class="text-[11px] text-[#243319] mt-0.5 font-medium">Manajemen Lahan • {{ lahanList.length }} petak terdaftar</p>
         </div>
         <div class="flex items-center gap-1">
-          <button @click="openSample()" class="w-10 h-10 flex items-center justify-center rounded-full text-[#243319] hover:bg-[#EBF2E5] transition-colors" title="Catat Sample ML">
+          <button @click="openSample()" class="w-9 h-9 flex items-center justify-center hover:bg-[#EFECE6] rounded-full transition-colors" title="Catat Sample ML">
             <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
           </button>
-          <NotifPanel />
+          <button @click="fetchLahanData" class="p-2 hover:bg-[#EFECE6] transition-colors rounded-full">
+            <span class="material-symbols-outlined text-[20px]">refresh</span>
+          </button>
         </div>
       </div>
     </header>
@@ -393,7 +487,7 @@ watch(
 
     <!-- Main Content Area -->
     <main class="w-full md:ml-[240px] flex-1 min-w-0">
-      <div class="max-w-[1200px] mx-auto w-full p-4 pt-[72px] md:pt-8 md:p-8">
+      <div class="max-w-[1200px] mx-auto w-full p-4 md:pt-8 md:p-8">
 
         <!-- Content Header (Desktop) -->
         <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -490,6 +584,12 @@ watch(
                     <button class="ml-1 px-2.5 py-1 text-xs font-medium text-[#645d58] bg-[#F3ECE0] hover:bg-[#E2D8C7] rounded transition-colors" @click.stop="openDrawer(item)">
                       Detail
                     </button>
+                    <button title="Edit data lahan" class="ml-1 px-2.5 py-1 text-xs font-medium text-[#3A4A2E] bg-[#EBF2E5] hover:bg-[#D5E9C3] border border-[#243319]/15 rounded transition-colors" @click.stop="openEdit(item)">
+                      Edit
+                    </button>
+                    <button title="Hapus data lahan" class="ml-1 px-2.5 py-1 text-xs font-medium text-[#93000a] bg-[#FFF1E6] hover:bg-[#FFDAD6] border border-[#BA1A1A]/20 rounded transition-colors" @click.stop="confirmDelete(item)">
+                      Hapus
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -531,9 +631,17 @@ watch(
                 <h2 class="font-semibold text-[14px] text-[#231a10] leading-snug">Desa {{ item.input_parameters?.desa || 'Cangkringan' }}</h2>
                 <p class="text-[10px] text-[#645d58]">{{ item.input_parameters?.soil_type || 'Regosol Vulkanik' }}</p>
               </div>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
-                pH {{ item.input_parameters?.soil_ph || 6.5 }}
-              </span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button title="Edit data lahan" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#3A4A2E] border border-[#243319]/15 active:scale-95 transition-all" @click.stop="openEdit(item)">
+                  <span class="material-symbols-outlined text-[17px]">edit</span>
+                </button>
+                <button title="Hapus data lahan" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF1E6] text-[#93000a] border border-[#BA1A1A]/20 active:scale-95 transition-all" @click.stop="confirmDelete(item)">
+                  <span class="material-symbols-outlined text-[17px]">delete</span>
+                </button>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
+                  pH {{ item.input_parameters?.soil_ph || 6.5 }}
+                </span>
+              </div>
             </div>
             <div class="bg-[#FFF1E6] rounded-lg p-2.5 my-2 grid grid-cols-2 gap-2 text-[11px] border border-[#F2DFCF]">
               <div>
@@ -617,6 +725,120 @@ watch(
             <div class="flex justify-between border-t border-[#F2DFCF] pt-2 mt-1"><span class="text-[#645d58]">Tanggal Ditambahkan:</span><span class="font-semibold text-[#243319]">{{ selectedLahan.created_at ? new Date(selectedLahan.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Hari ini' }}</span></div>
           </div>
         </div>
+
+        <div class="px-4 md:px-5 py-3 border-t border-[#E2D8C7] bg-[#FFF8F4] flex items-center gap-2">
+          <button @click="openEdit(selectedLahan)" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-white rounded-lg transition-colors disabled:opacity-60">
+            <span class="material-symbols-outlined text-[16px]">edit</span>
+            Edit Data
+          </button>
+          <button @click="confirmDelete(selectedLahan)" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-[#FFF1E6] hover:bg-[#FFDAD6] text-[#93000a] border border-[#BA1A1A]/25 rounded-lg transition-colors disabled:opacity-60">
+            <span v-if="isDeleting" class="material-symbols-outlined animate-spin text-[16px]">sync</span>
+            <span v-else class="material-symbols-outlined text-[16px]">delete</span>
+            Hapus Data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Data Lahan Modal / Bottom Sheet -->
+    <div v-if="isEditOpen" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="absolute inset-0" @click="closeEdit"></div>
+
+      <div class="relative w-full md:max-w-2xl max-h-[92vh] md:h-auto bg-white rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col md:border md:border-[#E2D8C7]">
+        <div class="px-4 md:px-6 py-4 border-b border-[#E2D8C7] flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+          <div>
+            <p class="text-xs text-[#A8452A] font-semibold">Pembaruan Master Lahan</p>
+            <h3 class="text-base md:text-lg font-bold text-[#231a10]">Edit Data Lahan {{ editForm.farm_id }}</h3>
+          </div>
+          <button @click="closeEdit" class="p-1 rounded-full hover:bg-[#F3ECE0] text-[#645d58]">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">ID Lahan</label>
+              <input v-model="editForm.farm_id" type="text" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Nama Blok / Petak</label>
+              <input v-model="editForm.field_name" type="text" placeholder="contoh: Blok A - Rojolele" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Desa</label>
+              <select v-model="editForm.desa" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
+                <option v-for="d in DESA_OPTIONS" :key="d" :value="d">{{ d }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Tipe Tanah</label>
+              <select v-model="editForm.soil_type" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
+                <option v-for="s in SOIL_OPTIONS" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="edit-ph" class="text-xs font-bold text-[#231a10]">Derajat keasaman (pH)</label>
+                <span class="text-lg font-bold text-[#243319]">{{ editForm.soil_ph }} pH</span>
+              </div>
+              <input v-model="editForm.soil_ph" id="edit-ph" type="range" min="0" max="14" step="0.1"
+                class="w-full h-2.5 bg-gradient-to-r from-[#93000a] via-[#3A4A2E] to-[#75786f]/50 rounded-lg appearance-none cursor-pointer accent-[#A8452A]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kelembapan (%)</label>
+              <input v-model="editForm.kelembapan" type="number" min="0" max="100" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Nitrogen (N)</label>
+              <input v-model="editForm.nitrogen" type="number" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Fosfor (P)</label>
+              <input v-model="editForm.fosfor" type="number" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kalium (K)</label>
+              <input v-model="editForm.kalium" type="number" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Luas (ha)</label>
+              <input v-model="editForm.area_ha" type="number" step="0.1" min="0" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Elevasi (mdpl)</label>
+              <input v-model="editForm.elevation_m" type="number" min="0" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Karbon Organik (%)</label>
+              <input v-model="editForm.organic_carbon" type="number" step="0.1" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Sistem Irigasi</label>
+              <select v-model="editForm.irrigation" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
+                <option v-for="ir in IRIGASI_OPTIONS" :key="ir" :value="ir">{{ ir }}</option>
+              </select>
+            </div>
+          </div>
+
+          <p v-if="editError" class="text-xs text-[#93000a] font-medium bg-[#FFDAD6] border border-[#E9C5BE] rounded-lg p-2.5">{{ editError }}</p>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button @click="saveEdit" :disabled="isSavingEdit" class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#243319] hover:bg-[#3A4A2E] text-white font-semibold text-sm rounded-xl shadow-sm transition-all active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed">
+              <template v-if="!isSavingEdit">
+                <span class="material-symbols-outlined text-[20px]">save</span>
+                <span>Simpan Perubahan</span>
+              </template>
+              <template v-else>
+                <span class="material-symbols-outlined animate-spin text-[20px]">sync</span>
+                <span>Menyimpan...</span>
+              </template>
+            </button>
+            <button @click="closeEdit" class="px-6 py-3 text-sm font-semibold text-[#645d58] bg-[#F3ECE0] hover:bg-[#E2D8C7] rounded-xl transition-colors">
+              Batal
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -627,8 +849,9 @@ watch(
       <div class="relative w-full md:max-w-2xl max-h-[92vh] md:h-auto bg-white rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col md:border md:border-[#E2D8C7]">
         <div class="px-4 md:px-6 py-4 border-b border-[#E2D8C7] flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
           <div>
-            <p class="text-xs text-[#A8452A] font-semibold">Rekomendasi Scikit-learn</p>
+            <p class="text-xs text-[#A8452A] font-semibold">Rekomendasi Scikit-learn · RandomForest</p>
             <h3 class="text-base md:text-lg font-bold text-[#231a10]">Catat Sample Lahan</h3>
+            <p class="text-[11px] text-[#645d58] mt-0.5 hidden md:block">Model ML memproyeksikan hasil panen &amp; status kesehatan tanah dari parameter pH, kelembapan, dan hara N-P-K.</p>
           </div>
           <button @click="closeSample" class="p-1 rounded-full hover:bg-[#F3ECE0] text-[#645d58]">
             <span class="material-symbols-outlined text-[20px]">close</span>
@@ -644,7 +867,7 @@ watch(
                 {{ item.input_parameters?.farm_id || ('LHN-' + item.id) }} — Desa {{ item.input_parameters?.desa || 'Cangkringan' }}
               </option>
             </select>
-            <p class="text-[11px] text-[#645d58] mt-1">Parameter akan terhubung ke endpoint <code class="font-mono">/lahan/:id/input</code> Django.</p>
+            <p class="text-[11px] text-[#645d58] mt-1">Jika backend Django aktif, parameter diteruskan ke <code class="font-mono">/lahan/:id/input</code> dan diproses RandomForest Scikit-learn. Saat luring, hasil disimulasikan dari aturan hara setempat.</p>
           </div>
 
           <!-- Kondisi Tanah (Standardized) -->
@@ -712,9 +935,17 @@ watch(
           <!-- ML Result -->
           <div v-if="sampleResult" class="border-2 border-[#3A4A2E] rounded-2xl p-4 space-y-3 bg-[#FFF8F4]">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#F2DFCF] pb-3">
-              <h4 class="text-base font-bold text-[#231a10]">Hasil Rekomendasi Petak {{ sampleFarmId }}</h4>
+              <div class="flex items-center gap-2">
+                <span class="w-9 h-9 rounded-full bg-[#243319] flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[18px] text-[#D5E9C3]">auto_awesome</span>
+                </span>
+                <div>
+                  <h4 class="text-sm font-bold text-[#231a10]">Hasil Rekomendasi Petak {{ sampleFarmId }}</h4>
+                  <p class="text-[10px] text-[#645d58] font-medium">Keluar dari RandomForest Scikit-learn</p>
+                </div>
+              </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-[11px] px-2.5 py-1 bg-[#EEF2E6] text-[#3A4A2E] rounded-full font-bold">Panen: {{ sampleResult.estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha</span>
+                <span class="text-[11px] px-2.5 py-1 bg-[#243319] text-white rounded-full font-bold">Panen: {{ sampleResult.estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha</span>
                 <span class="text-[11px] px-2.5 py-1 bg-[#EEF2E6] text-[#3A4A2E] rounded-full font-semibold">Status: {{ sampleResult.status_kesehatan }}</span>
               </div>
             </div>
@@ -728,6 +959,11 @@ watch(
             <div v-if="samplePlotly" class="bg-[#FFF1E6] rounded-xl p-2 border border-[#F2DFCF] h-[340px] md:h-[420px]">
               <PlotlyChart :schema="samplePlotly" />
             </div>
+            <p class="text-[10px] text-[#645d58] border-t border-[#F2DFCF]/70 pt-2.5 leading-relaxed">
+              <strong class="text-[#3A4A2E]">Fungsi sklearn di sini:</strong> pipeline RandomForestClassifier &amp; Regressor membaca fitur
+              <code class="font-mono">pH · kelembapan · curah hujan · NPK · NDVI</code> untuk mengklasifikasikan status tanah dan
+              mengestimasi hasil panen (ton/ha), lalu memetakan rekomendasi tindakan.
+            </p>
           </div>
         </div>
       </div>

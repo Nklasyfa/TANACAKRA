@@ -12,7 +12,6 @@ import { AuditLogger } from '@/services/audit'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
-import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -275,6 +274,24 @@ const filterMapMarkers = (type: 'all' | 'healthy' | 'risk') => {
   renderMarkers(filtered)
 }
 
+const computeLahanStats = (list: any[]) => {
+  const rows = list || []
+  const params = rows.map((it: any) => it.input_parameters || it || {})
+  const phs = params
+    .map(p => parseFloat(p.soil_ph ?? p.pH ?? NaN))
+    .filter((v: number) => !Number.isNaN(v))
+  const total = rows.length
+  const sehat = phs.filter(v => v >= 6.0).length
+  const userEntries = rows.filter((it: any) => !!it.user || (typeof it.id === 'number' && it.id > 100000)).length
+  return {
+    total_lahan: total,
+    sehat_count: sehat,
+    perlu_atensi_count: Math.max(0, total - sehat),
+    avg_ph: phs.length ? +(phs.reduce((a, b) => a + b, 0) / phs.length).toFixed(1) : 6.4,
+    weekly_reports: userEntries
+  }
+}
+
 const loadData = async () => {
   initMap()
 
@@ -291,8 +308,10 @@ const loadData = async () => {
   }
 
   lahanList.value = lahans || []
-  if (trends) {
-    dashboardStats.value = { ...dashboardStats.value, ...trends }
+  dashboardStats.value = {
+    ...dashboardStats.value,
+    ...trends,
+    ...computeLahanStats(lahanList.value)
   }
   usersList.value = users || []
   activityLogs.value = (logs && logs.length > 0) ? logs : AuditLogger.getStoredLogs()
@@ -314,19 +333,19 @@ onMounted(() => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
-      <div class="h-14 px-4 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
-          <div class="flex flex-col leading-none">
-            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
-            <span class="text-[10px] uppercase font-bold text-[#7E7063] mt-0.5">Super Admin</span>
-          </div>
+    <header class="md:hidden sticky top-0 z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-2">
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
+        <div>
+          <h1 class="text-sm font-bold text-[#243319] leading-tight">Tanacakra</h1>
+          <span class="text-[10px] uppercase font-bold text-[#7E7063]">Super Admin</span>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <NotifPanel />
-        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#243319]">
+          <span class="material-symbols-outlined text-[20px]">notifications</span>
+        </button>
       </div>
     </header>
 
@@ -335,7 +354,7 @@ onMounted(() => {
 
     <!-- MAIN CONTENT AREA Wrapper -->
     <div class="flex-1 md:ml-60 flex flex-col min-w-0">
-      <main class="w-full max-w-[1500px] mx-auto p-4 pt-[72px] md:pt-8 md:p-8 lg:p-10 space-y-6 md:space-y-8">
+      <main class="w-full max-w-[1500px] mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
 
       <!-- 1. Header Toolbar -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E0D8]">
@@ -415,8 +434,8 @@ onMounted(() => {
             <div class="flex flex-col">
               <span class="text-[11px] font-bold text-[#7E7063] uppercase tracking-wider">Curah Hujan</span>
               <div class="flex items-baseline gap-1.5 mt-0.5">
-                <span class="font-mono text-2xl font-bold text-[#231a10]">2 mm</span>
-                <span class="text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">{{ cuacaReal?.kondisi || 'Hujan Ringan' }}</span>
+                <span class="font-mono text-2xl font-bold text-[#231a10]">{{ cuacaReal ? cuacaReal.curahHujanMm : 2 }} mm</span>
+                <span class="text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">{{ cuacaReal?.curahHujanLabel || cuacaReal?.kondisi || 'Hujan Ringan' }}</span>
               </div>
             </div>
           </div>
@@ -429,8 +448,8 @@ onMounted(() => {
             <div class="flex flex-col">
               <span class="text-[11px] font-bold text-[#7E7063] uppercase tracking-wider">Kecepatan Angin</span>
               <div class="flex items-baseline gap-1.5 mt-0.5">
-                <span class="font-mono text-2xl font-bold text-[#231a10]">12 km/h</span>
-                <span class="text-[11px] font-semibold text-[#7E7063] bg-stone-100 px-2 py-0.5 rounded">Selatan</span>
+                <span class="font-mono text-2xl font-bold text-[#231a10]">{{ cuacaReal ? cuacaReal.anginKmh : 12 }} km/h</span>
+                <span class="text-[11px] font-semibold text-[#7E7063] bg-stone-100 px-2 py-0.5 rounded">{{ cuacaReal ? 'Perkiraan BMKG' : 'Selatan' }}</span>
               </div>
             </div>
           </div>

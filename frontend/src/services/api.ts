@@ -267,6 +267,54 @@ const FALLBACK_VOLUME = [
   { month: '2024-07', volume_ton: 315 }, { month: '2024-08', volume_ton: 340 }
 ]
 
+// ============================================================
+// LOCAL EDIT STORE: override & deletes untuk master/offline lahan
+// ============================================================
+function getLocalLahan(): any[] {
+  try { return JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]') }
+  catch { return [] }
+}
+function saveLocalLahan(list: any[]) {
+  try { localStorage.setItem('tanacakra_offline_lahan', JSON.stringify(list)) } catch { /* quota */ }
+}
+function getLahanOverrides(): any[] {
+  try { return JSON.parse(localStorage.getItem('tanacakra_lahan_overrides') || '[]') }
+  catch { return [] }
+}
+function saveLahanOverrides(list: any[]) {
+  try { localStorage.setItem('tanacakra_lahan_overrides', JSON.stringify(list)) } catch { /* quota */ }
+}
+function getLahanDeleted(): string[] {
+  try { return JSON.parse(localStorage.getItem('tanacakra_lahan_deleted') || '[]') }
+  catch { return [] }
+}
+function saveLahanDeleted(list: string[]) {
+  try { localStorage.setItem('tanacakra_lahan_deleted', JSON.stringify(list)) } catch { /* quota */ }
+}
+function farmIdOf(item: any): string {
+  return String(item?.input_parameters?.farm_id || '')
+}
+function applyLocalEdits(list: any[]): any[] {
+  const deleted = new Set(getLahanDeleted())
+  const overrides = getLahanOverrides()
+  return list
+    .filter((it: any) => {
+      const fid = farmIdOf(it)
+      return !fid || !deleted.has(fid)
+    })
+    .map((it: any) => {
+      const fid = farmIdOf(it)
+      if (!fid) return it
+      const ov = overrides.find(o => o.farm_id === fid)
+      if (!ov) return it
+      return {
+        ...it,
+        input_parameters: { ...it.input_parameters, ...ov.input_parameters },
+        _edited_at: ov.edited_at
+      }
+    })
+}
+
 export function generateFallbackDashboard() {
   const trends = FALLBACK_TRENDS
   return {
@@ -369,18 +417,18 @@ export const LahanService = {
       const res = await api.get(`/lahan/${lahanId}/history`)
       return res.data
     } catch {
-      const localHistory = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      const filtered = localHistory.filter((it: any) => it.input_parameters?.farm_id === lahanId)
+      const localHistory = getLocalLahan()
+      const filtered = applyLocalEdits(localHistory.filter((it: any) => farmIdOf(it) === lahanId))
       return { lahan_id: lahanId, history: filtered, trend_chart_schema: null }
     }
   },
   async getLahanHistory() {
     try {
       const res = await api.get('/lahan')
-      const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return [...local, ...(res.data || [])]
+      const local = getLocalLahan()
+      return applyLocalEdits([...local, ...(res.data || [])])
     } catch {
-      const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
+      const local = getLocalLahan()
       // Ensure unique farm_ids for offline entries if saved with identical CGK001
       const farmCounts: Record<string, number> = {}
       const sanitizedLocal = local.map((item: any, idx: number) => {
@@ -395,16 +443,16 @@ export const LahanService = {
         }
         return item
       })
-      return [...sanitizedLocal, ...generateFallbackLahan()]
+      return applyLocalEdits([...sanitizedLocal, ...generateFallbackLahan()])
     }
   },
   async getAllLahan() {
     try {
       const res = await api.get('/lahan')
-      const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return [...local, ...res.data]
+      const local = getLocalLahan()
+      return applyLocalEdits([...local, ...res.data])
     } catch {
-      const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
+      const local = getLocalLahan()
       const farmCounts: Record<string, number> = {}
       const sanitizedLocal = local.map((item: any, idx: number) => {
         const farmId = item.input_parameters?.farm_id || 'CGK001'
@@ -418,8 +466,54 @@ export const LahanService = {
         }
         return item
       })
-      return [...sanitizedLocal, ...generateFallbackLahan()]
+      return applyLocalEdits([...sanitizedLocal, ...generateFallbackLahan()])
     }
+  },
+  async updateLahan(farmId: string, params: Record<string, any>) {
+    // Simpan override lokal agar edit bertahan (master 108 lahan + entri user)
+    const currentOverrides = getLahanOverrides()
+    const override = {
+      farm_id: farmId,
+      input_parameters: params,
+      edited_at: new Date().toISOString()
+    }
+    const idx = currentOverrides.findIndex(o => o.farm_id === farmId)
+    if (idx >= 0) currentOverrides[idx] = override
+    else currentOverrides.unshift(override)
+    saveLahanOverrides(currentOverrides)
+
+    // Jika farm_id berasal dari entri user (offline), perbarui juga datanya
+    const local = getLocalLahan()
+    const li = local.findIndex((it: any) => farmIdOf(it) === farmId)
+    if (li >= 0) {
+      local[li] = { ...local[li], input_parameters: { ...local[li].input_parameters, ...params }, _edited_at: override.edited_at }
+      saveLocalLahan(local)
+    }
+
+    try {
+      if (!isOfflineMode) {
+        await api.patch(`/lahan/${farmId}`, { parameters: params })
+      }
+    } catch { /* offline */ }
+
+    return { message: 'Data lahan berhasil diperbarui', farm_id: farmId }
+  },
+  async deleteLahan(farmId: string) {
+    const deleted = getLahanDeleted()
+    if (!deleted.includes(farmId)) {
+      deleted.unshift(farmId)
+      saveLahanDeleted(deleted)
+    }
+    const local = getLocalLahan().filter((it: any) => farmIdOf(it) !== farmId)
+    saveLocalLahan(local)
+
+    try {
+      if (!isOfflineMode) {
+        await api.delete(`/lahan/${farmId}`)
+      }
+    } catch { /* offline */ }
+
+    return { message: 'Data lahan berhasil dihapus', farm_id: farmId }
   }
 }
 
