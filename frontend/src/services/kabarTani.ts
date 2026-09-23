@@ -193,14 +193,20 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
 }
 
 function getFallbackFeed(): KabarTaniFeedResponse {
-  const now = new Date().toISOString()
+  const nowMs = Date.now()
+  const min15 = new Date(nowMs - 15 * 60 * 1000).toISOString()
+  const min45 = new Date(nowMs - 45 * 60 * 1000).toISOString()
+  const hour2 = new Date(nowMs - 2 * 3600 * 1000).toISOString()
+  const hour4 = new Date(nowMs - 4 * 3600 * 1000).toISOString()
+  const hour6 = new Date(nowMs - 6 * 3600 * 1000).toISOString()
+
   return {
     featured: {
       title: "Harga cabai di pasar Sleman naik 8% dibanding minggu lalu",
       summary: "Hasil agregasi data pasar induk Yogyakarta menunjukkan tren peningkatan permintaan cabai rawit merah. Bersamaan dengan prakiraan hujan teratur 2–5 mm dari stasiun BMKG Cangkringan, kondisi agronomi sangat ideal untuk memulai siklus penanaman Blok A tanpa ancaman kekeringan tanah.",
       category: "pasar",
       metrics: { "Volatilitas Pasar": "+8.0%", "Prakiraan Presipitasi": "2–5 mm", "Lembap Udara": "78% RH", "Saran Siklus": "Tanam Blok A" },
-      timestamp: now,
+      timestamp: min15,
       cta_url: "/prediksi-pasar"
     },
     items: [
@@ -211,7 +217,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Lonjakan harga cabai rawit merah di pasar induk Sleman mencapai Rp55.000/kg didorong penurunan pasokan regional.",
         metrics: { "Harga": "Rp55.000/kg", "Perubahan": "+8%" },
         severity: "info",
-        timestamp: now,
+        timestamp: min15,
         source: "Pasar Induk Sleman",
         cta_url: "/prediksi-pasar?commodity=Cabai Merah"
       },
@@ -222,7 +228,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan.",
         metrics: { "Harga": "Rp14.500/kg", "Perubahan": "0%" },
         severity: "info",
-        timestamp: now,
+        timestamp: min45,
         source: "Pasar Induk Sleman",
         cta_url: "/prediksi-pasar?commodity=Tomat"
       },
@@ -233,7 +239,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Sensor telemetri mencatat retensi air tanah turun hingga 34% pada lapisan perakaran cabai rawit, dianjurkan penyiraman sore 15mm.",
         metrics: { "Kelembapan": "34% (Kritis)", "Rekomendasi": "Penyiraman 15mm" },
         severity: "danger",
-        timestamp: now,
+        timestamp: hour2,
         source: "Telemetri IoT Lahan",
         cta_url: "/input-lahan?farm=Blok-B"
       },
@@ -244,7 +250,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Curah hujan stabil 2 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan.",
         metrics: { "Curah Hujan": "2 mm", "Kelembapan": "78%" },
         severity: "info",
-        timestamp: now,
+        timestamp: hour4,
         source: "BMKG Stasiun Cangkringan",
         cta_url: "/kabar-tani?filter=cuaca"
       },
@@ -255,7 +261,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Estimasi kuantum panen di Blok A diperkirakan mencapai 2,1 ton jika tingkat kalium tanah dipertahankan di atas 200 ppm.",
         metrics: { "Proyeksi": "2,1 Ton (+12%)", "Kondisi": "Kalium >200 ppm" },
         severity: "info",
-        timestamp: now,
+        timestamp: hour6,
         source: "Model AI-Yield Scikit-learn",
         cta_url: "/prediksi-pasar"
       }

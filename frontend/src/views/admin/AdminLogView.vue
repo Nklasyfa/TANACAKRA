@@ -211,19 +211,19 @@ const avgLatency = computed(() => {
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex flex-col gap-1 max-w-3xl">
           <div class="flex items-center gap-3">
-            <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Log Aktivitas &amp; Audit Trail</h1>
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Catatan Aktivitas Sistem</h1>
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] font-semibold text-xs border border-[#243319]/20">
               <span class="w-1.5 h-1.5 rounded-full bg-[#243319] animate-pulse"></span>
-              Audit Real-time
+              Pantauan Langsung
             </span>
           </div>
           <p class="text-sm text-[#7E7063] leading-relaxed">
-            Rekam jejak audit keamanan, pemanggilan inferensi AI, dan sinkronisasi telemetri 108 petak lahan lereng Merapi Cangkringan.
+            Mencatat aktivitas pengguna, prediksi AI pintar, dan pembaruan data sensor lahan di Cangkringan secara otomatis.
           </p>
         </div>
         <div class="flex items-center gap-3 shrink-0 self-start md:self-auto">
           <div class="hidden sm:flex flex-col items-end">
-            <span class="text-[11px] font-bold text-[#7E7063] uppercase tracking-wider">Arsip Telemetri</span>
+            <span class="text-[11px] font-bold text-[#7E7063] uppercase tracking-wider">Total Catatan</span>
             <span class="text-xs text-[#231a10] font-bold">{{ auditLogs.length }} entri terekam</span>
           </div>
           <button
@@ -241,10 +241,10 @@ const avgLatency = computed(() => {
       <!-- Telemetry Overview Mini-Bar -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Aktivitas Terekam</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Aktivitas Hari Ini</span>
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-bold text-[#231a10]">{{ todayActivityCount }}</span>
-            <span class="text-xs font-bold text-[#243319]">real-time</span>
+            <span class="text-xs font-bold text-[#243319]">langsung</span>
           </div>
           <div class="w-full bg-[#EBF2E5] h-1.5 rounded-full overflow-hidden mt-1">
             <div class="bg-[#243319] h-full rounded-full" style="width: 85%"></div>
@@ -252,10 +252,10 @@ const avgLatency = computed(() => {
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Inferensi AI Lolos</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Prediksi AI Berhasil</span>
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-bold text-[#231a10]">{{ aiMetrics.passRate }}</span>
-            <span class="text-xs font-medium text-[#7E7063]">{{ aiMetrics.count }} kuari</span>
+            <span class="text-xs font-medium text-[#7E7063]">{{ aiMetrics.count }} permintaan</span>
           </div>
           <div class="w-full bg-[#EBF2E5] h-1.5 rounded-full overflow-hidden mt-1">
             <div class="bg-[#243319] h-full rounded-full" style="width: 98%"></div>
@@ -263,10 +263,10 @@ const avgLatency = computed(() => {
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Anomali Terdeteksi</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Kendala / Error</span>
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-bold" :class="anomaliesCount > 0 ? 'text-[#C84C32]' : 'text-[#243319]'">{{ anomaliesCount }}</span>
-            <span class="text-xs font-medium text-[#7E7063]">auth / error</span>
+            <span class="text-xs font-medium text-[#7E7063]">gagal masuk</span>
           </div>
           <div class="w-full h-1.5 rounded-full overflow-hidden mt-1" :class="anomaliesCount > 0 ? 'bg-rose-100' : 'bg-[#EBF2E5]'">
             <div class="h-full rounded-full" :class="anomaliesCount > 0 ? 'bg-[#C84C32]' : 'bg-[#243319]'" style="width: 15%"></div>
@@ -274,10 +274,10 @@ const avgLatency = computed(() => {
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Latensi Rata-rata</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Kecepatan Respon</span>
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-bold font-mono text-[#231a10]">{{ avgLatency }}</span>
-            <span class="text-xs font-bold text-[#243319]">optimal</span>
+            <span class="text-xs font-bold text-[#243319]">lancar</span>
           </div>
           <div class="w-full bg-[#EBF2E5] h-1.5 rounded-full overflow-hidden mt-1">
             <div class="bg-[#243319] h-full rounded-full" style="width: 88%"></div>
@@ -301,15 +301,10 @@ const avgLatency = computed(() => {
                 v-model="selectedUser"
                 class="appearance-none bg-[#F9F7F4] text-[#231a10] border border-[#E5E0D8] text-xs font-semibold px-3.5 py-2 pr-9 rounded-lg focus:outline-none cursor-pointer hover:bg-[#F2EBDC] transition-colors"
               >
-                <option value="all">Semua Pengguna ({{ registeredUsers.length || 6 }} Terdaftar)</option>
-                <option value="admin">Super Admin (Administrator)</option>
+                <option value="all">Semua Pengguna ({{ registeredUsers.length || 7 }} Terdaftar)</option>
                 <option v-for="u in registeredUsers" :key="'opt-' + u.id" :value="u.username">
-                  {{ u.username }} ({{ u.role }})
+                  {{ u.username }} ({{ u.email }})
                 </option>
-                <option value="supardi">Pak Supardi (Poktan Merapi Makmur)</option>
-                <option value="darmi">Bu Darmi (Poktan Kinahrejo)</option>
-                <option value="telemetri">Node Telemetri (IoT Gateway)</option>
-                <option value="cron">Sistem Cron AI (Worker)</option>
               </select>
               <span class="material-symbols-outlined text-[18px] text-[#7E7063] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
             </div>
@@ -325,7 +320,7 @@ const avgLatency = computed(() => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Cari log, petak, IP, endpoint..."
+              placeholder="Cari kata kunci, nama pengguna, atau aktivitas..."
               class="w-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#231a10] placeholder:text-[#7E7063] text-xs rounded-lg pl-9 pr-3.5 py-2 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#243319]/20 transition-all"
             />
           </div>
@@ -345,7 +340,7 @@ const avgLatency = computed(() => {
             class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer"
             :class="selectedCategory === 'auth' ? 'bg-[#243319] text-white shadow-2xs' : 'bg-[#F9F7F4] text-[#7E7063] hover:text-[#231a10] border border-[#E5E0D8]'"
           >
-            Masuk / Auth ({{ categoryCounts.auth }})
+            Masuk / Login ({{ categoryCounts.auth }})
           </button>
           <button
             @click="selectedCategory = 'input'"
@@ -384,12 +379,12 @@ const avgLatency = computed(() => {
           <table class="w-full text-left border-collapse min-w-[980px]">
             <thead>
               <tr class="bg-[#F9F7F4] border-b border-[#E5E0D8] text-[11px] uppercase tracking-wider text-[#7E7063] font-bold">
-                <th class="py-3 px-4">Waktu &amp; Sesi</th>
-                <th class="py-3 px-4">Pengguna / Agen</th>
-                <th class="py-3 px-4">Deskripsi Aktivitas</th>
-                <th class="py-3 px-4">Metode &amp; Endpoint</th>
-                <th class="py-3 px-4">Status Respons</th>
-                <th class="py-3 px-3 text-right">Rincian</th>
+                <th class="py-3 px-4">Waktu</th>
+                <th class="py-3 px-4">Pengguna</th>
+                <th class="py-3 px-4">Keterangan</th>
+                <th class="py-3 px-4">Jalur Sistem</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-3 text-right">Detail</th>
               </tr>
             </thead>
             <tbody class="text-xs text-[#231a10] divide-y divide-[#E5E0D8]/60">
@@ -400,7 +395,7 @@ const avgLatency = computed(() => {
                 >
                   <td class="py-3.5 px-4 whitespace-nowrap">
                     <span class="font-mono font-bold block text-[#231a10]">{{ log.time }}</span>
-                    <span class="text-[11px] text-[#7E7063]">WIB &middot; Latensi {{ log.latency }}</span>
+                    <span class="text-[11px] text-[#7E7063]">WIB &middot; Respon: {{ log.latency }}</span>
                   </td>
 
                   <td class="py-3.5 px-4">
@@ -449,7 +444,7 @@ const avgLatency = computed(() => {
                     <button
                       @click="toggleDetail(log.rowKey)"
                       class="text-[#7E7063] hover:text-[#231a10] p-1.5 rounded-lg hover:bg-[#E5E0D8]/40 transition-colors cursor-pointer"
-                      title="Lihat Payload JSON"
+                      title="Lihat Detail Sistem"
                     >
                       <span class="material-symbols-outlined text-[18px]">terminal</span>
                     </button>
@@ -460,7 +455,7 @@ const avgLatency = computed(() => {
                 <tr v-if="expandedRows[log.rowKey]" :key="'exp-' + log.id" class="bg-[#F9F7F4]/60">
                   <td colspan="6" class="p-4 font-mono text-xs text-[#4A4036]">
                     <div class="bg-[#241F1B] text-[#D5E9C3] p-3.5 rounded-xl shadow-inner overflow-x-auto">
-                      <div class="text-[#7E7063] text-[10px] uppercase tracking-wider mb-1 font-sans font-bold">Payload Audit Trail JSON:</div>
+                      <div class="text-[#7E7063] text-[10px] uppercase tracking-wider mb-1 font-sans font-bold">Detail Data Sistem:</div>
                       <code>{{ log.payload }}</code>
                     </div>
                   </td>

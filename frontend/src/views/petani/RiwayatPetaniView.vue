@@ -81,6 +81,16 @@ const statusLabel = (item: any) => {
   if (rec?.status_kesehatan) return rec.status_kesehatan
   return phOf(item) >= 6.0 ? 'Sehat' : 'Perlu Atensi'
 }
+
+const fallbackRecommendation = (item: any) => {
+  const ph = phOf(item)
+  if (ph < 6.0) {
+    return 'Tanah asam. Taburkan Kapur Pertanian (Dolomit) yang mengandung Kalsium (Ca) & Magnesium (Mg) untuk menaikkan pH.'
+  } else if (ph > 7.0) {
+    return 'Tanah basa. Tambahkan unsur Belerang (Sulfur) pertanian untuk menurunkan pH tanah.'
+  }
+  return 'Kondisi stabil. Gunakan Pupuk NPK Seimbang (contoh: NPK Mutiara 16-16-16) untuk merawat nutrisi.'
+}
 </script>
 
 <template>
@@ -114,7 +124,7 @@ const statusLabel = (item: any) => {
           <div class="flex items-center gap-3 shrink-0">
             <button @click="router.push('/input-lahan')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#A8452A] hover:bg-[#8e3820] text-white text-sm font-semibold transition-all shadow-sm">
               <span class="material-symbols-outlined text-[18px]">add_circle</span>
-              + Catat Data Baru
+              Catat Data Baru
             </button>
           </div>
         </div>
@@ -166,7 +176,7 @@ const statusLabel = (item: any) => {
                     <div class="flex flex-col items-center justify-center gap-2">
                       <span class="material-symbols-outlined text-[36px] text-[#A99A87]">landscape</span>
                       <p class="font-bold text-[15px] text-[#241F1B]">Belum Ada Catatan Lahan</p>
-                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "+ Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
+                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
                     </div>
                   </td>
                 </tr>
@@ -195,12 +205,12 @@ const statusLabel = (item: any) => {
                       </ul>
                       <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
                         <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                        Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
+                        Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
                       </div>
                     </template>
                     <template v-else>
                       <div class="text-xs text-[#241F1B] leading-relaxed">
-                        <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> Butuh Pupuk NPK Susulan &amp; Pupuk Kandang Organik untuk menstabilkan nutrisi tanah.
+                        <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> {{ fallbackRecommendation(item) }}
                       </div>
                     </template>
                   </td>
@@ -253,8 +263,12 @@ const statusLabel = (item: any) => {
               </ul>
               <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
                 <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
+                Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
               </div>
+            </div>
+            <div v-else class="rounded-lg border border-[#E2D8C7] bg-white p-2.5">
+              <p class="text-[10px] text-[#645d58] font-semibold mb-1">Rekomendasi Pemupukan</p>
+              <p class="text-[11px] text-[#241F1B] leading-relaxed">{{ fallbackRecommendation(item) }}</p>
             </div>
           </article>
         </section>

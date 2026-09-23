@@ -311,7 +311,7 @@ const resetForm = () => {
         <div class="space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-xs uppercase tracking-widest text-[#645d58] font-bold">Formulir Lahan Baru</span>
-            <span class="text-xs text-[#243319] font-bold bg-[#EBF2E5] px-3 py-1 rounded-full border border-[#d5e9c3]">Siklus Tanam II &middot; 2025</span>
+            <span class="text-xs text-[#243319] font-bold bg-[#EBF2E5] px-3 py-1 rounded-full border border-[#d5e9c3]">Siklus Tanam II &middot; 2026</span>
           </div>
           <h1 class="font-headline-xl text-[28px] md:text-[34px] font-normal text-[#243319] leading-tight">Catat Data Lahan</h1>
           <p class="text-sm text-[#4A4036] leading-relaxed font-normal">

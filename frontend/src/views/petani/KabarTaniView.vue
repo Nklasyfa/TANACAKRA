@@ -175,6 +175,15 @@ onMounted(() => {
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <!-- New Mobile Header Button -->
+        <button
+          v-if="isAdmin"
+          @click="isCreateModalOpen = true"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg text-[10px] font-bold shadow-sm transition-all"
+        >
+          <span class="material-symbols-outlined text-[14px]">add</span>
+          <span>Warta</span>
+        </button>
         <div class="w-7 h-7 rounded-full bg-[#243319] text-white flex items-center justify-center text-[12px] font-bold">
           <span class="material-symbols-outlined text-[16px]">{{ isAdmin ? 'admin_panel_settings' : 'person' }}</span>
         </div>
@@ -189,39 +198,30 @@ onMounted(() => {
     <div class="flex-1 md:ml-[240px] flex flex-col min-w-0">
 
       <!-- Desktop Header Bar -->
-      <header class="hidden md:flex fixed top-0 left-[240px] right-0 h-16 bg-[#FFF8F4]/90 backdrop-blur-xl border-b border-[#E5E0D8] z-20 items-center justify-between px-6 lg:px-8">
-        <nav class="flex items-center gap-2 text-xs font-semibold text-[#7E7063]">
-          <router-link :to="isAdmin ? '/admin' : '/petani'" class="hover:text-[#243319] transition-colors">Tanacakra</router-link>
-          <span class="text-[#E5E0D8]">•</span>
-          <router-link :to="isAdmin ? '/admin' : '/petani'" class="hover:text-[#243319] transition-colors">
+      <header class="hidden md:flex fixed top-0 left-[240px] right-0 h-16 bg-[#FFF8F4]/90 backdrop-blur-xl border-b border-[#E5E0D8] z-20 items-center justify-between px-4 lg:px-8 gap-4">
+        <nav class="flex items-center gap-2 text-xs font-semibold text-[#7E7063] truncate min-w-0 shrink">
+          <router-link :to="isAdmin ? '/admin' : '/petani'" class="hover:text-[#243319] transition-colors shrink-0">Tanacakra</router-link>
+          <span class="text-[#E5E0D8] shrink-0 hidden lg:inline">•</span>
+          <router-link :to="isAdmin ? '/admin' : '/petani'" class="hover:text-[#243319] transition-colors shrink-0 hidden lg:inline">
             {{ isAdmin ? 'Konsol Admin' : 'Beranda Tani' }}
           </router-link>
-          <span class="text-[#E5E0D8]">•</span>
-          <span class="text-[#231a10]">Warta &amp; Pasar Cangkringan</span>
+          <span class="text-[#E5E0D8] shrink-0">•</span>
+          <span class="text-[#231a10] truncate">Warta &amp; Pasar Cangkringan</span>
         </nav>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 lg:gap-3 shrink-0">
           <button
             v-if="isAdmin"
             @click="isCreateModalOpen = true"
-            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#A8452A] hover:bg-[#923c24] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-1.5 rounded-full bg-[#A8452A] hover:bg-[#923c24] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
           >
             <span class="material-symbols-outlined text-[16px]">add_circle</span>
-            <span>+ Buat Warta &amp; Broadcast AI</span>
+            <span class="hidden lg:inline">+ Buat Warta &amp; Broadcast AI</span>
+            <span class="lg:hidden">+ Warta</span>
           </button>
 
-          <!-- Realtime Weather Strip -->
-          <div class="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-[#E5E0D8] rounded-full shadow-2xs">
-            <span class="material-symbols-outlined text-[#A8452A] text-[18px]">thermostat</span>
-            <span class="text-xs font-bold text-[#231a10]">{{ cuacaReal ? Math.round(cuacaReal.suhu) + '°C' : '24°C' }}</span>
-            <span class="text-[#E5E0D8]">•</span>
-            <span class="material-symbols-outlined text-[#3A4A2E] text-[18px]">water_drop</span>
-            <span class="text-xs font-bold text-[#231a10]">{{ cuacaReal ? Math.round(cuacaReal.kelembaban) + '%' : '78%' }}</span>
-            <span class="text-[#E5E0D8]">•</span>
-            <span class="text-[11px] font-semibold text-[#7E7063]">Lereng Merapi</span>
-          </div>
 
-          <div class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0 shadow-2xs">
+          <div class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0 shadow-2xs ml-1">
             <span class="material-symbols-outlined text-[18px]">{{ isAdmin ? 'admin_panel_settings' : 'person' }}</span>
           </div>
         </div>
@@ -251,7 +251,7 @@ onMounted(() => {
         </div>
 
         <!-- 2. Page Title Header & Search Bar -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mt-2">
           <div class="flex flex-col gap-1 max-w-2xl">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-[#A8452A] animate-pulse"></span>
