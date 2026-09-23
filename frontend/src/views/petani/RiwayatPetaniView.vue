@@ -205,7 +205,7 @@ const fallbackRecommendation = (item: any) => {
                       </ul>
                       <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
                         <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                        Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
+                        Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
                       </div>
                     </template>
                     <template v-else>
@@ -263,7 +263,7 @@ const fallbackRecommendation = (item: any) => {
               </ul>
               <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
                 <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha
+                Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
               </div>
             </div>
             <div v-else class="rounded-lg border border-[#E2D8C7] bg-white p-2.5">

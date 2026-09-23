@@ -312,8 +312,8 @@ export const LahanService = {
         output: {
           prediction_result: {
             estimasi_hasil_panen_ton_ha: '16.8',
-            status_kesehatan: parameters.pH < 6.0 ? 'Perlu Pembenahan pH' : 'Subur & Stabil',
-            catatan_lokasi: `Tersimpan secara luring untuk lahan ${lahanId}.`,
+            status_kesehatan: parameters.pH < 6.0 ? 'Perlu Pembenahan pH' : 'Sangat Baik',
+            catatan_lokasi: `Lokasi lahan ${lahanId} Cangkringan.`,
             rekomendasi_tindakan: [
               parameters.pH < 6.0 
                 ? 'Taburkan Kapur Pertanian (Dolomit) yang mengandung Kalsium (Ca) & Magnesium (Mg) untuk menaikkan pH tanah.' 
