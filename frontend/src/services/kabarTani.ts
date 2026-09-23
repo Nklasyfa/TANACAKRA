@@ -194,7 +194,6 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
 
 function getFallbackFeed(): KabarTaniFeedResponse {
   const nowMs = Date.now()
-  const now = new Date(nowMs).toISOString()
   const min15 = new Date(nowMs - 15 * 60 * 1000).toISOString()
   const min45 = new Date(nowMs - 45 * 60 * 1000).toISOString()
   const hour2 = new Date(nowMs - 2 * 3600 * 1000).toISOString()

@@ -124,7 +124,7 @@ const fallbackRecommendation = (item: any) => {
           <div class="flex items-center gap-3 shrink-0">
             <button @click="router.push('/input-lahan')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#A8452A] hover:bg-[#8e3820] text-white text-sm font-semibold transition-all shadow-sm">
               <span class="material-symbols-outlined text-[18px]">add_circle</span>
-              + Catat Data Baru
+              Catat Data Baru
             </button>
           </div>
         </div>
@@ -176,7 +176,7 @@ const fallbackRecommendation = (item: any) => {
                     <div class="flex flex-col items-center justify-center gap-2">
                       <span class="material-symbols-outlined text-[36px] text-[#A99A87]">landscape</span>
                       <p class="font-bold text-[15px] text-[#241F1B]">Belum Ada Catatan Lahan</p>
-                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "+ Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
+                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
                     </div>
                   </td>
                 </tr>

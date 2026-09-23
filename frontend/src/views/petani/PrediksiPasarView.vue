@@ -308,7 +308,8 @@ const applyRecommendation = async () => {
     applied.value = true
     setTimeout(() => {
       applied.value = false
-    }, 2200)
+      router.push('/input-lahan')
+    }, 1200)
   } finally {
     applying.value = false
   }

@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../../services/supabase'
 import { resolveSession } from '../../services/session'
+import loginBg from '@/assets/login/Login.png'
 
 const router = useRouter()
 
@@ -226,7 +227,7 @@ const handleResetPassword = async () => {
 
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#241F1B] selection:bg-[#A8452A] selection:text-white">
-    <div class="absolute inset-0 z-0 bg-cover bg-center pointer-events-none" style="background-image: url('/img/farmer-topi.png');"></div>
+    <div class="absolute inset-0 z-0 bg-cover bg-center pointer-events-none" :style="{ backgroundImage: `url(${loginBg})` }"></div>
     <div class="absolute inset-0 z-0 bg-[rgba(36,31,27,0.45)] pointer-events-none"></div>
 
     <div v-if="isOffline" class="fixed top-0 left-0 w-full bg-[#BA1A1A] text-white font-medium text-sm py-2 px-4 text-center z-50 shadow-md">
