@@ -291,20 +291,26 @@ const resetForm = () => {
   <div class="min-h-screen bg-[#fff8f4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden px-5 pt-5 pb-3 border-b border-[#E5E0D8] flex items-center justify-between bg-[#fff8f4] sticky top-0 z-30 shadow-sm">
-      <div class="flex items-center gap-2">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-        <span class="font-headline-lg text-lg font-bold text-[#243319]">Tanacakra</span>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-30 pt-safe bg-[#fff8f4]/95 backdrop-blur-xl border-b border-[#F0EDE6]">
+      <div class="h-14 px-4 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-8 w-auto object-contain shrink-0" />
+          <div class="flex flex-col leading-none min-w-0">
+            <span class="font-display text-[15px] text-[#3A4A2E] tracking-tight leading-none font-bold">Tanacakra</span>
+            <span class="text-[11px] text-[#6B5B4A] mt-0.5 truncate font-medium">Catat Lahan</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors" aria-label="Pemberitahuan">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+          </button>
+        </div>
       </div>
-      <button @click="router.back()" class="text-xs font-semibold text-[#A8452A] flex items-center gap-1">
-        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-        Kembali
-      </button>
     </header>
 
     <PetaniSidebar />
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-5 md:pt-8 flex flex-col items-center">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[72px] md:pt-8 flex flex-col items-center">
       <div class="w-full max-w-[640px] space-y-5 pb-16">
 
         <!-- Editorial Context Title -->

@@ -318,9 +318,6 @@ const catatanList = computed(() => {
           <button class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" aria-label="Pemberitahuan">
             <span class="material-symbols-outlined text-[22px]">notifications</span>
           </button>
-          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
-            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
-          </div>
         </div>
       </div>
     </header>

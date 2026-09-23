@@ -128,19 +128,26 @@ const fallbackRecommendation = (item: any) => {
 <template>
   <div class="min-h-screen flex flex-col md:flex-row bg-[#fff8f4] text-[#231a10] font-sans antialiased pb-[88px] md:pb-0">
 
-    <header class="md:hidden sticky top-0 z-20 bg-[#fff8f4]/95 backdrop-blur-sm border-b border-[#F0EDE6] px-4 py-3 flex items-center justify-between">
-      <div>
-        <div class="flex items-center gap-1.5">
-          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-          <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
+    <header class="md:hidden fixed top-0 left-0 right-0 z-30 pt-safe bg-[#fff8f4]/95 backdrop-blur-xl border-b border-[#F0EDE6]">
+      <div class="h-14 px-4 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-8 w-auto object-contain shrink-0" />
+          <div class="flex flex-col leading-none min-w-0">
+            <span class="font-display text-[15px] text-[#3A4A2E] tracking-tight leading-none font-bold">Tanacakra</span>
+            <span class="text-[11px] text-[#6B5B4A] mt-0.5 truncate font-medium">Lahan &amp; Riwayat</span>
+          </div>
         </div>
-        <p class="text-[11px] text-[#645d58] mt-1 font-medium">Dashboard Petani &bull; Riwayat</p>
+        <div class="flex items-center gap-1">
+          <button class="w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors" aria-label="Pemberitahuan">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+          </button>
+        </div>
       </div>
     </header>
 
     <PetaniSidebar />
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-5 md:pt-8">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[72px] md:pt-8">
       <div class="max-w-[860px] mx-auto w-full pb-12">
 
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -187,7 +194,7 @@ const fallbackRecommendation = (item: any) => {
           </div>
         </div>
 
-        <section class="mt-5 bg-white border border-[#E2D8C7] rounded-xl overflow-hidden shadow-sm">
+        <section class="mt-5 bg-white border border-[#E2D8C7] rounded-xl overflow-hidden shadow-sm hidden md:block">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-[#241F1B] min-w-[700px]">
               <thead class="bg-[#F3ECE0] border-b border-[#E2D8C7] text-xs text-[#6B5B4A] font-semibold">

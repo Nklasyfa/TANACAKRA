@@ -380,16 +380,20 @@ const createSchedule = () => {
   <div class="min-h-screen bg-surface text-on-surface antialiased flex flex-col md:flex-row pb-[88px] md:pb-0 font-sans">
 
     <!-- Mobile header -->
-    <header class="md:hidden sticky top-0 z-30 bg-surface/85 backdrop-blur-xl border-b border-[#F0EDE6] px-4 h-14 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-8 w-auto object-contain shrink-0" />
-        <div class="flex flex-col leading-none min-w-0">
-          <span class="font-display text-[15px] text-primary tracking-tight leading-none">Tanacakra</span>
-          <span class="text-[11px] text-on-surface-variant mt-0.5 truncate">Prediksi &amp; Pasar</span>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-30 pt-safe bg-[#fff8f4]/95 backdrop-blur-xl border-b border-[#F0EDE6]">
+      <div class="h-14 px-4 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-8 w-auto object-contain shrink-0" />
+          <div class="flex flex-col leading-none min-w-0">
+            <span class="font-display text-[15px] text-[#3A4A2E] tracking-tight leading-none font-bold">Tanacakra</span>
+            <span class="text-[11px] text-[#6B5B4A] mt-0.5 truncate font-medium">Prediksi &amp; Pasar</span>
+          </div>
         </div>
-      </div>
-      <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-        <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+        <div class="flex items-center gap-1">
+          <button class="w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors" aria-label="Pemberitahuan">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -415,7 +419,7 @@ const createSchedule = () => {
       </div>
     </header>
 
-    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-6 lg:px-8 pt-4 md:pt-20">
+    <main class="md:ml-[240px] flex-1 w-full px-4 md:px-6 lg:px-8 pt-[72px] md:pt-20">
       <div class="max-w-[1100px] mx-auto flex flex-col gap-6 pb-12">
 
         <!-- 1. Judul & Selector -->
