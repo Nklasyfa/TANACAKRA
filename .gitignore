@@ -27,7 +27,9 @@ dist/
 ui/
 *.pdf
 data/
+assets/
 asset/
+docs/
 .vscode/
 .idea/
 

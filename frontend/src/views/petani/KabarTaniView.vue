@@ -412,7 +412,7 @@ onMounted(() => {
               <span class="material-symbols-outlined text-[22px]">analytics</span>
             </div>
             <div class="flex flex-col gap-1">
-              <h3 class="font-display text-base md:text-lg font-bold text-[#231a10]">Ingin rekomendasi tanam sesuai sensor lahan Anda?</h3>
+              <h3 class="font-display text-base md:text-lg font-bold text-[#231a10]">Ingin rekomendasi tanam sesuai kondisi lahan Anda?</h3>
               <p class="text-xs md:text-sm text-[#7E7063]">
                 Model Random Forest Scikit-learn menganalisis kondisi tanah mikro lereng Merapi secara presisi.
               </p>
@@ -438,117 +438,156 @@ onMounted(() => {
     <BottomNav v-else />
 
     <!-- MODAL BUAT WARTA & BROADCAST AI -->
-    <div v-if="isCreateModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div class="relative w-full max-w-2xl bg-white rounded-2xl border border-[#E5E0D8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <!-- Header -->
-        <div class="px-6 py-4 bg-[#FFF8F4] border-b border-[#E5E0D8] flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#A8452A] text-[22px]">campaign</span>
-            <div>
-              <h3 class="font-headline-md text-base font-bold text-[#231a10]">Buat Warta &amp; Broadcast Agro-Intelijen</h3>
-              <p class="text-[11px] text-[#7E7063]">Publikasikan pengumuman atau gunakan generator rekomendasi AI.</p>
-            </div>
-          </div>
-          <button @click="isCreateModalOpen = false" class="p-1 rounded-full text-[#7E7063] hover:bg-[#E5E0D8]/60 transition-colors">
-            <span class="material-symbols-outlined text-[20px]">close</span>
-          </button>
-        </div>
+    <!-- Mobile: bottom sheet | Desktop: centered dialog -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="isCreateModalOpen" class="fixed inset-0 z-[70] flex flex-col justify-end md:justify-center md:items-center md:p-4 bg-black/50 backdrop-blur-sm" @click.self="isCreateModalOpen = false">
+          <div class="sheet-panel relative w-full md:max-w-2xl bg-white md:rounded-2xl rounded-t-3xl border border-[#E5E0D8] shadow-2xl flex flex-col max-h-[92dvh] md:max-h-[88vh]">
 
-        <!-- Body -->
-        <div class="p-6 overflow-y-auto space-y-4 text-xs">
-          <!-- AI Prompt Generator Bar -->
-          <div class="bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl p-3.5 space-y-2">
-            <label class="block font-bold text-[#243319] text-[11px] uppercase tracking-wider">
-              ✨ Auto-Generate Draf Warta dengan AI
-            </label>
-            <div class="flex items-center gap-2">
-              <input
-                v-model="aiPrompt"
-                type="text"
-                placeholder="Ketik topik (misal: 'hama thrips', 'hujan asam merapi', 'harga cabai naik')..."
-                class="flex-1 px-3 py-2 bg-white border border-[#E2D8C7] rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#A8452A]"
-              />
-              <button
-                type="button"
-                @click="generateWithAi"
-                class="px-4 py-2 bg-[#243319] hover:bg-[#3A4A2E] text-white font-bold rounded-lg text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
-              >
-                <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-                <span>Generate Draf AI</span>
+            <!-- Drag handle (mobile only) -->
+            <div class="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+              <div class="w-10 h-1 rounded-full bg-[#E2D8C7]"></div>
+            </div>
+
+            <!-- Header -->
+            <div class="px-5 py-3.5 bg-[#FFF8F4] border-b border-[#E5E0D8] flex items-center justify-between shrink-0 md:rounded-t-2xl">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="material-symbols-outlined text-[#A8452A] text-[22px] shrink-0">campaign</span>
+                <div class="min-w-0">
+                  <h3 class="font-bold text-[#231a10] leading-snug">
+                    <span class="md:hidden text-sm">Buat Warta AI</span>
+                    <span class="hidden md:inline text-base">Buat Warta &amp; Broadcast Agro-Intelijen</span>
+                  </h3>
+                  <p class="text-[11px] text-[#7E7063] truncate">Publikasikan pengumuman atau gunakan generator AI.</p>
+                </div>
+              </div>
+              <button @click="isCreateModalOpen = false" class="ml-2 shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-[#7E7063] hover:bg-[#E5E0D8]/70 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-[#231a10] mb-1">Kategori Warta</label>
-              <select v-model="newCategory" class="w-full p-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold">
-                <option value="hama">Hama &amp; Penyakit</option>
-                <option value="cuaca">Cuaca Presisi</option>
-                <option value="pasar">Harga Pasar</option>
-                <option value="lahan">Kondisi Lahan</option>
-                <option value="prediksi">Prediksi AI</option>
-              </select>
+            <!-- Body (scrollable) -->
+            <div class="px-5 py-4 overflow-y-auto space-y-4 text-xs flex-1">
+
+              <!-- AI Prompt Generator Bar -->
+              <div class="bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl p-3.5 space-y-2.5">
+                <label class="block font-bold text-[#243319] text-[11px] uppercase tracking-wider">
+                  ✨ Auto-Generate Draf Warta dengan AI
+                </label>
+                <!-- Stack vertically on mobile, row on md+ -->
+                <div class="flex flex-col md:flex-row items-stretch gap-2">
+                  <input
+                    v-model="aiPrompt"
+                    type="text"
+                    placeholder="Ketik topik (misal: 'hama thrips', 'harga cabai naik')..."
+                    class="flex-1 px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#A8452A]"
+                  />
+                  <button
+                    type="button"
+                    @click="generateWithAi"
+                    class="w-full md:w-auto px-4 py-2.5 bg-[#243319] hover:bg-[#3A4A2E] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+                    <span>Generate Draf AI</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Kategori + Urgensi: 2 col on md, 1 col on mobile -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-bold text-[#231a10] mb-1.5">Kategori Warta</label>
+                  <select v-model="newCategory" class="w-full px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold focus:outline-none focus:border-[#A8452A] appearance-none">
+                    <option value="hama">Hama &amp; Penyakit</option>
+                    <option value="cuaca">Cuaca Presisi</option>
+                    <option value="pasar">Harga Pasar</option>
+                    <option value="lahan">Kondisi Lahan</option>
+                    <option value="prediksi">Prediksi AI</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-[#231a10] mb-1.5">Tingkat Urgensi</label>
+                  <select v-model="newSeverity" class="w-full px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold focus:outline-none focus:border-[#A8452A] appearance-none">
+                    <option value="info">Informasi (Hijau)</option>
+                    <option value="warning">Perhatian (Kuning)</option>
+                    <option value="danger">Perlu Aksi (Merah)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Judul -->
+              <div>
+                <label class="block font-bold text-[#231a10] mb-1.5">Judul Warta</label>
+                <input
+                  v-model="newTitle"
+                  type="text"
+                  placeholder="Judul warta atau peringatan..."
+                  class="w-full px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold outline-none focus:border-[#A8452A]"
+                />
+              </div>
+
+              <!-- Ringkasan -->
+              <div>
+                <label class="block font-bold text-[#231a10] mb-1.5">Ringkasan &amp; Rekomendasi Agronomi</label>
+                <textarea
+                  v-model="newSummary"
+                  rows="4"
+                  placeholder="Deskripsi kondisi lapangan, rekomendasi pestisida/drainase..."
+                  class="w-full px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-medium outline-none focus:border-[#A8452A] resize-none"
+                ></textarea>
+              </div>
+
+              <!-- Sumber -->
+              <div>
+                <label class="block font-bold text-[#231a10] mb-1.5">Sumber Pengirim / Instansi</label>
+                <input
+                  v-model="newSource"
+                  type="text"
+                  placeholder="Misal: Console Admin Cangkringan / BMKG Kaliurang"
+                  class="w-full px-3 py-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-medium outline-none focus:border-[#A8452A]"
+                />
+              </div>
             </div>
-            <div>
-              <label class="block font-bold text-[#231a10] mb-1">Tingkat Urgensi</label>
-              <select v-model="newSeverity" class="w-full p-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold">
-                <option value="info">Informasi (Hijau)</option>
-                <option value="warning">Perhatian (Kuning)</option>
-                <option value="danger">Perlu Aksi (Merah)</option>
-              </select>
+
+            <!-- Footer Actions: stacked on mobile, row on md+ -->
+            <div class="px-5 py-4 bg-[#FFF8F4] border-t border-[#E5E0D8] flex flex-col-reverse md:flex-row md:justify-end gap-2.5 shrink-0 md:rounded-b-2xl">
+              <button
+                @click="isCreateModalOpen = false"
+                class="w-full md:w-auto px-5 py-2.5 rounded-xl border border-[#E5E0D8] text-[#7E7063] font-bold text-xs hover:bg-[#E5E0D8]/40 transition-colors text-center"
+              >
+                Batal
+              </button>
+              <button
+                @click="publishWarta"
+                class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-[#A8452A] hover:bg-[#923c24] text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[18px]">send</span>
+                <span>Publikasikan Warta</span>
+              </button>
             </div>
-          </div>
 
-          <div>
-            <label class="block font-bold text-[#231a10] mb-1">Judul Warta</label>
-            <input
-              v-model="newTitle"
-              type="text"
-              placeholder="Judul warta atau peringatan..."
-              class="w-full p-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-semibold outline-none focus:border-[#A8452A]"
-            />
-          </div>
-
-          <div>
-            <label class="block font-bold text-[#231a10] mb-1">Ringkasan Warta &amp; Rekomendasi Agronomi</label>
-            <textarea
-              v-model="newSummary"
-              rows="4"
-              placeholder="Deskripsi terperinci mengenai kondisi lapangan, rekomendasi pestisida/upaya drainase..."
-              class="w-full p-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-medium outline-none focus:border-[#A8452A]"
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block font-bold text-[#231a10] mb-1">Sumber Pengirim / Instansi</label>
-            <input
-              v-model="newSource"
-              type="text"
-              placeholder="Misal: Console Admin Cangkringan / BMKG Kaliurang"
-              class="w-full p-2.5 bg-white border border-[#E2D8C7] rounded-lg text-xs font-medium outline-none focus:border-[#A8452A]"
-            />
           </div>
         </div>
-
-        <!-- Footer Actions -->
-        <div class="px-6 py-3.5 bg-[#FFF8F4] border-t border-[#E5E0D8] flex items-center justify-end gap-3">
-          <button
-            @click="isCreateModalOpen = false"
-            class="px-4 py-2 rounded-xl border border-[#E5E0D8] text-[#7E7063] font-bold text-xs hover:bg-[#E5E0D8]/40 transition-colors"
-          >
-            Batal
-          </button>
-          <button
-            @click="publishWarta"
-            class="px-5 py-2 rounded-xl bg-[#A8452A] hover:bg-[#923c24] text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <span class="material-symbols-outlined text-[16px]">send</span>
-            <span>Publikasikan Warta</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Transition>
+    </Teleport>
 
   </div>
 </template>
+
+<style scoped>
+/* Bottom-sheet slide-up (mobile) + fade-scale (desktop) */
+.modal-enter-active { transition: opacity 0.25s ease; }
+.modal-leave-active { transition: opacity 0.2s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+
+.modal-enter-active .sheet-panel { transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+.modal-leave-active .sheet-panel  { transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1); }
+.modal-enter-from .sheet-panel, .modal-leave-to .sheet-panel { transform: translateY(100%); }
+
+@media (min-width: 768px) {
+  .modal-enter-from .sheet-panel, .modal-leave-to .sheet-panel { transform: scale(0.95); }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
