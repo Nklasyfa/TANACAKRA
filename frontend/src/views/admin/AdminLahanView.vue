@@ -11,6 +11,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
+import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
@@ -369,22 +370,20 @@ watch(
   <div class="min-h-screen bg-[#fff8f4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 w-full z-30 bg-[#fff8f4]/95 backdrop-blur-md border-b border-[#E8E3DA] px-4 py-3">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="flex items-center gap-1.5">
-            <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-            <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
+    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+      <div class="h-14 px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
+          <div class="flex flex-col leading-none">
+            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
+            <span class="text-[10px] text-[#7E7063] mt-0.5 font-medium">Manajemen Lahan · {{ lahanList.length }} petak</span>
           </div>
-          <p class="text-[11px] text-[#243319] mt-0.5 font-medium">Manajemen Lahan • {{ lahanList.length }} petak terdaftar</p>
         </div>
         <div class="flex items-center gap-1">
-          <button @click="openSample()" class="w-9 h-9 flex items-center justify-center hover:bg-[#EFECE6] rounded-full transition-colors" title="Catat Sample ML">
+          <button @click="openSample()" class="w-10 h-10 flex items-center justify-center rounded-full text-[#243319] hover:bg-[#EBF2E5] transition-colors" title="Catat Sample ML">
             <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
           </button>
-          <button @click="fetchLahanData" class="p-2 hover:bg-[#EFECE6] transition-colors rounded-full">
-            <span class="material-symbols-outlined text-[20px]">refresh</span>
-          </button>
+          <NotifPanel />
         </div>
       </div>
     </header>
@@ -394,7 +393,7 @@ watch(
 
     <!-- Main Content Area -->
     <main class="w-full md:ml-[240px] flex-1 min-w-0">
-      <div class="max-w-[1200px] mx-auto w-full p-4 md:pt-8 md:p-8">
+      <div class="max-w-[1200px] mx-auto w-full p-4 pt-[72px] md:pt-8 md:p-8">
 
         <!-- Content Header (Desktop) -->
         <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

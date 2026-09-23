@@ -5,6 +5,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { api, AdminService } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
+import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
@@ -151,17 +152,22 @@ onMounted(async () => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 w-full z-30 bg-[#FFF8F4]/90 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-        <div>
-          <span class="font-display font-bold text-[15px] text-[#243319]">Tanacakra Pengaturan</span>
-          <p class="text-[10px] text-[#7E7063]">Konsol Inti &amp; API Gateway</p>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+      <div class="h-14 px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
+          <div class="flex flex-col leading-none">
+            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
+            <span class="text-[10px] text-[#7E7063] mt-0.5 font-medium">Pengaturan Sistem</span>
+          </div>
         </div>
-      </div>
-      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EBF2E5] text-[#243319] text-[10px] font-bold">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#243319] animate-pulse"></span>
-        Telemetri Aktif
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#EBF2E5] text-[#243319] text-[10px] font-bold">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#243319] animate-pulse"></span>
+            Aktif
+          </span>
+          <NotifPanel />
+        </div>
       </div>
     </header>
 
@@ -170,7 +176,7 @@ onMounted(async () => {
 
     <!-- Main Content -->
     <main class="w-full md:pl-[240px] flex-1">
-      <div class="p-4 md:p-8 max-w-[1000px] mx-auto flex flex-col gap-6">
+      <div class="p-4 pt-[72px] md:pt-8 md:p-8 max-w-[1000px] mx-auto flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

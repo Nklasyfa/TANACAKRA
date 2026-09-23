@@ -12,6 +12,7 @@ import { AuditLogger } from '@/services/audit'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
+import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -313,19 +314,19 @@ onMounted(() => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between shadow-sm">
-      <div class="flex items-center gap-2">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
-        <div>
-          <h1 class="text-sm font-bold text-[#243319] leading-tight">Tanacakra</h1>
-          <span class="text-[10px] uppercase font-bold text-[#7E7063]">Super Admin</span>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+      <div class="h-14 px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
+          <div class="flex flex-col leading-none">
+            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
+            <span class="text-[10px] uppercase font-bold text-[#7E7063] mt-0.5">Super Admin</span>
+          </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#243319]">
-          <span class="material-symbols-outlined text-[20px]">notifications</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <NotifPanel />
+        </div>
       </div>
     </header>
 
@@ -334,7 +335,7 @@ onMounted(() => {
 
     <!-- MAIN CONTENT AREA Wrapper -->
     <div class="flex-1 md:ml-60 flex flex-col min-w-0">
-      <main class="w-full max-w-[1500px] mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
+      <main class="w-full max-w-[1500px] mx-auto p-4 pt-[72px] md:pt-8 md:p-8 lg:p-10 space-y-6 md:space-y-8">
 
       <!-- 1. Header Toolbar -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E0D8]">

@@ -4,6 +4,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { AdminService, downloadCsv } from '@/services/api'
 import { AuditLogger, type RichLogItem } from '@/services/audit'
+import NotifPanel from '@/components/shared/NotifPanel.vue'
 
 const auditLogs = ref<RichLogItem[]>([])
 const isLoading = ref(true)
@@ -188,17 +189,22 @@ const avgLatency = computed(() => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 w-full z-30 bg-[#FFF8F4]/90 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-        <div>
-          <span class="font-display font-bold text-[15px] text-[#243319]">Tanacakra Log</span>
-          <p class="text-[10px] text-[#7E7063]">Audit Trail Cangkringan</p>
+    <header class="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E0D8]">
+      <div class="h-14 px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
+          <div class="flex flex-col leading-none">
+            <span class="font-display font-bold text-[14px] text-[#243319] leading-none">Tanacakra</span>
+            <span class="text-[10px] text-[#7E7063] mt-0.5 font-medium">Audit Trail &amp; Log</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button @click="fetchLogs" class="w-10 h-10 flex items-center justify-center rounded-full text-[#243319] hover:bg-[#EBF2E5] transition-colors" title="Perbarui Log">
+            <span class="material-symbols-outlined text-[20px]">refresh</span>
+          </button>
+          <NotifPanel />
         </div>
       </div>
-      <button @click="fetchLogs" class="p-1.5 rounded-lg bg-[#EBF2E5] text-[#243319] hover:bg-[#d5e9c3] transition-colors" title="Perbarui Log">
-        <span class="material-symbols-outlined text-[18px]">refresh</span>
-      </button>
     </header>
 
     <!-- Sidebar Admin -->
@@ -206,7 +212,7 @@ const avgLatency = computed(() => {
 
     <!-- Main Content Wrapper -->
     <div class="flex-1 md:ml-[240px] flex flex-col min-w-0">
-      <main class="w-full max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-6">
+      <main class="w-full max-w-[1400px] mx-auto p-4 pt-[72px] md:pt-8 md:p-8 flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
