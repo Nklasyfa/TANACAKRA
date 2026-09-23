@@ -726,7 +726,7 @@ watch(
               </li>
             </ul>
             <p class="text-[11px] text-[#645d58] italic">{{ sampleResult.catatan_lokasi }}</p>
-            <div v-if="samplePlotly" class="bg-[#FFF1E6] rounded-xl p-2 border border-[#F2DFCF] h-[280px] md:h-[320px]">
+            <div v-if="samplePlotly" class="bg-[#FFF1E6] rounded-xl p-2 border border-[#F2DFCF] h-[340px] md:h-[420px]">
               <PlotlyChart :schema="samplePlotly" />
             </div>
           </div>

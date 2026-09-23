@@ -168,35 +168,18 @@ const chartSchema = computed(() => {
   const trends = (dashboardData.value?.price_trends || []) as Record<string, any>[]
   if (!trends.length) return null
 
-  const keys = Object.keys(trends[0]).filter((k) => k !== 'month' && k !== 'volume_ton')
+  const keys = Object.keys(trends[0]).filter((k) => k !== 'month')
   if (!keys.length) return null
 
-  const pick = selectedCommodity.value && selectedCommodity.value !== ALL_COMMODITIES
-    ? keys.filter((k) => k === selectedCommodity.value)
-    : keys
-  const active = pick.length ? pick : keys
-
   const realMonths = trends.map((t) => t.month)
-  const realValues = trends.map((t) => {
-    const vals = active.map((k) => parseFloat(t[k])).filter((v) => !isNaN(v) && v > 0)
-    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
-  })
-
-  const trimmed = realValues.slice(-6)
-  const { slope, intercept } = linreg(trimmed)
-  const base = realValues.length
-  const lastReal = realValues[realValues.length - 1] || 0
-  const futureLabels = nextMonthLabels(realMonths[realMonths.length - 1] || '2024-01', 3)
-
-  const projValues = futureLabels.map((_, i) => Math.max(0, Math.round(slope * (base + i) + intercept)))
-  const band = projValues.map((v) => Math.max(0, Math.round(v * 0.12)))
-
   const realX = realMonths.map(monthLabel)
-  const lastRealLabel = realX[realX.length - 1] || ''
-  const projX = [lastRealLabel, ...futureLabels]
-  const projY = [lastReal, ...projValues]
-  const bandUp = [lastReal, ...projValues.map((v, i) => v + band[i])]
-  const bandDown = [lastReal, ...projValues.map((v, i) => Math.max(0, v - band[i]))]
+
+  const single = selectedCommodity.value && selectedCommodity.value !== ALL_COMMODITIES
+    ? keys.filter((k) => k === selectedCommodity.value)
+    : []
+  const active = single.length ? single : keys
+
+  const futureLabels = nextMonthLabels(realMonths[realMonths.length - 1] || '2024-01', 3)
 
   const volumeData = (dashboardData.value?.volume_trends || []) as Record<string, any>[]
   const volX = volumeData.map((v) => monthLabel(v.month))
@@ -206,24 +189,46 @@ const chartSchema = computed(() => {
   const volBase = volY.length
   const lastVol = volY[volY.length - 1] || 0
   const volProj = futureLabels.map((_, i) => Math.max(0, Math.round(volReg.slope * (volBase + i) + volReg.intercept)))
-  const volProjX = [lastRealLabel, ...futureLabels]
+  const volProjX = [monthLabel(volumeData[volumeData.length - 1]?.month || ''), ...futureLabels]
   const volProjY = [lastVol, ...volProj]
 
-  const categoryOrder = [...realX, ...futureLabels]
+  const volumeTraces: any[] = [
+    {
+      x: volX, y: volY, type: 'scatter', mode: 'lines+markers', name: 'Volume Panen (Ton)',
+      line: { color: '#4A5B3A', width: 2.5 }, marker: { size: 6, color: '#4A5B3A' },
+      yaxis: 'y2', hovertemplate: '<b>%{x}</b><br>Volume: %{y:.1f} Ton<extra></extra>'
+    },
+    {
+      x: volProjX, y: volProjY, type: 'scatter', mode: 'lines+markers', name: 'Proyeksi Volume',
+      line: { color: '#4A5B3A', width: 2.5, dash: 'dot' },
+      marker: { size: 6, symbol: 'square-open', color: '#4A5B3A' },
+      yaxis: 'y2', hovertemplate: '<b>%{x}</b><br>Proyeksi: %{y:.0f} Ton<extra></extra>'
+    }
+  ]
 
-  return {
-    data: [
-      {
-        x: realX, y: realValues, type: 'scatter', mode: 'lines+markers', name: 'Harga (Rp/kg)',
-        line: { color: '#A8452A', width: 3 }, marker: { size: 7, color: '#A8452A' },
-        yaxis: 'y', hovertemplate: '<b>%{x}</b><br>Harga: Rp %{y:,.0f}/kg<extra></extra>'
-      },
-      {
-        x: projX, y: projY, type: 'scatter', mode: 'lines+markers', name: 'Proyeksi Harga',
-        line: { color: '#A8452A', width: 3, dash: 'dot' },
-        marker: { size: 6, symbol: 'circle-open', color: '#A8452A' },
-        yaxis: 'y', hovertemplate: '<b>%{x}</b><br>Proyeksi: Rp %{y:,.0f}/kg<extra></extra>'
-      },
+  let priceTraces: any[]
+  let showLegend: boolean
+
+  if (single.length) {
+    const realValues = trends.map((t) => {
+      const vals = active.map((k) => parseFloat(t[k])).filter((v) => !isNaN(v) && v > 0)
+      return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0
+    })
+
+    const trimmed = realValues.slice(-6)
+    const { slope, intercept } = linreg(trimmed)
+    const base = realValues.length
+    const lastReal = realValues[realValues.length - 1] || 0
+
+    const projValues = futureLabels.map((_, i) => Math.max(0, Math.round(slope * (base + i) + intercept)))
+    const band = projValues.map((v) => Math.max(0, Math.round(v * 0.12)))
+
+    const projX = [monthLabel(realMonths[realMonths.length - 1] || ''), ...futureLabels]
+    const projY = [lastReal, ...projValues]
+    const bandUp = [lastReal, ...projValues.map((v, i) => v + band[i])]
+    const bandDown = [lastReal, ...projValues.map((v, i) => Math.max(0, v - band[i]))]
+
+    priceTraces = [
       {
         x: projX, y: bandUp, type: 'scatter', mode: 'lines', line: { width: 0 },
         showlegend: false, yaxis: 'y', hoverinfo: 'none'
@@ -234,41 +239,77 @@ const chartSchema = computed(() => {
         showlegend: false, yaxis: 'y', hoverinfo: 'none'
       },
       {
-        x: volX, y: volY, type: 'scatter', mode: 'lines+markers', name: 'Volume Panen (Ton)',
-        line: { color: '#4A5B3A', width: 2.5 }, marker: { size: 6, color: '#4A5B3A' },
-        yaxis: 'y2', hovertemplate: '<b>%{x}</b><br>Volume: %{y:.1f} Ton<extra></extra>'
+        x: realX, y: realValues, type: 'scatter', mode: 'lines+markers', name: 'Harga (Rp/kg)',
+        line: { color: '#A8452A', width: 3 }, marker: { size: 7, color: '#A8452A' },
+        yaxis: 'y', hovertemplate: '<b>%{x}</b><br>Harga: Rp %{y:,.0f}/kg<extra></extra>'
       },
       {
-        x: volProjX, y: volProjY, type: 'scatter', mode: 'lines+markers', name: 'Proyeksi Volume',
-        line: { color: '#4A5B3A', width: 2.5, dash: 'dot' },
-        marker: { size: 6, symbol: 'square-open', color: '#4A5B3A' },
-        yaxis: 'y2', hovertemplate: '<b>%{x}</b><br>Proyeksi: %{y:.0f} Ton<extra></extra>'
+        x: projX, y: projY, type: 'scatter', mode: 'lines+markers', name: 'Proyeksi Harga',
+        line: { color: '#A8452A', width: 3, dash: 'dot' },
+        marker: { size: 6, symbol: 'circle-open', color: '#A8452A' },
+        yaxis: 'y', hovertemplate: '<b>%{x}</b><br>Proyeksi: Rp %{y:,.0f}/kg<extra></extra>'
       }
-    ],
+    ]
+    showLegend = false
+  } else {
+    const keyColors: Record<string, string> = {
+      'Cabai Merah': '#C84C32',
+      'Salak Pondoh': '#4A5B3A',
+      'Bawang Merah': '#8B3A62',
+      'Padi': '#D99B26',
+      'Jagung': '#E07A5F',
+      'Kacang Tanah': '#7E5A3C',
+      'Tomat': '#E63946'
+    }
+    const fallbackColors = ['#C84C32', '#4A5B3A', '#8B3A62', '#D99B26', '#E07A5F', '#7E5A3C', '#E63946']
+
+    priceTraces = keys.map((k, idx) => {
+      const color = keyColors[k] || fallbackColors[idx % fallbackColors.length]
+      return {
+        x: realX,
+        y: trends.map((t) => parseFloat(t[k]) || 0),
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: `${k} (Rp/kg)`,
+        line: { color, width: 2.5, shape: 'spline' },
+        marker: { size: 5, color },
+        yaxis: 'y',
+        hovertemplate: `<b>%{x}</b><br>${k}: Rp %{y:,.0f}/kg<extra></extra>`
+      }
+    })
+    showLegend = true
+  }
+
+  return {
+    data: [...priceTraces, ...volumeTraces],
     layout: {
       autosize: true,
-      margin: { l: 45, r: 40, t: 15, b: 40 },
+      margin: { l: 55, r: 50, t: 15, b: showLegend ? 90 : 40 },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
-      showlegend: false,
+      showlegend: showLegend,
+      legend: {
+        orientation: 'h',
+        x: 0,
+        xanchor: 'left',
+        y: -0.35,
+        font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A3F35' }
+      },
       xaxis: {
-        type: 'category',
-        categoryorder: 'array',
-        categoryarray: categoryOrder,
-        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#6B5B4A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#6B5B4A' },
         tickangle: -45,
         automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false
       },
       yaxis: {
         title: 'Harga (Rp/kg)',
-        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#A8452A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' },
         automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false, tickformat: 's'
       },
       yaxis2: {
         title: 'Volume (Ton)',
-        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#4A5B3A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' },
         automargin: true,
         overlaying: 'y', side: 'right', showgrid: false, zeroline: false
       },
@@ -392,11 +433,12 @@ const createSchedule = () => {
             <span class="material-symbols-outlined absolute left-3.5 text-[#6B5B4A] text-[18px] pointer-events-none">terrain</span>
             <select
               v-model="selectedFarm"
-              class="bg-white text-[#241F1B] text-[13px] font-medium pl-10 pr-2 py-2.5 rounded-lg shadow-sm cursor-pointer border border-[#E2D8C7] hover:bg-surface-container-lowest transition-colors focus:outline-none focus:ring-2 focus:ring-[#3A4A2E]/20"
+              class="bg-white text-[#241F1B] text-[13px] font-medium pl-10 pr-9 py-2.5 rounded-lg shadow-sm cursor-pointer border border-[#E2D8C7] hover:bg-surface-container-lowest transition-colors focus:outline-none focus:ring-2 focus:ring-[#3A4A2E]/20 appearance-none"
             >
               <option value="all">Semua Lahan</option>
               <option v-for="p in petakOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
             </select>
+            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#6B5B4A] text-[18px] pointer-events-none">expand_more</span>
           </div>
         </div>
 
@@ -589,25 +631,26 @@ const createSchedule = () => {
               <div class="relative">
                 <select
                   v-model="selectedCommodity"
-                  class="bg-[#FFF8F4] text-[#241F1B] text-[12px] font-semibold pl-3.5 pr-2 py-2 rounded-lg cursor-pointer border border-[#E2D8C7] hover:bg-[#F2DFCF]/50 transition-colors focus:outline-none"
+                  class="bg-[#FFF8F4] text-[#241F1B] text-[12px] font-semibold pl-3.5 pr-9 py-2 rounded-lg cursor-pointer border border-[#E2D8C7] hover:bg-[#F2DFCF]/50 transition-colors focus:outline-none appearance-none"
                 >
                   <option :value="ALL_COMMODITIES">{{ ALL_COMMODITIES }}</option>
                   <option v-for="c in commodities" :key="c" :value="c">{{ c }}</option>
                 </select>
+                <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6B5B4A] text-[18px] pointer-events-none">expand_more</span>
               </div>
             </div>
           </div>
 
-          <div class="w-full relative min-h-[420px] md:min-h-[460px]">
+          <div class="w-full relative">
             <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
-            <div v-else class="min-h-[420px] md:min-h-[460px] flex items-center justify-center text-xs text-[#75786f]">
+            <div v-else class="h-[340px] md:h-[420px] flex items-center justify-center text-xs text-[#75786f]">
               {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
             </div>
           </div>
 
           <div class="flex items-center justify-between pt-3 mt-1 border-t border-[#F2DFCF]/60 text-xs italic text-[#6B5B4A]">
             <span>Catatan: Garis putus-putus menunjukkan proyeksi indikatif, bukan hasil pasti.</span>
-            <span v-if="projectionZone" class="not-italic font-mono text-[11px] text-[#A8452A] font-medium bg-[#A8452A]/10 px-2 py-0.5 rounded">Zona Proyeksi: {{ projectionZone }}</span>
+            <span v-if="projectionZone && selectedCommodity !== ALL_COMMODITIES" class="not-italic font-mono text-[11px] text-[#A8452A] font-medium bg-[#A8452A]/10 px-2 py-0.5 rounded">Zona Proyeksi: {{ projectionZone }}</span>
           </div>
         </div>
 

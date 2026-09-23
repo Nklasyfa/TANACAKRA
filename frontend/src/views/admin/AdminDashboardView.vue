@@ -598,7 +598,7 @@ onMounted(() => {
         </div>
 
         <!-- Plotly Canvas Container -->
-        <div class="w-full min-h-[420px] md:min-h-[450px] rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60">
+        <div class="w-full h-[340px] md:h-[420px] rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60">
           <PlotlyChart
             v-if="filteredChartSchema"
             :schema="filteredChartSchema"

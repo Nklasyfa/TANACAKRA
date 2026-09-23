@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full">
-    <div ref="chartContainer" class="w-full h-[320px] md:h-[400px]"></div>
+    <div ref="chartContainer" class="w-full h-[340px] sm:h-[420px] lg:h-[460px]"></div>
   </div>
 </template>
 
@@ -20,21 +20,30 @@ let resizeObserver: ResizeObserver | null = null
 
 const mobileLayout = (layout: any) => {
   const isMobile = window.innerWidth < 768
+  if (!isMobile) {
+    return {
+      ...layout,
+      autosize: true,
+      font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
+    }
+  }
   return {
     ...layout,
     autosize: true,
     margin: {
       ...(layout.margin || {}),
-      l: isMobile ? 38 : layout.margin?.l ?? 60,
-      r: isMobile ? 30 : layout.margin?.r ?? 60,
-      t: layout.title ? (isMobile ? 42 : layout.margin?.t ?? 50) : layout.margin?.t ?? 30,
-      b: isMobile ? 52 : layout.margin?.b ?? 45
+      l: 38,
+      r: 30,
+      t: layout.title ? 42 : (layout.margin?.t ?? 25),
+      b: Math.max(78, layout.margin?.b ?? 78)
     },
     legend: {
-      orientation: 'h' as const,
-      x: 0,
-      y: isMobile ? 1.22 : 1.15,
-      font: { ...(layout.legend?.font || {}), size: isMobile ? 10 : 11 }
+      ...(layout.legend || {}),
+      orientation: 'h',
+      x: 0.5,
+      xanchor: 'center',
+      y: -0.35,
+      font: { ...(layout.legend?.font || {}), size: 10 }
     },
     font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
   }

@@ -875,7 +875,7 @@ const resetForm = () => {
             </div>
 
             <!-- Plotly Visual Schema -->
-            <div v-if="plotlySchema" class="bg-[#F9F7F4] rounded-2xl p-3 border border-[#E5E0D8] h-[300px]">
+            <div v-if="plotlySchema" class="bg-[#F9F7F4] rounded-2xl p-3 border border-[#E5E0D8] h-[340px] md:h-[420px]">
               <PlotlyChart :schema="plotlySchema" />
             </div>
 
