@@ -34,16 +34,6 @@ const allCommodities = computed(() => {
   return ['Cabai Merah', 'Salak Pondoh', 'Bawang Merah', 'Padi', 'Jagung', 'Kacang Tanah']
 })
 
-const commodityColors: Record<string, string> = {
-  'Cabai Merah': '#C84C32',
-  'Salak Pondoh': '#4A5B3A',
-  'Bawang Merah': '#8B3A62',
-  'Padi': '#D99B26',
-  'Jagung': '#E07A5F',
-  'Kacang Tanah': '#7E5A3C',
-  'Tomat': '#E63946'
-}
-
 const filteredChartSchema = computed(() => {
   let trends = dashboardStats.value?.price_trends || []
   let volTrends = dashboardStats.value?.volume_trends || []
