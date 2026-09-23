@@ -97,10 +97,21 @@ function generateFallbackLahan() {
     const desa = DESA_LIST[i % 5]
     const [baseLat, baseLng] = DESA_COORDS[desa]
     const ph = +(5.2 + Math.random() * 2.3).toFixed(1) // 5.2 - 7.5
+    const sampleFieldNames = [
+      'Blok A - Rojolele',
+      'Blok B - Mentik Wangi',
+      'Blok C - Pandanwangi',
+      'Blok D - Sawah Pari',
+      'Blok E - Lereng Merapi',
+      'Blok F - UmbulHarjo',
+      'Blok G - Kebun Salak'
+    ]
+    const fieldName = sampleFieldNames[i % sampleFieldNames.length]
     return {
       id: i + 1,
       input_parameters: {
         farm_id: 'CGK' + String(i + 1).padStart(3, '0'),
+        field_name: fieldName,
         desa,
         soil_type: 'Regosol Vulkanik',
         soil_ph: ph,
@@ -195,6 +206,8 @@ function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodi
       },
       xaxis: {
         tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#645d58' },
+        tickangle: -45,
+        automargin: true,
         showgrid: true,
         gridcolor: '#F2DFCF',
         zeroline: false
@@ -202,6 +215,7 @@ function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodi
       yaxis: {
         title: { text: 'Harga (Rp/kg)', font: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' } },
         tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' },
+        automargin: true,
         showgrid: true,
         gridcolor: '#F2DFCF',
         zeroline: false,
@@ -210,6 +224,7 @@ function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodi
       yaxis2: {
         title: { text: 'Volume (Ton)', font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' } },
         tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' },
+        automargin: true,
         overlaying: 'y',
         side: 'right',
         showgrid: false,
@@ -304,16 +319,24 @@ export const LahanService = {
     } catch (err) {
       // Offline fallback: save to localStorage to persist data
       const localHistory = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
+      
+      // Auto-generate unique farm ID if lahanId is empty or duplicate
+      let finalFarmId = lahanId
+      const existingMatches = localHistory.filter((it: any) => it.input_parameters?.farm_id === lahanId)
+      if (existingMatches.length > 0 || !finalFarmId) {
+        finalFarmId = 'CGK' + String(localHistory.length + 1).padStart(3, '0')
+      }
+
       const newEntry = {
         id: Date.now(),
         user: { id: 1, username: 'petani_demo', email: '', role: 'PETANI' },
-        input_parameters: { ...parameters, farm_id: lahanId },
+        input_parameters: { ...parameters, farm_id: finalFarmId },
         created_at: new Date().toISOString(),
         output: {
           prediction_result: {
             estimasi_hasil_panen_ton_ha: '16.8',
             status_kesehatan: parameters.pH < 6.0 ? 'Perlu Pembenahan pH' : 'Sangat Baik',
-            catatan_lokasi: `Lokasi lahan ${lahanId} Cangkringan.`,
+            catatan_lokasi: `Lokasi lahan ${finalFarmId} Cangkringan.`,
             rekomendasi_tindakan: [
               parameters.pH < 6.0 
                 ? 'Taburkan Kapur Pertanian (Dolomit) yang mengandung Kalsium (Ca) & Magnesium (Mg) untuk menaikkan pH tanah.' 
@@ -353,7 +376,21 @@ export const LahanService = {
       return [...local, ...(res.data || [])]
     } catch {
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      return [...local, ...generateFallbackLahan()]
+      // Ensure unique farm_ids for offline entries if saved with identical CGK001
+      const farmCounts: Record<string, number> = {}
+      const sanitizedLocal = local.map((item: any, idx: number) => {
+        const farmId = item.input_parameters?.farm_id || 'CGK001'
+        farmCounts[farmId] = (farmCounts[farmId] || 0) + 1
+        if (farmCounts[farmId] > 1) {
+          const newCode = `CGK${String(idx + 1).padStart(3, '0')}`
+          return {
+            ...item,
+            input_parameters: { ...item.input_parameters, farm_id: newCode }
+          }
+        }
+        return item
+      })
+      return [...sanitizedLocal, ...generateFallbackLahan()]
     }
   },
   async getAllLahan() {
@@ -363,8 +400,20 @@ export const LahanService = {
       return [...local, ...res.data]
     } catch {
       const local = JSON.parse(localStorage.getItem('tanacakra_offline_lahan') || '[]')
-      // Ensure the hardcoded "real" offline data is combined with any offline user inputs
-      return [...local, ...generateFallbackLahan()]
+      const farmCounts: Record<string, number> = {}
+      const sanitizedLocal = local.map((item: any, idx: number) => {
+        const farmId = item.input_parameters?.farm_id || 'CGK001'
+        farmCounts[farmId] = (farmCounts[farmId] || 0) + 1
+        if (farmCounts[farmId] > 1) {
+          const newCode = `CGK${String(idx + 1).padStart(3, '0')}`
+          return {
+            ...item,
+            input_parameters: { ...item.input_parameters, farm_id: newCode }
+          }
+        }
+        return item
+      })
+      return [...sanitizedLocal, ...generateFallbackLahan()]
     }
   }
 }

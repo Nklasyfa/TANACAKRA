@@ -8,7 +8,7 @@ const leftItems = [
   { to: '/riwayat', icon: 'nature', label: 'Lahan' }
 ]
 const rightItems = [
-  { to: '/prediksi-pasar', icon: 'storefront', label: 'Pasar' },
+  { to: '/prediksi-pasar', icon: 'insights', label: 'Prediksi' },
   { to: '/profil', icon: 'account_circle', label: 'Profil' }
 ]
 </script>

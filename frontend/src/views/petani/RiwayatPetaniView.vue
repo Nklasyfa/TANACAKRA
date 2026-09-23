@@ -89,7 +89,14 @@ const paramsOf = (item: any) => item.input_parameters || {}
 const phOf = (item: any) => parseFloat(paramsOf(item).soil_ph ?? paramsOf(item).pH ?? 6.5)
 const moistureOf = (item: any) => parseInt(paramsOf(item).kelembapan ?? paramsOf(item).humidity_percent ?? paramsOf(item).moisture ?? 60)
 const predictionOf = (item: any) => item.output?.prediction_result || item.engine_output?.prediction_result || null
-const farmLabel = (item: any) => paramsOf(item).farm_id || ('CGK' + String(item.id).padStart(3, '0'))
+const farmIdOf = (item: any) => {
+  const p = paramsOf(item)
+  return p.farm_id || ('CGK' + String(item.id || 1).slice(-3).padStart(3, '0'))
+}
+const fieldNameOf = (item: any) => {
+  const p = paramsOf(item)
+  return p.field_name || p.nama_lahan || `Petak ${farmIdOf(item)}`
+}
 const statusClass = (item: any) => {
   const rec = predictionOf(item)
   if (rec?.status_kesehatan) {
@@ -185,8 +192,8 @@ const fallbackRecommendation = (item: any) => {
             <table class="w-full text-left text-sm text-[#241F1B] min-w-[700px]">
               <thead class="bg-[#F3ECE0] border-b border-[#E2D8C7] text-xs text-[#6B5B4A] font-semibold">
                 <tr>
-                  <th scope="col" class="py-3 px-4 w-40 uppercase tracking-wider">Tanggal</th>
-                  <th scope="col" class="py-3 px-4 w-44 uppercase tracking-wider">Petak Lahan</th>
+                  <th scope="col" class="py-3 px-4 w-44 uppercase tracking-wider">Tanggal Ditambahkan</th>
+                  <th scope="col" class="py-3 px-4 w-48 uppercase tracking-wider">Petak &amp; Nama Lahan</th>
                   <th scope="col" class="py-3 px-4 w-48 uppercase tracking-wider">Parameter Hara</th>
                   <th scope="col" class="py-3 px-4 uppercase tracking-wider">Hasil Rekomendasi ML</th>
                   <th scope="col" class="py-3 px-4 w-28 text-center uppercase tracking-wider">Status</th>
@@ -206,10 +213,21 @@ const fallbackRecommendation = (item: any) => {
                   </td>
                 </tr>
                 <tr v-else v-for="item in paginatedHistory" :key="item.id" class="hover:bg-[#FAF8F3] transition-colors align-top">
-                  <td class="py-3 px-4 font-medium tabular-nums text-[#241F1B]">{{ formatDate(item.created_at) }}</td>
+                  <td class="py-3 px-4 font-medium tabular-nums text-[#241F1B]">
+                    <div class="font-bold text-[#243319] flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px] text-[#A8452A]">calendar_today</span>
+                      <span>{{ formatDate(item.created_at) }}</span>
+                    </div>
+                    <div class="text-[10px] text-[#7E7063] mt-0.5 font-normal">Tanggal Ditambahkan</div>
+                  </td>
                   <td class="py-3 px-4 font-medium text-[#241F1B]">
-                    <div>Petak {{ farmLabel(item) }}</div>
-                    <div class="text-[11px] text-[#6B5B4A] font-normal">Desa {{ paramsOf(item).desa || 'Cangkringan' }}</div>
+                    <div class="font-bold text-[#243319] text-[13px] leading-snug">{{ fieldNameOf(item) }}</div>
+                    <div class="text-[11px] text-[#6B5B4A] font-medium flex items-center gap-1.5 mt-0.5">
+                      <span class="inline-flex items-center px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-[#F3ECE0] text-[#7E4200] border border-[#E2D8C7]">
+                        {{ farmIdOf(item) }}
+                      </span>
+                      <span>&bull; Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
+                    </div>
                   </td>
                   <td class="py-3 px-4 tabular-nums">
                     <div class="leading-relaxed">
@@ -275,9 +293,18 @@ const fallbackRecommendation = (item: any) => {
           <article v-for="item in paginatedHistory" :key="'mob-r-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl shadow-sm p-4">
             <div class="flex items-start justify-between gap-2 mb-2">
               <div>
-                <span class="text-[10px] font-mono font-bold tracking-wider text-[#A8452A]">{{ farmLabel(item) }}</span>
-                <h3 class="font-semibold text-[14px] text-[#241F1B] leading-snug">Desa {{ paramsOf(item).desa || 'Cangkringan' }}</h3>
-                <p class="text-[10px] text-[#645d58] tabular-nums">{{ formatDate(item.created_at) }}</p>
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="inline-flex items-center px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-[#F3ECE0] text-[#7E4200] border border-[#E2D8C7]">
+                    {{ farmIdOf(item) }}
+                  </span>
+                  <span class="text-[11px] text-[#645d58]">Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
+                </div>
+                <h3 class="font-bold text-[14px] text-[#241F1B] leading-snug">{{ fieldNameOf(item) }}</h3>
+                <div class="text-[11px] text-[#645d58] font-medium flex items-center gap-1 mt-1 tabular-nums">
+                  <span class="material-symbols-outlined text-[13px] text-[#A8452A]">calendar_today</span>
+                  <span>Tanggal Ditambahkan:</span>
+                  <strong class="text-[#241F1B]">{{ formatDate(item.created_at) }}</strong>
+                </div>
               </div>
               <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border shrink-0 text-left">{{ statusLabel(item) }}</span>
             </div>

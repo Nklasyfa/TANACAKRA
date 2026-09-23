@@ -129,8 +129,8 @@ const formatTime = (iso: string) => {
   const today = new Date()
   const isToday = d.toDateString() === today.toDateString()
   const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-  const dayStr = isToday ? 'Hari ini' : d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })
-  return `${dayStr} · ${timeStr} WIB`
+  const dateStr = d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+  return isToday ? `${dateStr} (Hari ini) · ${timeStr} WIB` : `${dateStr} · ${timeStr} WIB`
 }
 
 const getCategoryIcon = (category: string) => {

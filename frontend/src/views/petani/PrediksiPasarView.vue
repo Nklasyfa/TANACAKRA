@@ -250,17 +250,21 @@ const chartSchema = computed(() => {
       plot_bgcolor: 'transparent',
       showlegend: false,
       xaxis: {
-        tickfont: { family: 'Plus Jakarta Sans', size: 12, color: '#6B5B4A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#6B5B4A' },
+        tickangle: -45,
+        automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false
       },
       yaxis: {
         title: 'Harga (Rp/kg)',
         tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' },
+        automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false, tickformat: 's'
       },
       yaxis2: {
         title: 'Volume (Ton)',
         tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' },
+        automargin: true,
         overlaying: 'y', side: 'right', showgrid: false, zeroline: false
       },
       hovermode: 'x unified',
@@ -383,12 +387,11 @@ const createSchedule = () => {
             <span class="material-symbols-outlined absolute left-3.5 text-[#6B5B4A] text-[18px] pointer-events-none">terrain</span>
             <select
               v-model="selectedFarm"
-              class="appearance-none bg-white text-[#241F1B] text-[13px] font-medium pl-10 pr-10 py-2.5 rounded-lg shadow-sm cursor-pointer border border-[#E2D8C7] hover:bg-surface-container-lowest transition-colors focus:outline-none focus:ring-2 focus:ring-[#3A4A2E]/20"
+              class="bg-white text-[#241F1B] text-[13px] font-medium pl-10 pr-2 py-2.5 rounded-lg shadow-sm cursor-pointer border border-[#E2D8C7] hover:bg-surface-container-lowest transition-colors focus:outline-none focus:ring-2 focus:ring-[#3A4A2E]/20"
             >
               <option value="all">Semua Lahan</option>
               <option v-for="p in petakOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
             </select>
-            <span class="material-symbols-outlined absolute right-3 text-[#6B5B4A] text-[20px] pointer-events-none">expand_more</span>
           </div>
         </div>
 
@@ -581,19 +584,18 @@ const createSchedule = () => {
               <div class="relative">
                 <select
                   v-model="selectedCommodity"
-                  class="appearance-none bg-[#FFF8F4] text-[#241F1B] text-[12px] font-semibold pl-3.5 pr-8 py-2 rounded-lg cursor-pointer border border-[#E2D8C7] hover:bg-[#F2DFCF]/50 transition-colors focus:outline-none"
+                  class="bg-[#FFF8F4] text-[#241F1B] text-[12px] font-semibold pl-3.5 pr-2 py-2 rounded-lg cursor-pointer border border-[#E2D8C7] hover:bg-[#F2DFCF]/50 transition-colors focus:outline-none"
                 >
                   <option :value="ALL_COMMODITIES">{{ ALL_COMMODITIES }}</option>
                   <option v-for="c in commodities" :key="c" :value="c">{{ c }}</option>
                 </select>
-                <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[#6B5B4A] text-[18px] pointer-events-none">expand_more</span>
               </div>
             </div>
           </div>
 
-          <div class="w-full relative min-h-[360px] md:min-h-[400px]">
+          <div class="w-full relative min-h-[420px] md:min-h-[460px]">
             <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
-            <div v-else class="min-h-[360px] md:min-h-[400px] flex items-center justify-center text-xs text-[#75786f]">
+            <div v-else class="min-h-[420px] md:min-h-[460px] flex items-center justify-center text-xs text-[#75786f]">
               {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
             </div>
           </div>

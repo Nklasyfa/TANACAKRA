@@ -608,13 +608,14 @@ watch(
 
         <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-4 text-xs md:text-sm">
           <div class="bg-[#FFF1E6] p-3 rounded-lg border border-[#F2DFCF] space-y-2">
-            <div class="flex justify-between"><span class="text-[#645d58]">Tipe Tanah:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.soil_type }}</span></div>
-            <div class="flex justify-between"><span class="text-[#645d58]">pH Tanah:</span><span class="font-bold text-[#243319]">{{ selectedLahan.input_parameters?.soil_ph }}</span></div>
-            <div class="flex justify-between"><span class="text-[#645d58]">Karbon Organik:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.organic_carbon }}%</span></div>
-            <div class="flex justify-between"><span class="text-[#645d58]">Irigasi:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.irrigation }}</span></div>
-            <div class="flex justify-between"><span class="text-[#645d58]">Elevasi:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.elevation_m }} mdpl</span></div>
-            <div class="flex justify-between"><span class="text-[#645d58]">Luas Petak:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.area_ha }} ha</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">Tipe Tanah:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.soil_type || 'Regosol Vulkanik' }}</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">pH Tanah:</span><span class="font-bold text-[#243319]">{{ selectedLahan.input_parameters?.soil_ph || selectedLahan.input_parameters?.pH }}</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">Karbon Organik:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.organic_carbon || 2.1 }}%</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">Irigasi:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.irrigation || 'Teknis' }}</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">Elevasi:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.elevation_m || 600 }} mdpl</span></div>
+            <div class="flex justify-between"><span class="text-[#645d58]">Luas Petak:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.area_ha || 1.0 }} ha</span></div>
             <div class="flex justify-between"><span class="text-[#645d58]">Koordinat:</span><span class="font-mono text-[11px] text-[#231a10]">{{ selectedLahan.input_parameters?.latitude }}, {{ selectedLahan.input_parameters?.longitude }}</span></div>
+            <div class="flex justify-between border-t border-[#F2DFCF] pt-2 mt-1"><span class="text-[#645d58]">Tanggal Ditambahkan:</span><span class="font-semibold text-[#243319]">{{ selectedLahan.created_at ? new Date(selectedLahan.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : 'Hari ini' }}</span></div>
           </div>
         </div>
       </div>

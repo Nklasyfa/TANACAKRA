@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getStoredSession, resolveSession } from '@/services/session'
 import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
+import { LahanService, AdminService } from '@/services/api'
 
 const router = useRouter()
 
@@ -31,12 +32,34 @@ const initReveal = () => {
   els.forEach((el) => revealObserver?.observe(el))
 }
 
+// Dynamic stats for hero section
+const lahanCount = ref(0)
+const petaniCount = ref(0)
+const statsLoaded = ref(false)
+
+const loadDynamicStats = async () => {
+  try {
+    const [lahans, users] = await Promise.all([
+      LahanService.getAllLahan().catch(() => []),
+      AdminService.getUsers().catch(() => [])
+    ])
+    lahanCount.value = Array.isArray(lahans) ? lahans.length : 0
+    petaniCount.value = Array.isArray(users) ? users.filter((u: any) => (u.role || '').toUpperCase() !== 'ADMIN').length : 0
+  } catch {
+    lahanCount.value = 0
+    petaniCount.value = 0
+  } finally {
+    statsLoaded.value = true
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   initReveal()
   applySession()
   resolveSession().then(applySession)
   loadWartaItems()
+  loadDynamicStats()
 })
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
@@ -279,7 +302,7 @@ const scrollToSection = (id: string) => {
                 <span class="text-[11px] text-[#243319] bg-[#EBF2E5] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Aktif</span>
               </div>
               <div>
-                <div class="font-headline-xl text-[44px] lg:text-[48px] font-bold text-[#241F1B] leading-none">42</div>
+                <div class="font-headline-xl text-[44px] lg:text-[48px] font-bold text-[#241F1B] leading-none">{{ statsLoaded ? lahanCount : '—' }}</div>
                 <div class="text-xs text-[#7E7063] mt-2 font-medium">Petak lahan terpantau</div>
               </div>
             </div>
@@ -289,7 +312,7 @@ const scrollToSection = (id: string) => {
                 <span class="text-[11px] text-[#243319] bg-[#EBF2E5] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Kelompok</span>
               </div>
               <div>
-                <div class="font-headline-xl text-[44px] lg:text-[48px] font-bold text-[#241F1B] leading-none">38</div>
+                <div class="font-headline-xl text-[44px] lg:text-[48px] font-bold text-[#241F1B] leading-none">{{ statsLoaded ? petaniCount : '—' }}</div>
                 <div class="text-xs text-[#7E7063] mt-2 font-medium">Petani aktif terdaftar</div>
               </div>
             </div>

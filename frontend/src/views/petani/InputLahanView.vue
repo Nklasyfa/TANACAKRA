@@ -110,13 +110,8 @@ const fetchFarms = async () => {
   try {
     const list = await LahanService.getAllLahan()
     availableFarms.value = list
-    if (list.length > 0) {
-      const f = list[0]
-      if (f.input_parameters) {
-        selectedFarmId.value = f.input_parameters.farm_id || 'CGK001'
-        if (f.input_parameters.soil_ph) phValue.value = f.input_parameters.soil_ph
-      }
-    }
+    const nextNum = list.length + 1
+    selectedFarmId.value = 'CGK' + String(nextNum).padStart(3, '0')
   } catch (err) {
     console.error('Error fetching farm list:', err)
   }
@@ -394,18 +389,32 @@ const resetForm = () => {
             </div>
 
             <div class="space-y-4">
-              <!-- Input Nama Lahan -->
-              <div class="space-y-1.5">
-                <label for="field_name" class="text-xs text-[#241F1B] block font-bold">
-                  Nama atau blok lahan <span class="text-[#A8452A]">*</span>
-                </label>
-                <input
-                  id="field_name"
-                  v-model="fieldName"
-                  type="text"
-                  placeholder="Contoh: Blok A - Rojolele"
-                  class="w-full h-11 px-3.5 bg-[#F9F7F4] text-[#241F1B] text-sm font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
-                />
+              <!-- Input Nama & Kode Lahan -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2 space-y-1.5">
+                  <label for="field_name" class="text-xs text-[#241F1B] block font-bold">
+                    Nama atau blok lahan <span class="text-[#A8452A]">*</span>
+                  </label>
+                  <input
+                    id="field_name"
+                    v-model="fieldName"
+                    type="text"
+                    placeholder="Contoh: Blok A - Rojolele"
+                    class="w-full h-11 px-3.5 bg-[#F9F7F4] text-[#241F1B] text-sm font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="farm_id" class="text-xs text-[#241F1B] block font-bold">
+                    Kode Petak Lahan
+                  </label>
+                  <input
+                    id="farm_id"
+                    v-model="selectedFarmId"
+                    type="text"
+                    placeholder="CGK001"
+                    class="w-full h-11 px-3.5 bg-[#F9F7F4] text-[#A8452A] text-sm font-bold font-mono rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition uppercase"
+                  />
+                </div>
               </div>
 
               <!-- Input Luas Lahan -->
@@ -708,6 +717,17 @@ const resetForm = () => {
               <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
                 <span class="text-xs text-[#7E7063] font-medium">Nama / Blok Lahan</span>
                 <span class="text-xs font-bold text-[#241F1B]">{{ fieldName || 'Blok A - Rojolele' }}</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
+                <span class="text-xs text-[#7E7063] font-medium">Kode Petak Lahan</span>
+                <span class="font-mono text-xs font-bold text-[#A8452A]">{{ selectedFarmId }}</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
+                <span class="text-xs text-[#7E7063] font-medium">Tanggal Ditambahkan</span>
+                <span class="text-xs font-bold text-[#243319] flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px] text-[#A8452A]">calendar_today</span>
+                  <span>{{ new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) }}</span>
+                </span>
               </div>
               <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
                 <span class="text-xs text-[#7E7063] font-medium">Luas Lahan</span>
