@@ -18,11 +18,14 @@ const searchQuery = ref('')
 const selectedDesa = ref('all')
 const isDrawerOpen = ref(false)
 const selectedLahan = ref<any>(null)
-// Map state
+// Map state — modal
 const showMap = ref(false)
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
 const mapLeaflet = ref<HTMLElement | null>(null)
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(15)
 
 const handleExportCsv = () => {
   const dataToExport = filteredLahan.value.map(item => {
@@ -85,6 +88,30 @@ const filteredLahan = computed(() => {
 
     return matchesSearch && matchesDesa
   })
+})
+
+// Reset to page 1 on filter change
+watch([searchQuery, selectedDesa], () => { currentPage.value = 1 })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredLahan.value.length / pageSize.value)))
+const paginatedLahan = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredLahan.value.slice(start, start + pageSize.value)
+})
+const pageNumbers = computed(() => {
+  const total = totalPages.value
+  const cur = currentPage.value
+  const pages: (number | '...')[] = []
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (cur > 3) pages.push('...')
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i)
+    if (cur < total - 2) pages.push('...')
+    pages.push(total)
+  }
+  return pages
 })
 
 const openDrawer = (item: any) => {
@@ -310,24 +337,22 @@ const addMarkers = (list: any[]) => {
   })
 }
 
-// Watch for map visibility
-watch(
-  () => showMap.value,
-  async (val) => {
-    if (val) {
-      await nextTick()
-      initMap()
-      if (lahanList.value.length) {
-        addMarkers(lahanList.value)
-      }
-    } else {
-      if (map.value) {
-        map.value.remove()
-        map.value = null
-      }
-    }
+// Watch for map modal visibility
+const openMap = async () => {
+  showMap.value = true
+  await nextTick()
+  initMap()
+  if (lahanList.value.length) {
+    addMarkers(lahanList.value)
   }
-)
+}
+const closeMap = () => {
+  showMap.value = false
+  if (map.value) {
+    map.value.remove()
+    map.value = null
+  }
+}
 
 // Watch for lahan data changes to update markers
 watch(
@@ -390,9 +415,9 @@ watch(
               <span class="material-symbols-outlined text-[16px] text-[#645d58]">refresh</span>
               <span>Refresh Data</span>
             </button>
-            <button @click="showMap = !showMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[16px] text-[#645d58]">{{ showMap ? 'grid_view' : 'map' }}</span>
-              <span>{{ showMap ? 'Tabel Data' : 'Peta Lahan' }}</span>
+            <button @click="openMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-[#645d58]">map</span>
+              <span>Peta Lahan</span>
             </button>
           </div>
         </header>
@@ -441,7 +466,7 @@ watch(
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#FDEBDB] text-xs">
-                <tr v-for="item in filteredLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
+                <tr v-for="item in paginatedLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
                   <td class="py-3 px-4 font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</td>
                   <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
                   <td class="py-3 px-4">
@@ -471,11 +496,36 @@ watch(
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination Bar -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between px-4 py-3 bg-[#F9F7F4] border-t border-[#E2D8C7]">
+            <span class="text-xs text-[#645d58]">
+              Halaman {{ currentPage }} dari {{ totalPages }} &bull; {{ filteredLahan.length }} lahan ditemukan
+            </span>
+            <div class="flex items-center gap-1">
+              <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              <template v-for="(page, i) in pageNumbers" :key="i">
+                <span v-if="page === '...'" class="w-8 h-8 flex items-center justify-center text-xs text-[#645d58]">…</span>
+                <button v-else @click="currentPage = page as number"
+                  :class="currentPage === page ? 'bg-[#A8452A] text-white border-[#A8452A]' : 'bg-white text-[#231a10] border-[#E2D8C7] hover:bg-[#FDEBDB]'"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-semibold transition-colors">
+                  {{ page }}
+                </button>
+              </template>
+              <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
         </section>
 
         <!-- Land Cards List (Mobile) -->
         <section v-if="!isLoading" class="md:hidden space-y-3 mb-6">
-          <article v-for="item in filteredLahan" :key="'mob-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl p-3.5 shadow-sm" @click="openDrawer(item)">
+          <article v-for="item in paginatedLahan" :key="'mob-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl p-3.5 shadow-sm" @click="openDrawer(item)">
             <div class="flex items-start justify-between gap-2 mb-2">
               <div>
                 <span class="text-[10px] font-mono font-bold tracking-wider text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</span>
@@ -497,12 +547,46 @@ watch(
               </div>
             </div>
           </article>
+          <!-- Mobile Pagination -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between px-1 pt-2">
+            <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E2D8C7] bg-white text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 transition-colors">
+              <span class="material-symbols-outlined text-[15px]">chevron_left</span> Prev
+            </button>
+            <span class="text-xs text-[#645d58] font-medium">{{ currentPage }} / {{ totalPages }}</span>
+            <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E2D8C7] bg-white text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 transition-colors">
+              Next <span class="material-symbols-outlined text-[15px]">chevron_right</span>
+            </button>
+          </div>
         </section>
 
-        <!-- Map View (Desktop) -->
-        <section v-if="showMap" class="hidden md:block w-full h-[500px] mt-4 rounded-xl overflow-hidden border border-[#E2D8C7] shadow-inner bg-[#EFECE6]">
-          <div ref="mapLeaflet" class="w-full h-full"></div>
-        </section>
+        <!-- Map Modal (Full-screen popup) -->
+        <Teleport to="body">
+          <div v-if="showMap" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div class="relative w-full max-w-5xl h-[80vh] bg-white rounded-2xl shadow-2xl border border-[#E2D8C7] flex flex-col overflow-hidden">
+              <!-- Modal Header -->
+              <div class="flex items-center justify-between px-5 py-3.5 bg-[#FFF8F4] border-b border-[#E2D8C7] shrink-0">
+                <div class="flex items-center gap-2.5">
+                  <span class="material-symbols-outlined text-[20px] text-[#A8452A]">map</span>
+                  <div>
+                    <h3 class="text-sm font-bold text-[#231a10]">Peta Sebaran Lahan Cangkringan</h3>
+                    <p class="text-[11px] text-[#645d58]">{{ lahanList.length }} petak terpetakan · Lereng Merapi</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="flex items-center gap-1 text-[11px] text-[#3A4A2E] font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-[#6FA05C] inline-block"></span>Sehat</span>
+                  <span class="flex items-center gap-1 text-[11px] text-[#93000a] font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-[#B23A24] inline-block"></span>Perlu Atensi</span>
+                  <button @click="closeMap" class="ml-3 p-1.5 rounded-full hover:bg-[#F3ECE0] text-[#645d58] transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
+              </div>
+              <!-- Map Container -->
+              <div ref="mapLeaflet" class="flex-1 w-full"></div>
+            </div>
+          </div>
+        </Teleport>
 
       </div>
     </main>

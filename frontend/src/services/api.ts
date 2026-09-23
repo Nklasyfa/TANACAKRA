@@ -182,7 +182,7 @@ function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodi
     data,
     layout: {
       autosize: true,
-      margin: { l: 60, r: 50, t: 25, b: 40 },
+      margin: { l: 60, r: 50, t: 25, b: 100 },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
       showlegend: true,
@@ -190,7 +190,7 @@ function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodi
         orientation: 'h',
         x: 0.5,
         xanchor: 'center',
-        y: 1.18,
+        y: -0.3,
         font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A3F35' }
       },
       xaxis: {

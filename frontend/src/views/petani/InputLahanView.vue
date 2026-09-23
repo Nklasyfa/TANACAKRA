@@ -2,7 +2,7 @@
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, nextTick } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -11,6 +11,7 @@ import { LahanService, type LandInputPayload } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
 const router = useRouter()
+const route = useRoute()
 
 // Step state: 1 | 2 | 3 | 'loading' | 'success'
 const currentStep = ref<1 | 2 | 3 | 'loading' | 'success'>(1)
@@ -122,6 +123,10 @@ const fetchFarms = async () => {
 }
 
 onMounted(() => {
+  if (route.query.tanam) {
+    fieldName.value = `Blok Tanam - ${route.query.tanam}`
+  }
+
   fetchFarms()
   fetchCuacaCangkringan()
     .then((c) => {
@@ -516,6 +521,13 @@ const resetForm = () => {
               <h2 class="font-headline-lg text-xl font-bold text-[#243319]">Kondisi &amp; Kadar Tanah</h2>
               <p class="text-xs text-[#7E7063]">Bagaimana kondisi tanah saat ini di petak pengamatan?</p>
             </div>
+            
+            <div class="bg-[#EBF2E5] border border-[#d5e9c3] rounded-xl p-3 flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-[#3A4A2E] text-[18px] shrink-0">info</span>
+              <p class="text-[11px] text-[#243319] leading-relaxed">
+                <strong>Tidak tahu nilai pastinya?</strong> Jangan khawatir, biarkan <i>slider</i> pH dan unsur hara (N-P-K) di angka bawaannya (isi seadanya). Sistem cerdas Tanacakra akan menggunakan estimasi rata-rata lahan di desa Anda.
+              </p>
+            </div>
 
             <!-- Tiga Kartu Pilihan Kelembapan -->
             <div class="space-y-2">
@@ -588,7 +600,7 @@ const resetForm = () => {
               <div class="flex items-center justify-between">
                 <div>
                   <span class="text-xs font-bold text-[#241F1B] block">Tingkat Keasaman (pH)</span>
-                  <span class="text-[11px] text-[#7E7063]">Uji kertas lakmus atau pH-meter tanah</span>
+                  <span class="text-[11px] text-[#7E7063]">Biarkan jika tidak ada hasil uji lakmus</span>
                 </div>
                 <div class="flex items-baseline gap-1 bg-white px-3 py-1 rounded-xl border border-[#E5E0D8]">
                   <span class="font-headline-xl text-2xl font-bold text-[#A8452A]">{{ phValue }}</span>
@@ -623,8 +635,8 @@ const resetForm = () => {
             <!-- Tiga Slider Unsur Hara (N-P-K) -->
             <div class="space-y-3">
               <div class="flex items-center justify-between">
-                <label class="text-xs text-[#241F1B] font-bold">Kandungan Hara Tanah (Uji Lapangan)</label>
-                <span class="text-[11px] text-[#7E7063]">Satuan ppm (mg/kg)</span>
+                <label class="text-xs text-[#241F1B] font-bold">Kandungan Hara Tanah (Opsional)</label>
+                <span class="text-[11px] text-[#7E7063]">Biarkan nilai bawaan (estimasi)</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <!-- N -->

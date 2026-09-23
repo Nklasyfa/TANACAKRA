@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 import { useRouter } from 'vue-router'
@@ -39,6 +39,31 @@ const filteredHistory = computed(() => {
     const matchesDesa = selectedDesa.value === 'all' || desa === selectedDesa.value.toLowerCase()
     return matchesQuery && matchesDesa
   })
+})
+
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(10)
+watch([searchQuery, selectedDesa], () => { currentPage.value = 1 })
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredHistory.value.length / pageSize.value)))
+const paginatedHistory = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  return filteredHistory.value.slice(start, start + pageSize.value)
+})
+const pageNumbers = computed(() => {
+  const total = totalPages.value
+  const cur = currentPage.value
+  const pages: (number | '...')[] = []
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (cur > 3) pages.push('...')
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i)
+    if (cur < total - 2) pages.push('...')
+    pages.push(total)
+  }
+  return pages
 })
 
 const statusStats = computed(() => {
@@ -180,7 +205,7 @@ const fallbackRecommendation = (item: any) => {
                     </div>
                   </td>
                 </tr>
-                <tr v-else v-for="item in filteredHistory" :key="item.id" class="hover:bg-[#FAF8F3] transition-colors align-top">
+                <tr v-else v-for="item in paginatedHistory" :key="item.id" class="hover:bg-[#FAF8F3] transition-colors align-top">
                   <td class="py-3 px-4 font-medium tabular-nums text-[#241F1B]">{{ formatDate(item.created_at) }}</td>
                   <td class="py-3 px-4 font-medium text-[#241F1B]">
                     <div>Petak {{ farmLabel(item) }}</div>
@@ -221,14 +246,33 @@ const fallbackRecommendation = (item: any) => {
               </tbody>
             </table>
           </div>
-          <div class="px-4 py-3 bg-[#F9F7F4] border-t border-[#E2D8C7] flex flex-col md:flex-row md:items-center justify-between text-xs text-[#6B5B4A] gap-3">
-            <span>Menampilkan {{ filteredHistory.length }} dari {{ historyList.length }} entri</span>
+          <div class="px-4 py-3 bg-[#F9F7F4] border-t border-[#E2D8C7] flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <span class="text-xs text-[#6B5B4A]">Menampilkan {{ paginatedHistory.length }} dari {{ filteredHistory.length }} entri</span>
+            <!-- Pagination -->
+            <div v-if="totalPages > 1" class="flex items-center gap-1">
+              <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#6B5B4A] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              <template v-for="(page, i) in pageNumbers" :key="i">
+                <span v-if="page === '...'" class="w-8 h-8 flex items-center justify-center text-xs text-[#6B5B4A]">…</span>
+                <button v-else @click="currentPage = page as number"
+                  :class="currentPage === page ? 'bg-[#A8452A] text-white border-[#A8452A]' : 'bg-white text-[#241F1B] border-[#E2D8C7] hover:bg-[#FDEBDB]'"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-semibold transition-colors">
+                  {{ page }}
+                </button>
+              </template>
+              <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#6B5B4A] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
           </div>
         </section>
 
         <section v-if="!isLoading" class="md:hidden space-y-3">
           <p v-if="filteredHistory.length === 0" class="py-8 text-center text-[#6B5B4A] text-xs bg-white border border-[#E2D8C7] rounded-xl">Tidak ada catatan lahan yang ditemukan.</p>
-          <article v-for="item in filteredHistory" :key="'mob-r-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl shadow-sm p-4">
+          <article v-for="item in paginatedHistory" :key="'mob-r-' + item.id" class="bg-white border border-[#E2D8C7] rounded-xl shadow-sm p-4">
             <div class="flex items-start justify-between gap-2 mb-2">
               <div>
                 <span class="text-[10px] font-mono font-bold tracking-wider text-[#A8452A]">{{ farmLabel(item) }}</span>
@@ -271,6 +315,18 @@ const fallbackRecommendation = (item: any) => {
               <p class="text-[11px] text-[#241F1B] leading-relaxed">{{ fallbackRecommendation(item) }}</p>
             </div>
           </article>
+          <!-- Mobile Pagination -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between px-1 pt-2 pb-2">
+            <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage === 1"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E2D8C7] bg-white text-[#6B5B4A] hover:bg-[#FDEBDB] disabled:opacity-40 transition-colors">
+              <span class="material-symbols-outlined text-[15px]">chevron_left</span> Prev
+            </button>
+            <span class="text-xs text-[#6B5B4A] font-medium">{{ currentPage }} / {{ totalPages }}</span>
+            <button @click="currentPage = Math.min(totalPages, currentPage + 1)" :disabled="currentPage === totalPages"
+              class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[#E2D8C7] bg-white text-[#6B5B4A] hover:bg-[#FDEBDB] disabled:opacity-40 transition-colors">
+              Next <span class="material-symbols-outlined text-[15px]">chevron_right</span>
+            </button>
+          </div>
         </section>
 
       </div>

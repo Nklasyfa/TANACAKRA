@@ -260,7 +260,7 @@ const scrollToSection = (id: string) => {
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
           <div class="lg:col-span-5 max-w-[480px]">
             <p class="text-base md:text-lg text-[#4A4036] leading-relaxed font-normal">
-              Fluktuasi unsur hara vulkanik, pola curah hujan ekstrem, dan dinamika harga pasar sering kali membuat panen tak menentu. Tanacakra hadir menghubungkan sensor tanah dan data iklim lokal untuk memberi kepastian agronomis.
+              Fluktuasi unsur hara vulkanik, pola curah hujan ekstrem, dan dinamika harga pasar sering kali membuat panen tak menentu. Tanacakra hadir menghubungkan data kondisi tanah dan iklim lokal untuk memberi kepastian agronomis.
             </p>
             <div class="mt-8 flex flex-wrap items-center gap-3 text-[#7E7063] text-xs uppercase tracking-wider font-bold">
               <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-md border border-[#E5E0D8]">
@@ -772,7 +772,7 @@ const scrollToSection = (id: string) => {
               <span class="w-3.5 h-3.5 rounded-full bg-[#243319] absolute -top-[47px] left-0 ring-4 ring-white"></span>
               <span class="font-headline-xl text-[42px] font-bold text-[#241F1B] leading-none mb-3">2024</span>
               <span class="text-xs uppercase tracking-wider text-[#243319] font-bold mb-1">Tahap 1 &middot; Lapangan</span>
-              <p class="text-[15px] text-[#4A4036] leading-relaxed">Riset tanah &amp; sensor awal di 10 petak sawah percontohan Cangkringan.</p>
+              <p class="text-[15px] text-[#4A4036] leading-relaxed">Riset tanah &amp; pengamatan awal di 10 petak sawah percontohan Cangkringan.</p>
             </div>
             <div class="relative flex flex-col items-start pr-4">
               <span class="w-3.5 h-3.5 rounded-full bg-[#243319] absolute -top-[47px] left-0 ring-4 ring-white"></span>

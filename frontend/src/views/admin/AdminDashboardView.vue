@@ -24,7 +24,7 @@ const usersList = ref<any[]>([])
 const cuacaReal = ref<CuacaInfo | null>(null)
 
 // Commodity filter state for chart
-const selectedCommodities = ref<string[]>([])
+const selectedCommodity = ref<string>('Semua')
 
 const allCommodities = computed(() => {
   const trends = dashboardStats.value?.price_trends || []
@@ -44,20 +44,6 @@ const commodityColors: Record<string, string> = {
   'Tomat': '#E63946'
 }
 
-const toggleCommodityFilter = (item: string) => {
-  if (selectedCommodities.value.includes(item)) {
-    if (selectedCommodities.value.length > 1) {
-      selectedCommodities.value = selectedCommodities.value.filter(c => c !== item)
-    }
-  } else {
-    selectedCommodities.value = [...selectedCommodities.value, item]
-  }
-}
-
-const selectAllCommodities = () => {
-  selectedCommodities.value = [...allCommodities.value]
-}
-
 const filteredChartSchema = computed(() => {
   let trends = dashboardStats.value?.price_trends || []
   let volTrends = dashboardStats.value?.volume_trends || []
@@ -71,7 +57,7 @@ const filteredChartSchema = computed(() => {
     volTrends = volTrends.slice(-count)
   }
 
-  const activeList = selectedCommodities.value.length ? selectedCommodities.value : allCommodities.value
+  const activeList = selectedCommodity.value === 'Semua' ? allCommodities.value : [selectedCommodity.value]
   return generatePlotlySchema(trends, volTrends, activeList)
 })
 
@@ -321,9 +307,7 @@ const loadData = async () => {
   activityLogs.value = (logs && logs.length > 0) ? logs : AuditLogger.getStoredLogs()
 
   // Initialize selected commodities
-  if (allCommodities.value.length > 0) {
-    selectedCommodities.value = [...allCommodities.value]
-  }
+  selectedCommodity.value = 'Semua'
 
   renderMarkers(lahanList.value)
 }
@@ -358,8 +342,9 @@ onMounted(() => {
     <!-- Sidebar Admin -->
     <AdminSidebar />
 
-    <!-- MAIN CONTENT AREA -->
-    <main class="md:ml-60 flex-1 p-4 md:p-8 lg:p-10 w-full mx-auto space-y-6 md:space-y-8 max-w-[1500px]">
+    <!-- MAIN CONTENT AREA Wrapper -->
+    <div class="flex-1 md:ml-60 flex flex-col min-w-0">
+      <main class="w-full max-w-[1500px] mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
 
       <!-- 1. Header Toolbar -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E0D8]">
@@ -374,7 +359,7 @@ onMounted(() => {
             Dashboard Pengelola
           </h1>
           <p class="text-xs md:text-sm text-[#645d58] mt-0.5">
-            Pemantauan terpadu agro-telemetri dan dinamika lelang lereng Merapi
+            Pemantauan terpadu kondisi pertanian dan dinamika lelang lereng Merapi
           </p>
         </div>
 
@@ -395,7 +380,7 @@ onMounted(() => {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E5E0D8]/60">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-[20px] text-[#243319]">cloudy_snowing</span>
-            <span class="text-sm font-bold text-[#243319] tracking-wide">Kondisi Mikroklimat Agroklimatologi</span>
+            <span class="text-sm font-bold text-[#243319] tracking-wide">Cuaca &amp; Kondisi Udara</span>
           </div>
           <span class="text-[11px] text-[#7E7063] font-mono uppercase tracking-wider">
             Sumber: {{ cuacaReal?.sumber || 'BMKG' }} · {{ cuacaReal?.lokasi || 'Pos Pengamatan Kaliurang' }}
@@ -466,7 +451,7 @@ onMounted(() => {
         <!-- Stat 1: Rata-rata margin -->
         <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Rata-rata Margin</span>
+            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Rata-rata Keuntungan</span>
             <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
               <span class="material-symbols-outlined text-[18px]">trending_up</span>
             </div>
@@ -483,7 +468,7 @@ onMounted(() => {
         <!-- Stat 2: Total produktivitas -->
         <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Total Produktivitas</span>
+            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Total Hasil Panen</span>
             <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
               <span class="material-symbols-outlined text-[18px]">agriculture</span>
             </div>
@@ -502,7 +487,7 @@ onMounted(() => {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-[#C84C32] animate-ping"></span>
-              <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Lahan Berisiko</span>
+              <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Lahan Perlu Perhatian</span>
             </div>
             <div class="w-8 h-8 rounded-lg bg-[#FFDAD6] flex items-center justify-center text-[#C84C32]">
               <span class="material-symbols-outlined text-[18px]">warning</span>
@@ -520,7 +505,7 @@ onMounted(() => {
         <!-- Stat 4: Input minggu ini -->
         <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Input Minggu Ini</span>
+            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Data Masuk</span>
             <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
               <span class="material-symbols-outlined text-[18px]">edit_note</span>
             </div>
@@ -545,10 +530,10 @@ onMounted(() => {
                 <span class="material-symbols-outlined text-[14px] text-[#d5e9c3]">auto_awesome</span>
                 {{ dashboardStats.best_commodity.badge }}
               </span>
-              <span class="text-xs font-semibold text-[#7E7063]">Scikit-Learn Random Forest Pipeline</span>
+              <span class="text-xs font-semibold text-[#7E7063]">Sistem Prediksi AI</span>
             </div>
             <h3 class="text-xl md:text-2xl font-bold text-[#231a10]">
-              Komoditas Rekomendasi ML: <span class="text-[#243319]">{{ dashboardStats.best_commodity.title }}</span>
+              Rekomendasi AI: <span class="text-[#243319]">{{ dashboardStats.best_commodity.title }}</span>
             </h3>
             <p class="text-sm text-[#4A4036] leading-relaxed">
               {{ dashboardStats.best_commodity.reason }}
@@ -571,7 +556,7 @@ onMounted(() => {
                 Tren Harga &amp; Volume Panen Komoditas
               </h2>
               <span class="px-2.5 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] text-[11px] font-bold border border-[#243319]/20">
-                Plotly.js Interaktif
+                Grafik Interaktif
               </span>
             </div>
             <p class="text-xs text-[#7E7063]">
@@ -605,30 +590,25 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Filter Komoditas Interactive Chips -->
-        <div class="flex flex-wrap items-center gap-2 pt-1 pb-1 border-y border-[#E5E0D8]/60">
+        <!-- Filter Komoditas Dropdown -->
+        <div class="flex items-center gap-2 pt-1 pb-1 border-y border-[#E5E0D8]/60">
           <span class="text-xs font-bold text-[#7E7063] mr-1">Filter Komoditas:</span>
-          <button
-            @click="selectAllCommodities"
-            class="px-3 py-1 rounded-full text-xs font-bold border transition-all"
-            :class="selectedCommodities.length === allCommodities.length ? 'bg-[#243319] text-white border-[#243319]' : 'bg-[#F9F7F4] text-[#7E7063] border-[#E5E0D8] hover:bg-[#F2EBDC]'"
-          >
-            Semua ({{ allCommodities.length }})
-          </button>
-          <button
-            v-for="c in allCommodities"
-            :key="c"
-            @click="toggleCommodityFilter(c)"
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all"
-            :class="selectedCommodities.includes(c) ? 'bg-white text-[#231a10] border-[#243319] shadow-2xs font-bold' : 'bg-[#F9F7F4] text-[#7E7063] border-[#E5E0D8] opacity-60 hover:opacity-100'"
-          >
-            <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: commodityColors[c] || '#A8452A' }"></span>
-            <span>{{ c }}</span>
-          </button>
+          <div class="relative w-48 md:w-56">
+            <select
+              v-model="selectedCommodity"
+              class="w-full appearance-none bg-[#F9F7F4] border border-[#E5E0D8] text-[#231a10] text-xs font-bold rounded-lg pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#243319] cursor-pointer"
+            >
+              <option value="Semua">Semua ({{ allCommodities.length }})</option>
+              <option v-for="c in allCommodities" :key="c" :value="c">
+                {{ c }}
+              </option>
+            </select>
+            <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[#7E7063] pointer-events-none">expand_more</span>
+          </div>
         </div>
 
         <!-- Plotly Canvas Container -->
-        <div class="w-full h-[330px] rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60">
+        <div class="w-full min-h-[420px] md:min-h-[450px] rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60">
           <PlotlyChart
             v-if="filteredChartSchema"
             :schema="filteredChartSchema"
@@ -892,6 +872,7 @@ onMounted(() => {
       </div>
 
     </main>
+    </div>
 
     <!-- FIXED BOTTOM TAB BAR (Mobile Admin) -->
     <AdminBottomNav />

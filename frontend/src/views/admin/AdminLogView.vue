@@ -204,8 +204,9 @@ const avgLatency = computed(() => {
     <!-- Sidebar Admin -->
     <AdminSidebar />
 
-    <!-- Main Content -->
-    <main class="w-full md:ml-[240px] flex-1 p-4 md:p-8 max-w-[1400px] mx-auto flex flex-col gap-6">
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 md:ml-[240px] flex flex-col min-w-0">
+      <main class="w-full max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -214,11 +215,11 @@ const avgLatency = computed(() => {
             <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Catatan Aktivitas Sistem</h1>
             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] font-semibold text-xs border border-[#243319]/20">
               <span class="w-1.5 h-1.5 rounded-full bg-[#243319] animate-pulse"></span>
-              Pantauan Langsung
+              Real-time
             </span>
           </div>
           <p class="text-sm text-[#7E7063] leading-relaxed">
-            Mencatat aktivitas pengguna, prediksi AI pintar, dan pembaruan data sensor lahan di Cangkringan secara otomatis.
+            Mencatat aktivitas pengguna, prediksi AI pintar, dan pembaruan data kondisi lahan di Cangkringan secara otomatis.
           </p>
         </div>
         <div class="flex items-center gap-3 shrink-0 self-start md:self-auto">
@@ -252,7 +253,7 @@ const avgLatency = computed(() => {
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Prediksi AI Berhasil</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063]">Prediksi Berhasil</span>
           <div class="flex items-baseline gap-2">
             <span class="text-2xl font-bold text-[#231a10]">{{ aiMetrics.passRate }}</span>
             <span class="text-xs font-medium text-[#7E7063]">{{ aiMetrics.count }} permintaan</span>
@@ -382,7 +383,7 @@ const avgLatency = computed(() => {
                 <th class="py-3 px-4">Waktu</th>
                 <th class="py-3 px-4">Pengguna</th>
                 <th class="py-3 px-4">Keterangan</th>
-                <th class="py-3 px-4">Jalur Sistem</th>
+                <th class="py-3 px-4">Akses API</th>
                 <th class="py-3 px-4">Status</th>
                 <th class="py-3 px-3 text-right">Detail</th>
               </tr>
@@ -511,6 +512,7 @@ const avgLatency = computed(() => {
       </div>
 
     </main>
+    </div>
 
     <!-- Admin Bottom Navigation -->
     <AdminBottomNav />

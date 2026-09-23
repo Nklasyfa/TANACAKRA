@@ -308,7 +308,13 @@ const applyRecommendation = async () => {
     applied.value = true
     setTimeout(() => {
       applied.value = false
-      router.push('/input-lahan')
+      let saran = rekomendasi.value?.title || 'Cabai Merah'
+      if (saran.includes('&')) {
+        saran = saran.split('&')[0].trim()
+      } else if (saran.toLowerCase().includes(' dan ')) {
+        saran = saran.split(/ dan /i)[0].trim()
+      }
+      router.push({ path: '/input-lahan', query: { tanam: saran } })
     }, 1200)
   } finally {
     applying.value = false
@@ -585,9 +591,9 @@ const createSchedule = () => {
             </div>
           </div>
 
-          <div class="w-full relative min-h-[320px]">
+          <div class="w-full relative min-h-[360px] md:min-h-[400px]">
             <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
-            <div v-else class="h-[320px] flex items-center justify-center text-xs text-[#75786f]">
+            <div v-else class="min-h-[360px] md:min-h-[400px] flex items-center justify-center text-xs text-[#75786f]">
               {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
             </div>
           </div>
@@ -607,7 +613,7 @@ const createSchedule = () => {
             <div class="flex flex-col gap-1">
               <h4 class="text-[18px] font-bold text-[#241F1B]">Data ini dipakai untuk apa?</h4>
               <p class="text-[13px] text-[#6B5B4A] leading-relaxed">
-                Data sensor dan masukan manual Anda diselaraskan dengan tren komoditas induk Yogyakarta untuk meminimalkan risiko anjloknya harga panen.
+                Data riwayat kondisi lahan dan masukan Anda diselaraskan dengan tren komoditas induk Yogyakarta untuk meminimalkan risiko anjloknya harga panen.
               </p>
             </div>
           </div>
