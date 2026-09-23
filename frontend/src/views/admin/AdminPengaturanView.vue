@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { api, AdminService } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
+
+const router = useRouter()
 
 const adminName = ref(ADMIN_ACCOUNT.username)
 const adminEmail = ref(ADMIN_ACCOUNT.email)
@@ -108,6 +111,12 @@ const changePwd = () => {
   setTimeout(() => {
     pwdNotice.value = false
   }, 3000)
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('tanacakra_user')
+  localStorage.removeItem('tanacakra_token')
+  router.push('/login')
 }
 
 const permissions = [
@@ -369,6 +378,17 @@ onMounted(async () => {
                 {{ copiedKey === 'id' ? 'Tersalin' : 'Salin identitas' }}
               </button>
             </div>
+          </div>
+          
+          <div class="flex md:hidden flex-col gap-3 border-t border-[#E5E0D8]/60 pt-4 mt-2">
+            <button
+              type="button"
+              @click="handleLogout"
+              class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#A8452A] text-[#A8452A] text-sm font-bold transition-all hover:bg-[#FFF8F4] active:scale-95"
+            >
+              <span class="material-symbols-outlined text-[18px]">logout</span>
+              Keluar dari Sistem
+            </button>
           </div>
         </div>
       </section>

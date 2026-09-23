@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
+
+const router = useRouter()
 
 const userProfile = ref<any>({
   username: '',
@@ -52,6 +55,12 @@ const handleSave = () => {
   setTimeout(() => {
     saveStatus.value = ''
   }, 3000)
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('tanacakra_user')
+  localStorage.removeItem('tanacakra_token')
+  router.push('/login')
 }
 </script>
 
@@ -183,11 +192,17 @@ const handleSave = () => {
             {{ saveStatus }}
           </div>
 
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
             <p class="text-xs text-[#75786f]">Data tersimpan aman &amp; dienkripsi. Admin desa didaftarkan terpisah oleh Superadmin.</p>
-            <button type="submit" class="w-full md:w-auto bg-[#A8452A] hover:bg-[#923c24] text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors shadow-sm focus:outline-none">
-              Simpan Perubahan
-            </button>
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              <button type="button" @click="handleLogout" class="w-full md:w-auto bg-white border border-[#A8452A] text-[#A8452A] hover:bg-[#FFF1E6] font-semibold px-6 py-3 rounded-lg text-sm transition-colors shadow-sm focus:outline-none flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                Keluar
+              </button>
+              <button type="submit" class="w-full md:w-auto bg-[#A8452A] hover:bg-[#923c24] text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors shadow-sm focus:outline-none">
+                Simpan Perubahan
+              </button>
+            </div>
           </div>
         </form>
       </div>

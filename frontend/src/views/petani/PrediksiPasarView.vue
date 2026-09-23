@@ -168,7 +168,7 @@ const chartSchema = computed(() => {
   const trends = (dashboardData.value?.price_trends || []) as Record<string, any>[]
   if (!trends.length) return null
 
-  const keys = Object.keys(trends[0]).filter((k) => k !== 'month')
+  const keys = Object.keys(trends[0]).filter((k) => k !== 'month' && k !== 'volume_ton')
   if (!keys.length) return null
 
   const pick = selectedCommodity.value && selectedCommodity.value !== ALL_COMMODITIES
@@ -191,12 +191,12 @@ const chartSchema = computed(() => {
   const projValues = futureLabels.map((_, i) => Math.max(0, Math.round(slope * (base + i) + intercept)))
   const band = projValues.map((v) => Math.max(0, Math.round(v * 0.12)))
 
-  const projX = [monthLabel(realMonths[realMonths.length - 1] || ''), ...futureLabels]
+  const realX = realMonths.map(monthLabel)
+  const lastRealLabel = realX[realX.length - 1] || ''
+  const projX = [lastRealLabel, ...futureLabels]
   const projY = [lastReal, ...projValues]
   const bandUp = [lastReal, ...projValues.map((v, i) => v + band[i])]
   const bandDown = [lastReal, ...projValues.map((v, i) => Math.max(0, v - band[i]))]
-
-  const realX = realMonths.map(monthLabel)
 
   const volumeData = (dashboardData.value?.volume_trends || []) as Record<string, any>[]
   const volX = volumeData.map((v) => monthLabel(v.month))
@@ -206,20 +206,13 @@ const chartSchema = computed(() => {
   const volBase = volY.length
   const lastVol = volY[volY.length - 1] || 0
   const volProj = futureLabels.map((_, i) => Math.max(0, Math.round(volReg.slope * (volBase + i) + volReg.intercept)))
-  const volProjX = [monthLabel(volumeData[volumeData.length - 1]?.month || ''), ...futureLabels]
+  const volProjX = [lastRealLabel, ...futureLabels]
   const volProjY = [lastVol, ...volProj]
+
+  const categoryOrder = [...realX, ...futureLabels]
 
   return {
     data: [
-      {
-        x: projX, y: bandUp, type: 'scatter', mode: 'lines', line: { width: 0 },
-        showlegend: false, yaxis: 'y', hoverinfo: 'none'
-      },
-      {
-        x: projX, y: bandDown, type: 'scatter', mode: 'lines', fill: 'tonexty',
-        fillcolor: 'rgba(168, 69, 42, 0.12)', line: { width: 0 },
-        showlegend: false, yaxis: 'y', hoverinfo: 'none'
-      },
       {
         x: realX, y: realValues, type: 'scatter', mode: 'lines+markers', name: 'Harga (Rp/kg)',
         line: { color: '#A8452A', width: 3 }, marker: { size: 7, color: '#A8452A' },
@@ -230,6 +223,15 @@ const chartSchema = computed(() => {
         line: { color: '#A8452A', width: 3, dash: 'dot' },
         marker: { size: 6, symbol: 'circle-open', color: '#A8452A' },
         yaxis: 'y', hovertemplate: '<b>%{x}</b><br>Proyeksi: Rp %{y:,.0f}/kg<extra></extra>'
+      },
+      {
+        x: projX, y: bandUp, type: 'scatter', mode: 'lines', line: { width: 0 },
+        showlegend: false, yaxis: 'y', hoverinfo: 'none'
+      },
+      {
+        x: projX, y: bandDown, type: 'scatter', mode: 'lines', fill: 'tonexty',
+        fillcolor: 'rgba(168, 69, 42, 0.12)', line: { width: 0 },
+        showlegend: false, yaxis: 'y', hoverinfo: 'none'
       },
       {
         x: volX, y: volY, type: 'scatter', mode: 'lines+markers', name: 'Volume Panen (Ton)',
@@ -245,25 +247,28 @@ const chartSchema = computed(() => {
     ],
     layout: {
       autosize: true,
-      margin: { l: 55, r: 50, t: 15, b: 40 },
+      margin: { l: 45, r: 40, t: 15, b: 40 },
       paper_bgcolor: 'transparent',
       plot_bgcolor: 'transparent',
       showlegend: false,
       xaxis: {
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#6B5B4A' },
+        type: 'category',
+        categoryorder: 'array',
+        categoryarray: categoryOrder,
+        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#6B5B4A' },
         tickangle: -45,
         automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false
       },
       yaxis: {
         title: 'Harga (Rp/kg)',
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#A8452A' },
         automargin: true,
         showgrid: true, gridcolor: '#F2DFCF', zeroline: false, tickformat: 's'
       },
       yaxis2: {
         title: 'Volume (Ton)',
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' },
+        tickfont: { family: 'Plus Jakarta Sans', size: 10, color: '#4A5B3A' },
         automargin: true,
         overlaying: 'y', side: 'right', showgrid: false, zeroline: false
       },
