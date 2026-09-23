@@ -11,8 +11,13 @@ export const api = axios.create({
   }
 })
 
-// Attach token if present in localStorage
+const isOfflineMode = !import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE_URL.includes('127.0.0.1') || import.meta.env.VITE_API_BASE_URL.includes('localhost')
+
+// Attach token if present in localStorage, or reject if offline to prevent console ERR_CONNECTION_REFUSED
 api.interceptors.request.use((config) => {
+  if (isOfflineMode) {
+    return Promise.reject(new Error('Offline mode: Bypassing backend network request to prevent connection errors.'))
+  }
   const token = localStorage.getItem('tanacakra_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`

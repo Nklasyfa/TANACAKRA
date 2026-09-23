@@ -37,7 +37,6 @@ export const KabarTaniService = {
       const res = await api.get('/kabar-tani')
       return this.mergeCustomNews(res.data)
     } catch (e) {
-      console.warn('Failed to fetch kabar tani feed, using fallback', e)
       return this.mergeCustomNews(getFallbackFeed())
     }
   },
