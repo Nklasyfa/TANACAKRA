@@ -4,8 +4,8 @@ from openai import OpenAI
 from django.conf import settings
 
 def get_llm_client():
-    # Use environment variable or fallback to provided API key
-    api_key = os.environ.get("NVIDIA_API_KEY", "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")
+    # Use environment variable from .env
+    api_key = os.environ.get("NVIDIA_API_KEY")
     
     return OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",

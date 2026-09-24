@@ -137,7 +137,7 @@ const handleFileUpload = async (e: Event) => {
     AuditLogger.addLog({
       title: 'Import Master Data Excel',
       subtitle: 'Data lahan, panen, iklim, hama diperbarui',
-      category: 'admin',
+      category: 'system',
       endpoint: '/api/v1/upload-excel'
     })
     if (fileInput.value) fileInput.value.value = ''
