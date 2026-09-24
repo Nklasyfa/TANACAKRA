@@ -6,8 +6,11 @@ import BottomNav from '@/components/petani/BottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import { LahanService, AdminService, TindakanService } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
+import NotificationModal from '@/components/common/NotificationModal.vue'
+import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
+const isNotifOpen = ref(false)
 
 const isLoading = ref(true)
 const lahanList = ref<any[]>([])
@@ -390,16 +393,19 @@ const createSchedule = () => {
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <button class="w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors" aria-label="Pemberitahuan">
+          <button @click="isNotifOpen = true" class="relative w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors cursor-pointer" aria-label="Pemberitahuan">
             <span class="material-symbols-outlined text-[22px]">notifications</span>
+            <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A]"></span>
           </button>
         </div>
       </div>
     </header>
 
+    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
+
     <PetaniSidebar />
 
-    <!-- Desktop top header (mockup) -->
+    <!-- Desktop top header -->
     <header class="hidden md:flex fixed top-0 left-[240px] right-0 h-16 z-20 items-center justify-between px-6 lg:px-8 bg-surface/85 backdrop-blur-xl border-b border-[#F0EDE6]">
       <div class="flex items-center gap-2 text-[12px] text-on-surface-variant">
         <span class="text-primary font-semibold">Tanacakra</span>
@@ -409,9 +415,9 @@ const createSchedule = () => {
         <span class="text-on-surface font-semibold">Cangkringan Sektor 4</span>
       </div>
       <div class="flex items-center gap-4">
-        <button class="relative p-2 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" aria-label="Pemberitahuan">
+        <button @click="isNotifOpen = true" class="relative p-2 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer" aria-label="Pemberitahuan">
           <span class="material-symbols-outlined text-[20px]">notifications</span>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span>
+          <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#A8452A]"></span>
         </button>
         <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
           <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>

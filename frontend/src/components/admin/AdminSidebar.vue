@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/services/supabase'
+import NotificationModal from '@/components/common/NotificationModal.vue'
+import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
 const route = useRoute()
+const isNotifOpen = ref(false)
 
 const userName = ref('Admin Utama')
 const userEmail = ref('Super Admin')
@@ -72,8 +75,24 @@ const items = [
           <span class="material-symbols-outlined text-[20px]" :class="isActive(item.to) ? 'text-[#d5e9c3]' : 'opacity-80'">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </router-link>
+
+        <button
+          @click="isNotifOpen = true"
+          class="flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-[14px] text-[#5C4A32] font-medium hover:bg-[#F2EBDC] hover:text-[#231a10] transition-colors cursor-pointer"
+        >
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span>Pemberitahuan</span>
+          </div>
+          <span v-if="unreadCount > 0" class="px-2 py-0.5 rounded-full bg-[#A8452A] text-white text-[10px] font-bold">
+            {{ unreadCount }}
+          </span>
+        </button>
       </nav>
     </div>
+
+    <!-- Notification Modal -->
+    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <div class="p-3 bg-[#fff8f4]">
       <div class="p-3 rounded-xl bg-white border border-[#E5E0D8] shadow-2xs mb-2">

@@ -12,6 +12,10 @@ import { AuditLogger } from '@/services/audit'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
+import NotificationModal from '@/components/common/NotificationModal.vue'
+import { unreadCount } from '@/services/notifications'
+
+const isNotifOpen = ref(false)
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -343,11 +347,14 @@ onMounted(() => {
       </div>
       <div class="flex items-center gap-2">
         <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <button class="w-9 h-9 flex items-center justify-center rounded-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#243319]">
+        <button @click="isNotifOpen = true" class="relative w-9 h-9 flex items-center justify-center rounded-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#243319] cursor-pointer">
           <span class="material-symbols-outlined text-[20px]">notifications</span>
+          <span v-if="unreadCount > 0" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#A8452A]"></span>
         </button>
       </div>
     </header>
+
+    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <!-- Sidebar Admin -->
     <AdminSidebar />
