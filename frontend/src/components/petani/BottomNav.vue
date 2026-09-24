@@ -4,47 +4,67 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const leftItems = [
-  { to: '/petani', icon: 'potted_plant', label: 'Beranda' },
-  { to: '/riwayat', icon: 'nature', label: 'Lahan' }
+  { to: '/petani', icon: 'grid_view', label: 'Beranda' },
+  { to: '/riwayat', icon: 'landscape', label: 'Lahan' }
 ]
 const rightItems = [
-  { to: '/prediksi-pasar', icon: 'insights', label: 'Prediksi' },
-  { to: '/profil', icon: 'account_circle', label: 'Profil' }
+  { to: '/prediksi-pasar', icon: 'trending_up', label: 'Pasar' },
+  { to: '/kabar-tani', icon: 'newspaper', label: 'Warta' }
 ]
 </script>
 
 <template>
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(36,31,27,0.06)] border-t border-[#E5E0D8]">
-    <div class="flex items-center justify-around h-16 px-1">
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 pb-safe bg-[#FFF8F4]/95 backdrop-blur-lg border-t border-[#E2D8C7] px-1 py-1.5 select-none">
+    <div class="grid grid-cols-5 gap-1 items-center w-full max-w-md mx-auto">
       <router-link
         v-for="item in leftItems"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center justify-center w-14 h-14 transition-colors"
-        :class="route.path === item.to ? 'text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+        class="flex flex-col items-center justify-center py-1 rounded-xl transition-all min-w-0"
       >
-        <span class="material-symbols-outlined text-[22px]" :class="route.path === item.to ? 'msr-fill' : ''">{{ item.icon }}</span>
-        <span class="text-[11px] mt-0.5" :class="route.path === item.to ? 'font-semibold' : 'font-medium'">{{ item.label }}</span>
+        <div
+          class="w-10 h-7 rounded-full flex items-center justify-center transition-all"
+          :class="route.path === item.to ? 'bg-[#243319] text-[#D5E9C3] shadow-xs' : 'text-[#7E7063]'"
+        >
+          <span class="material-symbols-outlined text-[19px]">{{ item.icon }}</span>
+        </div>
+        <span
+          class="text-[10px] tracking-tight leading-tight mt-0.5 text-center truncate w-full px-0.5"
+          :class="route.path === item.to ? 'font-bold text-[#243319]' : 'font-medium text-[#7E7063]'"
+        >
+          {{ item.label }}
+        </span>
       </router-link>
 
-      <router-link to="/input-lahan" class="flex flex-col items-center justify-center w-14 h-14" aria-label="Catat Data">
+      <!-- Center FAB Button for Input Lahan -->
+      <router-link to="/input-lahan" class="flex flex-col items-center justify-center -mt-3.5" aria-label="Catat Data">
         <div
-          class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md transition-all active:scale-95"
-          :class="route.path === '/input-lahan' ? 'ring-4 ring-[#3A4A2E]/20' : ''"
+          class="w-11 h-11 rounded-full bg-[#243319] text-[#D5E9C3] flex items-center justify-center shadow-lg border-2 border-white transition-transform active:scale-95"
+          :class="route.path === '/input-lahan' ? 'ring-2 ring-[#243319]' : ''"
         >
-          <span class="material-symbols-outlined text-[22px]">add</span>
+          <span class="material-symbols-outlined text-[24px]">add</span>
         </div>
+        <span class="text-[9px] font-bold text-[#243319] mt-0.5">Catat</span>
       </router-link>
 
       <router-link
         v-for="item in rightItems"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center justify-center w-14 h-14 transition-colors"
-        :class="route.path === item.to ? 'text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface'"
+        class="flex flex-col items-center justify-center py-1 rounded-xl transition-all min-w-0"
       >
-        <span class="material-symbols-outlined text-[22px]" :class="route.path === item.to ? 'msr-fill' : ''">{{ item.icon }}</span>
-        <span class="text-[11px] mt-0.5" :class="route.path === item.to ? 'font-semibold' : 'font-medium'">{{ item.label }}</span>
+        <div
+          class="w-10 h-7 rounded-full flex items-center justify-center transition-all"
+          :class="route.path === item.to ? 'bg-[#243319] text-[#D5E9C3] shadow-xs' : 'text-[#7E7063]'"
+        >
+          <span class="material-symbols-outlined text-[19px]">{{ item.icon }}</span>
+        </div>
+        <span
+          class="text-[10px] tracking-tight leading-tight mt-0.5 text-center truncate w-full px-0.5"
+          :class="route.path === item.to ? 'font-bold text-[#243319]' : 'font-medium text-[#7E7063]'"
+        >
+          {{ item.label }}
+        </span>
       </router-link>
     </div>
   </nav>
