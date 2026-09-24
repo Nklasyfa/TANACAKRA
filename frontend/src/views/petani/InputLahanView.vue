@@ -452,12 +452,12 @@ const resetForm = () => {
                     v-model="selectedCommodity"
                     class="w-full h-11 px-3.5 bg-[#F9F7F4] text-[#241F1B] text-sm font-bold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition appearance-none cursor-pointer"
                   >
-                    <option value="Cabai Merah">🌶️ Cabai Merah</option>
-                    <option value="Jagung">🌽 Jagung</option>
-                    <option value="Salak Pondoh">🌴 Salak Pondoh</option>
-                    <option value="Tomat">🍅 Tomat</option>
-                    <option value="Bawang Merah">🧅 Bawang Merah</option>
-                    <option value="Padi">🌾 Padi</option>
+                    <option value="Cabai Merah">Cabai Merah</option>
+                    <option value="Jagung">Jagung</option>
+                    <option value="Salak Pondoh">Salak Pondoh</option>
+                    <option value="Tomat">Tomat</option>
+                    <option value="Bawang Merah">Bawang Merah</option>
+                    <option value="Padi">Padi</option>
                   </select>
                 </div>
               </div>
