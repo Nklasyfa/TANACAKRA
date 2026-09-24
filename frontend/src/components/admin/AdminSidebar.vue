@@ -36,6 +36,7 @@ const isActive = (path: string) => {
 const items = [
   { to: '/admin', icon: 'grid_view', label: 'Dashboard' },
   { to: '/admin/lahan', icon: 'sensors', label: 'Lahan & Sensor' },
+  { to: '/admin/master-data', icon: 'upload_file', label: 'Master Data Excel' },
   { to: '/admin/log', icon: 'history', label: 'Log Aktivitas' },
   { to: '/kabar-tani', icon: 'storefront', label: 'Warta & Pasar' },
   { to: '/admin/pengaturan', icon: 'tune', label: 'Pengaturan' }

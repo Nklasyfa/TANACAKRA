@@ -6,6 +6,7 @@ const route = useRoute()
 const items = [
   { to: '/admin', icon: 'dashboard', label: 'Dashboard' },
   { to: '/admin/lahan', icon: 'grid_view', label: 'Lahan' },
+  { to: '/admin/master-data', icon: 'upload_file', label: 'Data Excel' },
   { to: '/admin/log', icon: 'receipt_long', label: 'Log' },
   { to: '/kabar-tani', icon: 'storefront', label: 'Warta' },
   { to: '/admin/pengaturan', icon: 'settings', label: 'Pengaturan' }

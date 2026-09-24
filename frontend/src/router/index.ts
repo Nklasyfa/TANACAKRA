@@ -10,6 +10,7 @@ import ProfilPetaniView from '../views/petani/ProfilPetaniView.vue'
 import AdminLahanView from '../views/admin/AdminLahanView.vue'
 import AdminLogView from '../views/admin/AdminLogView.vue'
 import AdminPengaturanView from '../views/admin/AdminPengaturanView.vue'
+import AdminMasterDataView from '../views/admin/AdminMasterDataView.vue'
 import KabarTaniView from '../views/petani/KabarTaniView.vue'
 import WartaDetailView from '../views/petani/WartaDetailView.vue'
 import PrediksiPasarView from '../views/petani/PrediksiPasarView.vue'
@@ -102,6 +103,12 @@ const router = createRouter({
       path: '/admin/pengaturan',
       name: 'admin-pengaturan',
       component: AdminPengaturanView,
+      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
+    },
+    {
+      path: '/admin/master-data',
+      name: 'admin-master-data',
+      component: AdminMasterDataView,
       meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
     },
     {
