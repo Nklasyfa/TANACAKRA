@@ -57,11 +57,7 @@ const handleSave = () => {
   }, 3000)
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('tanacakra_user')
-  localStorage.removeItem('tanacakra_token')
-  router.push('/login')
-}
+
 </script>
 
 <template>
@@ -136,7 +132,7 @@ const handleLogout = () => {
               <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-6 min-w-0">
                   <span class="text-[13px] text-[#645d58] w-36 shrink-0">Email</span>
-                  <input v-model="userProfile.email" type="email" class="w-full sm:w-64 h-10 px-3 bg-[#FFF1E6] text-[#231a10] text-sm font-mono rounded-lg border border-[#E2D8C7] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition" />
+                  <input v-model="userProfile.email" type="email" disabled class="w-full sm:w-64 h-10 px-3 bg-[#f3ede6] text-[#75786f] text-sm font-mono rounded-lg border border-[#E2D8C7] cursor-not-allowed focus:outline-none transition" />
                 </div>
                 <span class="shrink-0 text-[13px] text-[#75786f] italic">Tidak bisa diubah</span>
               </div>
@@ -195,10 +191,6 @@ const handleLogout = () => {
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
             <p class="text-xs text-[#75786f]">Data tersimpan aman &amp; dienkripsi. Admin desa didaftarkan terpisah oleh Superadmin.</p>
             <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <button type="button" @click="handleLogout" class="w-full md:w-auto bg-white border border-[#A8452A] text-[#A8452A] hover:bg-[#FFF1E6] font-semibold px-6 py-3 rounded-lg text-sm transition-colors shadow-sm focus:outline-none flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">logout</span>
-                Keluar
-              </button>
               <button type="submit" class="w-full md:w-auto bg-[#A8452A] hover:bg-[#923c24] text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors shadow-sm focus:outline-none">
                 Simpan Perubahan
               </button>

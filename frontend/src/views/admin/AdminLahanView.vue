@@ -47,7 +47,8 @@ const handleExportCsv = () => {
       'Karbon Organik (%)': p.organic_carbon || 2.1,
       'Latitude': p.latitude || '',
       'Longitude': p.longitude || '',
-      'Tanggal Catat': item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : 'Hari ini'
+      'Tanggal Catat': item.created_at ? new Date(item.created_at).toLocaleString('id-ID') : 'Hari ini',
+      'Komoditas Tanam': item.planting_info ? `${item.planting_info.commodity} ${item.planting_info.variety ? '(' + item.planting_info.variety + ')' : ''}` : '-'
     }
   })
   downloadCsv('tanacakra_lahan_cangkringan.csv', dataToExport)
@@ -560,7 +561,12 @@ watch(
               </thead>
               <tbody class="divide-y divide-[#FDEBDB] text-xs">
                 <tr v-for="item in paginatedLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
-                  <td class="py-3 px-4 font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</td>
+                  <td class="py-3 px-4">
+                    <div class="font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</div>
+                    <div v-if="item.planting_info" class="text-[10px] mt-0.5 text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded inline-flex items-center gap-1 w-fit border border-[#D2DEC0]">
+                      <span class="material-symbols-outlined text-[10px]">eco</span> {{ item.planting_info.commodity }}
+                    </div>
+                  </td>
                   <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
                   <td class="py-3 px-4">
                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold" :class="(item.input_parameters?.soil_ph < 6.0) ? 'bg-[#FFDAD6] text-[#93000a]' : 'bg-[#EEF2E6] text-[#3A4A2E]'">
@@ -715,6 +721,13 @@ watch(
 
         <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-4 text-xs md:text-sm">
           <div class="bg-[#FFF1E6] p-3 rounded-lg border border-[#F2DFCF] space-y-2">
+            <div v-if="selectedLahan.planting_info" class="flex justify-between border-b border-[#F2DFCF] pb-2 mb-2">
+              <span class="text-[#645d58]">Komoditas Tanam:</span>
+              <span class="font-semibold text-[#3A4A2E] flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">eco</span>
+                {{ selectedLahan.planting_info.commodity }} {{ selectedLahan.planting_info.variety ? `(${selectedLahan.planting_info.variety})` : '' }}
+              </span>
+            </div>
             <div class="flex justify-between"><span class="text-[#645d58]">Tipe Tanah:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.soil_type || 'Regosol Vulkanik' }}</span></div>
             <div class="flex justify-between"><span class="text-[#645d58]">pH Tanah:</span><span class="font-bold text-[#243319]">{{ selectedLahan.input_parameters?.soil_ph || selectedLahan.input_parameters?.pH }}</span></div>
             <div class="flex justify-between"><span class="text-[#645d58]">Karbon Organik:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.organic_carbon || 2.1 }}%</span></div>

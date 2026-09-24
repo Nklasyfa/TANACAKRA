@@ -4,7 +4,7 @@ import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
-import { KabarTaniService, type KabarTaniFeedResponse, generateAiWartaArticle } from '@/services/kabarTani'
+import { KabarTaniService, type KabarTaniFeedResponse, generateAiWartaArticleAsync } from '@/services/kabarTani'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
 const isLoading = ref(true)
@@ -22,13 +22,21 @@ const newCategory = ref<'pasar' | 'lahan' | 'cuaca' | 'hama' | 'prediksi'>('hama
 const newSeverity = ref<'info' | 'warning' | 'danger'>('warning')
 const newSource = ref('Console Admin Cangkringan')
 
-const generateWithAi = () => {
-  const generated = generateAiWartaArticle(aiPrompt.value || 'peringatan hama dan cuaca')
-  newTitle.value = generated.title
-  newSummary.value = generated.summary
-  newCategory.value = generated.category
-  newSeverity.value = generated.severity
-  newSource.value = generated.source
+const isGenerating = ref(false)
+
+const generateWithAi = async () => {
+  if (isGenerating.value) return
+  isGenerating.value = true
+  try {
+    const generated = await generateAiWartaArticleAsync(aiPrompt.value || 'peringatan hama dan cuaca')
+    newTitle.value = generated.title
+    newSummary.value = generated.summary
+    newCategory.value = generated.category as 'pasar' | 'lahan' | 'cuaca' | 'hama' | 'prediksi'
+    newSeverity.value = generated.severity as 'info' | 'warning' | 'danger'
+    newSource.value = generated.source
+  } finally {
+    isGenerating.value = false
+  }
 }
 
 const publishWarta = () => {
@@ -328,7 +336,7 @@ onMounted(() => {
                 :to="feed.featured.cta_url || '/prediksi-pasar'"
                 class="inline-flex items-center gap-2 bg-[#243319] hover:bg-[#3a4a2e] text-[#D5E9C3] px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-2xs group"
               >
-                <span>Lihat Analisis Prediksi Pasar</span>
+                <span>{{ feed.featured.category === 'pasar' || feed.featured.category === 'prediksi' ? 'Lihat Analisis Prediksi Pasar' : (feed.featured.category === 'hama' ? 'Lihat Panduan Mitigasi Hama' : 'Baca Artikel Selengkapnya') }}</span>
                 <span class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
               </router-link>
             </div>
@@ -485,10 +493,12 @@ onMounted(() => {
                   <button
                     type="button"
                     @click="generateWithAi"
-                    class="w-full md:w-auto px-4 py-2.5 bg-[#243319] hover:bg-[#3A4A2E] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
+                    :disabled="isGenerating"
+                    class="w-full md:w-auto px-4 py-2.5 bg-[#243319] hover:bg-[#3A4A2E] disabled:bg-[#7E7063] text-white font-bold rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
                   >
-                    <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-                    <span>Generate Draf AI</span>
+                    <span v-if="!isGenerating" class="material-symbols-outlined text-[16px]">auto_awesome</span>
+                    <span v-else class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+                    <span>{{ isGenerating ? 'AI Sedang Menulis...' : 'Generate Draf AI' }}</span>
                   </button>
                 </div>
               </div>

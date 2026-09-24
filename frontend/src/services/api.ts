@@ -380,9 +380,15 @@ export const LahanService = {
         finalFarmId = 'CGK' + String(localHistory.length + 1).padStart(3, '0')
       }
 
+      const userStr = localStorage.getItem('tanacakra_user')
+      let userObj = { id: 1, username: 'petani_demo', email: '', role: 'PETANI' }
+      if (userStr) {
+        try { userObj = JSON.parse(userStr) } catch {}
+      }
+
       const newEntry = {
         id: Date.now(),
-        user: { id: 1, username: 'petani_demo', email: '', role: 'PETANI' },
+        user: userObj,
         input_parameters: { ...parameters, farm_id: finalFarmId },
         created_at: new Date().toISOString(),
         output: {

@@ -16,7 +16,17 @@ const loadHistory = async () => {
   try {
     isLoading.value = true
     const data = await LahanService.getLahanHistory()
-    historyList.value = data || []
+    const userStr = localStorage.getItem('tanacakra_user')
+    let userId = null
+    if (userStr) {
+      try { userId = JSON.parse(userStr).id } catch {}
+    }
+    
+    if (userId) {
+      historyList.value = (data || []).filter((item: any) => item.user?.id === userId)
+    } else {
+      historyList.value = data || []
+    }
   } catch (err) {
     console.error('Gagal mengambil riwayat:', err)
   } finally {
@@ -122,6 +132,68 @@ const fallbackRecommendation = (item: any) => {
     return 'Tanah basa. Tambahkan unsur Belerang (Sulfur) pertanian untuk menurunkan pH tanah.'
   }
   return 'Kondisi stabil. Gunakan Pupuk NPK Seimbang (contoh: NPK Mutiara 16-16-16) untuk merawat nutrisi.'
+}
+const isDeleting = ref(false)
+
+const confirmDelete = async (item: any) => {
+  const fid = farmIdOf(item)
+  const ok = window.confirm(`Hapus catatan pengamatan untuk lahan ${fid}?\nTindakan ini tidak dapat dibatalkan.`)
+  if (!ok) return
+  isDeleting.value = true
+  try {
+    await LahanService.deleteLahan(fid)
+    await loadHistory()
+  } catch (err: any) {
+    console.error('Gagal menghapus lahan:', err)
+    window.alert('Gagal menghapus lahan: ' + (err?.message || ''))
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+const isEditOpen = ref(false)
+const isSavingEdit = ref(false)
+const editError = ref('')
+const editForm = ref<any>({})
+
+const openEdit = (item: any) => {
+  const p = item.input_parameters || {}
+  editForm.value = {
+    farm_id: farmIdOf(item),
+    field_name: p.field_name || '',
+    desa: p.desa || 'Cangkringan',
+    soil_ph: parseFloat(p.soil_ph || p.pH || 6.5),
+    kelembapan: parseFloat(p.kelembapan || p.humidity_percent || 60),
+    kondisi_tanah: p.kondisi_tanah || (parseFloat(p.kelembapan || 60) < 40 ? 'Kering' : parseFloat(p.kelembapan || 60) <= 62 ? 'Lembab' : 'Basah'),
+    nitrogen: parseFloat(p.nitrogen || p.n || 100),
+    fosfor: parseFloat(p.fosfor || p.p || 35),
+    kalium: parseFloat(p.kalium || p.k || 130)
+  }
+  editError.value = ''
+  isEditOpen.value = true
+}
+
+const closeEdit = () => {
+  isEditOpen.value = false
+}
+
+const saveEdit = async () => {
+  isSavingEdit.value = true
+  editError.value = ''
+  try {
+    const fid = editForm.value.farm_id
+    const payload = {
+      ...editForm.value,
+      pH: editForm.value.soil_ph
+    }
+    await LahanService.updateLahan(fid, payload)
+    await loadHistory()
+    closeEdit()
+  } catch (err: any) {
+    editError.value = err?.response?.data?.error || err?.message || 'Gagal menyimpan data lahan'
+  } finally {
+    isSavingEdit.value = false
+  }
 }
 </script>
 
@@ -235,6 +307,11 @@ const fallbackRecommendation = (item: any) => {
                       </span>
                       <span>&bull; Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
                     </div>
+                    <div v-if="item.planting_info" class="mt-1 flex items-center gap-1 text-[11px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
+                      <span class="material-symbols-outlined text-[12px]">eco</span>
+                      <span class="font-semibold">{{ item.planting_info.commodity }}</span>
+                      <span v-if="item.planting_info.variety" class="italic">({{ item.planting_info.variety }})</span>
+                    </div>
                   </td>
                   <td class="py-3 px-4 tabular-nums">
                     <div class="leading-relaxed">
@@ -264,8 +341,14 @@ const fallbackRecommendation = (item: any) => {
                       </div>
                     </template>
                   </td>
-                  <td class="py-3 px-4 text-center">
-                    <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border text-left">{{ statusLabel(item) }}</span>
+                  <td class="py-3 px-4 text-center align-middle">
+                    <div class="flex flex-col items-center gap-2">
+                      <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border text-left">{{ statusLabel(item) }}</span>
+                      <div class="flex items-center gap-1.5 mt-1">
+                        <button title="Edit" @click.stop="openEdit(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 hover:bg-[#D5E9C3] transition-colors"><span class="material-symbols-outlined text-[15px]">edit</span></button>
+                        <button title="Hapus" @click.stop="confirmDelete(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 hover:bg-[#FFDAD6] transition-colors"><span class="material-symbols-outlined text-[15px]">delete</span></button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -307,13 +390,24 @@ const fallbackRecommendation = (item: any) => {
                   <span class="text-[11px] text-[#645d58]">Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
                 </div>
                 <h3 class="font-bold text-[14px] text-[#241F1B] leading-snug">{{ fieldNameOf(item) }}</h3>
+                <div v-if="item.planting_info" class="mt-1 mb-1.5 flex items-center gap-1 text-[10px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
+                  <span class="material-symbols-outlined text-[11px]">eco</span>
+                  <span class="font-semibold">{{ item.planting_info.commodity }}</span>
+                  <span v-if="item.planting_info.variety" class="italic">({{ item.planting_info.variety }})</span>
+                </div>
                 <div class="text-[11px] text-[#645d58] font-medium flex items-center gap-1 mt-1 tabular-nums">
                   <span class="material-symbols-outlined text-[13px] text-[#A8452A]">calendar_today</span>
                   <span>Tanggal Ditambahkan:</span>
                   <strong class="text-[#241F1B]">{{ formatDate(item.created_at) }}</strong>
                 </div>
               </div>
-              <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border shrink-0 text-left">{{ statusLabel(item) }}</span>
+              <div class="flex flex-col items-end gap-2 shrink-0">
+                <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border text-left">{{ statusLabel(item) }}</span>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <button @click.stop="openEdit(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+                  <button @click.stop="confirmDelete(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 transition-colors"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                </div>
+              </div>
             </div>
 
             <div class="bg-[#F9F7F4] rounded-lg p-2.5 my-2 grid grid-cols-3 gap-2 text-[11px] border border-[#F0EDE6]">
@@ -368,4 +462,55 @@ const fallbackRecommendation = (item: any) => {
 
     <BottomNav />
   </div>
+
+  <!-- Edit Modal (Teleport to body so it overlays properly) -->
+  <Teleport to="body">
+    <div v-if="isEditOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl flex flex-col border border-[#E2D8C7]">
+        <div class="px-5 py-4 border-b border-[#E2D8C7] flex items-center justify-between bg-[#FFF8F4] rounded-t-2xl">
+          <h3 class="text-base font-bold text-[#231a10]">Edit Data Lahan {{ editForm.farm_id }}</h3>
+          <button @click="closeEdit" class="p-1 rounded-full hover:bg-[#F3ECE0] text-[#645d58] transition-colors"><span class="material-symbols-outlined text-[20px]">close</span></button>
+        </div>
+        <div class="p-5 overflow-y-auto max-h-[70vh] space-y-4">
+          <div v-if="editError" class="p-3 bg-[#FFDAD6] text-[#93000A] text-xs rounded-lg">{{ editError }}</div>
+          
+          <div>
+            <label class="block text-xs font-bold text-[#231a10] mb-1.5">Nama Lahan</label>
+            <input v-model="editForm.field_name" type="text" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">pH Tanah</label>
+              <input v-model="editForm.soil_ph" type="number" step="0.1" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kelembapan (%)</label>
+              <input v-model="editForm.kelembapan" type="number" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Nitrogen</label>
+              <input v-model="editForm.nitrogen" type="number" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Fosfor</label>
+              <input v-model="editForm.fosfor" type="number" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kalium</label>
+              <input v-model="editForm.kalium" type="number" class="w-full py-2 px-3 text-sm bg-white border border-[#E2D8C7] rounded-lg focus:outline-none focus:border-[#A8452A]">
+            </div>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t border-[#E2D8C7] flex items-center justify-end gap-3 rounded-b-2xl bg-[#FFF8F4]">
+          <button @click="closeEdit" class="px-4 py-2 text-sm font-semibold text-[#645d58] bg-[#F3ECE0] border border-[#E2D8C7] hover:bg-[#E2D8C7] rounded-lg transition-colors">Batal</button>
+          <button @click="saveEdit" :disabled="isSavingEdit" class="px-4 py-2 text-sm font-semibold text-white bg-[#A8452A] hover:bg-[#923c24] rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50">
+            <span v-if="isSavingEdit" class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>

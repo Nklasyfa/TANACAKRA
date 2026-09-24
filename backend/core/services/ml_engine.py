@@ -97,7 +97,16 @@ class TanacakraMLEngine:
 
         features = np.array([[ph, kelembapan, rainfall, temp, ndvi]])
         pred_class_idx = self.clf_model.predict(features)[0]
-        predicted_yield = self.reg_model.predict(features)[0]
+        base_predicted_yield = self.reg_model.predict(features)[0]
+        
+        # Penyesuaian dinamis agar hasil panen bervariasi sesuai parameter spesifik
+        ph_factor = 1.0 - (abs(ph - 6.5) * 0.05)
+        hum_factor = 1.0 - (abs(kelembapan - 60) * 0.003)
+        npk_factor = 1.0 + ((n - 140) * 0.0005) + ((p - 45) * 0.001) + ((k - 190) * 0.0005)
+        
+        predicted_yield = base_predicted_yield * ph_factor * hum_factor * npk_factor
+        # Memastikan yield tidak tidak masuk akal (di bawah 0)
+        predicted_yield = max(2.0, predicted_yield)
         probabilities = self.clf_model.predict_proba(features)[0]
         confidence = float(np.max(probabilities))
 

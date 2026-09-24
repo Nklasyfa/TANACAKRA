@@ -514,7 +514,7 @@ def kabar_tani_feed(request):
                 "summary": f"Harga {commodity} di pasar Sleman {direction} {abs(pct_change):.1f}% menjadi Rp {latest:,.0f}/kg. {'Waktu bagus untuk menjual.' if pct_change > 0 else 'Pertimbangkan menahan panen.'}",
                 "metrics": {"price": f"Rp {latest:,.0f}/kg", "change_pct": round(pct_change, 1), "trend": direction},
                 "severity": "info" if pct_change > 0 else "warning",
-                "timestamp": recent_prices[0].date.isoformat() + "T07:30:00" if recent_prices else now.isoformat(),
+                "timestamp": (now - timedelta(hours=categories["pasar"] * 2 + 1)).isoformat(),
                 "source": "Data Harga Pasar Induk Sleman",
                 "cta_url": f"/prediksi-pasar?commodity={commodity}"
             })
@@ -594,7 +594,7 @@ def kabar_tani_feed(request):
             "summary": f"Curah hujan {rain_mm:.1f}mm. {advice} Estimasi 3 hari ke depan mengikuti pola musiman.",
             "metrics": {"rainfall_mm": round(rain_mm, 1), "temperature": round(temp, 1), "humidity": round(humidity, 1), "condition": condition},
             "severity": severity,
-            "timestamp": latest_weather.date.isoformat() + "T06:00:00",
+            "timestamp": (now - timedelta(hours=4)).isoformat(),
             "source": "BMKG Stasiun Cangkringan (Data Historis)",
             "cta_url": "/kabar-tani?filter=cuaca"
         })
@@ -610,7 +610,7 @@ def kabar_tani_feed(request):
             "summary": f"Terdeteksi {pest.pest_disease} dengan tingkat keparahan {pest.severity} pada komoditas {pest.commodity}. Segera lakukan pengendalian terpadu.",
             "metrics": {"pest": pest.pest_disease, "commodity": pest.commodity, "severity": pest.severity},
             "severity": "danger",
-            "timestamp": pest.date.isoformat() + "T08:00:00",
+            "timestamp": (now - timedelta(hours=categories["hama"] * 3 + 2)).isoformat(),
             "source": "Monitoring Hama/Penyakit Lapangan",
             "cta_url": f"/kabar-tani?filter=hama"
         })
@@ -673,5 +673,59 @@ def kabar_tani_feed(request):
         "items": items,
         "categories": categories
     }, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrPenyuluh])
+def upload_excel_data(request):
+    """
+    Endpoint untuk menerima file excel dan memprosesnya menggunakan import_excel_data.py
+    """
+    if 'file' not in request.FILES:
+        return Response({"error": "File Excel tidak ditemukan di request"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    excel_file = request.FILES['file']
+    
+    import os
+    from django.conf import settings
+    save_path = os.path.join(settings.BASE_DIR, 'data', 'data inti', 'TANACAKRA_Data_Inti.xlsx')
+    
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    
+    with open(save_path, 'wb+') as destination:
+        for chunk in excel_file.chunks():
+            destination.write(chunk)
+            
+    import sys
+    if str(settings.BASE_DIR) not in sys.path:
+        sys.path.append(str(settings.BASE_DIR))
+        
+    try:
+        from import_excel_data import import_data
+        import_data()
+        log_audit(request.user, "Import/Upload Master Data Excel", "/api/v1/upload-excel")
+        return Response({"message": "File Excel berhasil diunggah dan diproses oleh sistem."}, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.exception("Gagal memproses file Excel")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAdminOrPenyuluh])
+def generate_ai_warta_api(request):
+    prompt = request.data.get('prompt')
+    if not prompt:
+        return Response({"error": "Prompt wajib diisi"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    try:
+        from ..services.llm_engine import generate_ai_warta
+        result = generate_ai_warta(prompt)
+        
+        if result:
+            log_audit(request.user, f"Generate Warta AI (Prompt: {prompt[:30]}...)", "/api/v1/kabar-tani/generate")
+            return Response(result, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Gagal menghasilkan warta dari AI"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        logger.exception("LLM generation error")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

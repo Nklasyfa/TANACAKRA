@@ -19,10 +19,26 @@ class VisualizationConfigSerializer(serializers.ModelSerializer):
 class DatasetInputSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     output = EngineOutputSerializer(read_only=True)
+    planting_info = serializers.SerializerMethodField()
 
     class Meta:
         model = DatasetInput
-        fields = ['id', 'user', 'input_parameters', 'created_at', 'output']
+        fields = ['id', 'user', 'input_parameters', 'created_at', 'output', 'planting_info']
+
+    def get_planting_info(self, obj):
+        farm_id = obj.input_parameters.get('farm_id')
+        if not farm_id:
+            return None
+        from .models import PlantingData
+        planting = PlantingData.objects.filter(farm_id=farm_id).order_by('-date').first()
+        if planting:
+            return {
+                "commodity": planting.commodity,
+                "variety": planting.variety,
+                "season": planting.season,
+                "date": planting.date.isoformat() if planting.date else None
+            }
+        return None
 
 class AuditLogSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

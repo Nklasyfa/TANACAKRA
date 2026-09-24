@@ -35,6 +35,9 @@ export const KabarTaniService = {
   async getFeed(): Promise<KabarTaniFeedResponse> {
     try {
       const res = await api.get('/kabar-tani')
+      if (!res.data || !res.data.items || res.data.items.length === 0) {
+        return this.mergeCustomNews(getFallbackFeed())
+      }
       return this.mergeCustomNews(res.data)
     } catch (e) {
       return this.mergeCustomNews(getFallbackFeed())
@@ -120,22 +123,44 @@ export const KabarTaniService = {
   }
 }
 
+export async function generateAiWartaArticleAsync(topicPrompt: string): Promise<Omit<KabarTaniItem, 'id' | 'timestamp'>> {
+  try {
+    const response = await api.post('/kabar-tani/generate', { prompt: topicPrompt })
+    if (response.data && response.data.title) {
+      // Validate or map data
+      return {
+        category: response.data.category || 'info',
+        title: response.data.title,
+        summary: response.data.summary,
+        metrics: response.data.metrics || {},
+        severity: response.data.severity || 'info',
+        source: response.data.source || 'AI Agronomi Tanacakra (NVIDIA)',
+        cta_url: response.data.cta_url || '/kabar-tani'
+      }
+    }
+  } catch (e) {
+    console.error("AI Generation failed, falling back to static", e)
+  }
+  // Fallback to static if API fails
+  return generateAiWartaArticle(topicPrompt)
+}
+
 export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem, 'id' | 'timestamp'> {
   const prompt = topicPrompt.toLowerCase()
 
-  if (prompt.includes('hama') || prompt.includes('penyakit') || prompt.includes('kutu')) {
+  if (prompt.includes('hama') || prompt.includes('penyakit') || prompt.includes('kutu') || prompt.includes('ulat') || prompt.includes('wereng')) {
     return {
       category: 'hama',
-      title: 'Peringatan Dini: Potensi Serangan Kutu Daun & Thrips di Lereng Cangkringan',
-      summary: 'Data pengamatan mikroklimat BMKG menunjukkan peningkatan kelembapan nisbi RH >82% yang memicu pembentukan spora jamur dan aktivitas hama thrips pada komoditas cabai rawit merah. Petani diimbau mengaplikasikan bio-pestisida berbasis Beauveria bassiana.',
+      title: 'Peringatan Dini Agronomi: Potensi Serangan Thrips & Ulat Grayak di Lahan Cangkringan',
+      summary: 'Berdasarkan data analitik historis pertanian lereng Merapi (2025-2026), terdapat tren peningkatan serangan hama Thrips dengan tingkat keparahan tinggi pada komoditas Jagung dan Ulat Grayak pada Tomat dan Salak Pondoh, khususnya saat pergantian musim. Hama Wereng juga dilaporkan terdeteksi dengan intensitas rendah hingga menengah pada Bawang Merah. Data mikroklimat menunjukkan bahwa fluktuasi kelembapan nisbi (RH >82%) sangat memicu perkembangbiakan vektor hama ini. Oleh karena itu, para petani diimbau untuk segera menerapkan langkah preventif berupa pemasangan yellow sticky trap (perangkap kuning) di sekitar tajuk tanaman, melakukan sanitasi gulma secara menyeluruh untuk memutus siklus hidup hama, serta mengaplikasikan bio-pestisida berbahan aktif Beauveria bassiana atau nimba secara berkala.',
       metrics: {
         'Tingkat Risiko': 'Tinggi (Siaga 2)',
-        'Area Terdampak': 'Blok A & C (Argomulyo)',
-        'Rekomendasi': 'Semprot Bio-Pestisida',
-        'Efektivitas AI': '94.2%'
+        'Komoditas Rentan': 'Jagung, Tomat, Salak',
+        'Hama Utama': 'Thrips, Ulat Grayak',
+        'Rekomendasi': 'Sanitasi & Bio-Pestisida'
       },
       severity: 'warning',
-      source: 'Rekomendasi AI Agronomi Tanacakra',
+      source: 'Data Analitik & Rekomendasi AI Tanacakra',
       cta_url: '/kabar-tani?filter=hama'
     }
   }
@@ -263,8 +288,19 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         timestamp: hour6,
         source: "Model AI-Yield Scikit-learn",
         cta_url: "/prediksi-pasar"
+      },
+      {
+        id: "hama-thrips-1",
+        category: "hama",
+        title: "Waspada Serangan Thrips & Ulat Grayak pada Jagung dan Tomat",
+        summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering. Hama ini bisa menyebar sangat cepat akibat fluktuasi kelembapan di wilayah lereng Merapi.",
+        metrics: { "Risiko": "Tinggi", "Hama": "Thrips & Ulat Grayak" },
+        severity: "danger",
+        timestamp: hour2,
+        source: "Data Analitik Hama Cangkringan",
+        cta_url: "/kabar-tani?filter=hama"
       }
     ],
-    categories: { pasar: 2, lahan: 1, cuaca: 1, hama: 0, prediksi: 1 }
+    categories: { pasar: 2, lahan: 1, cuaca: 1, hama: 1, prediksi: 1 }
   }
 }

@@ -98,11 +98,54 @@ const runModel = async () => {
     category: 'ai',
     endpoint: '/api/v1/pipeline/trigger'
   })
-  modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' })
+  modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) + ' WIB'
   runState.value = 'done'
   await new Promise(r => setTimeout(r, 1600))
   running.value = false
   runState.value = 'idle'
+}
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const isUploading = ref(false)
+const uploadStatus = ref('')
+
+const triggerFileInput = () => {
+  if (fileInput.value) fileInput.value.click()
+}
+
+const handleFileUpload = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+  
+  const file = target.files[0]
+  if (!file.name.endsWith('.xlsx')) {
+    uploadStatus.value = 'Gagal: File harus berformat .xlsx'
+    return
+  }
+  
+  isUploading.value = true
+  uploadStatus.value = 'Sedang memproses, harap tunggu...'
+  
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  try {
+    const res = await api.post('/upload-excel', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    uploadStatus.value = 'Berhasil: ' + (res.data.message || 'Data master telah diperbarui.')
+    AuditLogger.addLog({
+      title: 'Import Master Data Excel',
+      subtitle: 'Data lahan, panen, iklim, hama diperbarui',
+      category: 'admin',
+      endpoint: '/api/v1/upload-excel'
+    })
+    if (fileInput.value) fileInput.value.value = ''
+  } catch (err: any) {
+    uploadStatus.value = 'Gagal: ' + (err.response?.data?.error || err.message || 'Terjadi kesalahan')
+  } finally {
+    isUploading.value = false
+  }
 }
 
 const pwdNotice = ref(false)
@@ -138,11 +181,13 @@ onMounted(async () => {
   try {
     const cfg = await AdminService.getPipelineConfig()
     if (cfg && cfg.model_name) modelInfo.value.model = cfg.model_name
-    if (cfg && cfg.location_context) {
-      /* skip — lokasi konstan Cangkringan */
+    if (cfg && cfg.timestamp) {
+      modelInfo.value.lastRun = new Date(cfg.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) + ' WIB'
+    } else {
+      modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) + ' WIB'
     }
   } catch {
-    /* fallback ke default */
+    modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) + ' WIB'
   }
 })
 </script>
@@ -249,6 +294,29 @@ onMounted(async () => {
               </div>
               <p class="text-[11px] text-[#7E7063] leading-snug">{{ m.note }}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1.5: Upload Dataset Master -->
+      <section class="flex flex-col gap-4">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-outlined text-[20px] text-[#243319]">upload_file</span>
+          <h2 class="font-display text-lg font-bold text-[#231a10]">Upload Master Data (Excel)</h2>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#7E7063] bg-white border border-[#E5E0D8] px-2 py-0.5 rounded-md">.xlsx</span>
+        </div>
+        
+        <div class="bg-white p-5 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-4">
+          <p class="text-[13px] text-[#7E7063]">
+            Unggah file <code class="font-bold text-[#A8452A] bg-[#FFF8F4] px-1 rounded">TANACAKRA_Data_Inti.xlsx</code> untuk memperbarui basis data lahan, panen, harga pasar, dan iklim.
+          </p>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <input type="file" ref="fileInput" accept=".xlsx" class="hidden" @change="handleFileUpload" />
+            <button @click="triggerFileInput" type="button" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#243319] text-[#243319] text-sm font-bold transition-all hover:bg-[#EBF2E5] active:scale-95 disabled:opacity-50 w-fit" :disabled="isUploading">
+              <span class="material-symbols-outlined text-[18px]">upload</span>
+              {{ isUploading ? 'Mengunggah...' : 'Pilih File Excel' }}
+            </button>
+            <span class="text-xs font-semibold" :class="uploadStatus.startsWith('Gagal') ? 'text-[#93000A]' : 'text-[#243319]'" v-if="uploadStatus">{{ uploadStatus }}</span>
           </div>
         </div>
       </section>

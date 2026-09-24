@@ -16,4 +16,6 @@ urlpatterns = [
     path('broadcast/alert', views.broadcast_alert, name='broadcast-alert'),
     path('dashboard/trends', views.dashboard_trends, name='dashboard-trends'),
     path('kabar-tani', views.kabar_tani_feed, name='kabar-tani-feed'),
+    path('upload-excel', views.upload_excel_data, name='upload-excel'),
+    path('kabar-tani/generate', views.generate_ai_warta_api, name='generate-ai-warta'),
 ]
