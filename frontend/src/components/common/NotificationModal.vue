@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { notificationsList, markAsRead, markAllAsRead, type AppNotification } from '@/services/notifications'
+import { notificationsList, markAsRead, markAllAsRead, type AppNotification } from '../../services/notifications'
 
 const props = defineProps<{
   isOpen: boolean
