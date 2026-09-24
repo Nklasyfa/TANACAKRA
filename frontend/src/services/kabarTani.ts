@@ -23,6 +23,7 @@ export interface KabarTaniFeatured {
   metrics: KabarTaniMetrics
   timestamp: string
   cta_url: string
+  id?: string
 }
 
 export interface KabarTaniFeedResponse {
@@ -85,10 +86,12 @@ export const KabarTaniService = {
   },
 
   addCustomWarta(newItem: Omit<KabarTaniItem, 'id' | 'timestamp'> & { id?: string }): KabarTaniItem {
+    const generatedId = newItem.id || ('warta-custom-' + Date.now())
     const item: KabarTaniItem = {
       ...newItem,
-      id: newItem.id || ('warta-custom-' + Date.now()),
-      timestamp: new Date().toISOString()
+      id: generatedId,
+      timestamp: new Date().toISOString(),
+      cta_url: `/warta/${generatedId}`
     }
 
     try {
@@ -106,6 +109,18 @@ export const KabarTaniService = {
   async getFeatured(): Promise<KabarTaniFeatured | null> {
     const feed = await this.getFeed()
     return feed.featured
+  },
+
+  async getById(id: string): Promise<KabarTaniItem | KabarTaniFeatured | null> {
+    const feed = await this.getFeed()
+    if (feed.featured && (feed.featured as any).id === id) return feed.featured
+    const item = feed.items.find(i => i.id === id)
+    if (item) return item
+    
+    // In case the featured doesn't have ID but we clicked a default one
+    if (id === 'featured-1' && feed.featured) return feed.featured
+    
+    return null
   },
 
   async getItems(category?: string, limit = 10): Promise<KabarTaniItem[]> {
@@ -231,7 +246,8 @@ function getFallbackFeed(): KabarTaniFeedResponse {
       category: "pasar",
       metrics: { "Volatilitas Pasar": "+8.0%", "Prakiraan Presipitasi": "2–5 mm", "Lembap Udara": "78% RH", "Saran Siklus": "Tanam Blok A" },
       timestamp: min15,
-      cta_url: "/prediksi-pasar"
+      cta_url: "/warta/featured-1",
+      id: "featured-1"
     },
     items: [
       {
@@ -243,7 +259,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "info",
         timestamp: min15,
         source: "Pasar Induk Sleman",
-        cta_url: "/prediksi-pasar?commodity=Cabai Merah"
+        cta_url: "/warta/pasar-cabai-1"
       },
       {
         id: "pasar-tomat-1",
@@ -254,7 +270,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "info",
         timestamp: min45,
         source: "Pasar Induk Sleman",
-        cta_url: "/prediksi-pasar?commodity=Tomat"
+        cta_url: "/warta/pasar-tomat-1"
       },
       {
         id: "lahan-blok-b-1",
@@ -265,7 +281,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "danger",
         timestamp: hour2,
         source: "Telemetri IoT Lahan",
-        cta_url: "/input-lahan?farm=Blok-B"
+        cta_url: "/warta/lahan-blok-b-1"
       },
       {
         id: "cuaca-1",
@@ -276,7 +292,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "info",
         timestamp: hour4,
         source: "BMKG Stasiun Cangkringan",
-        cta_url: "/kabar-tani?filter=cuaca"
+        cta_url: "/warta/cuaca-1"
       },
       {
         id: "prediksi-1",
@@ -287,7 +303,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "info",
         timestamp: hour6,
         source: "Model AI-Yield Scikit-learn",
-        cta_url: "/prediksi-pasar"
+        cta_url: "/warta/prediksi-1"
       },
       {
         id: "hama-thrips-1",
@@ -298,7 +314,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         severity: "danger",
         timestamp: hour2,
         source: "Data Analitik Hama Cangkringan",
-        cta_url: "/kabar-tani?filter=hama"
+        cta_url: "/warta/hama-thrips-1"
       }
     ],
     categories: { pasar: 2, lahan: 1, cuaca: 1, hama: 1, prediksi: 1 }

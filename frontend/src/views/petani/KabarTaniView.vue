@@ -183,14 +183,13 @@ onMounted(() => {
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <!-- New Mobile Header Button -->
         <button
           v-if="isAdmin"
           @click="isCreateModalOpen = true"
-          class="flex items-center gap-1 px-2.5 py-1.5 bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg text-[10px] font-bold shadow-sm transition-all"
+          class="flex items-center gap-1 px-2.5 py-1.5 bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] rounded-lg text-[10px] font-bold shadow-sm transition-all border border-[#4A5B3A]"
         >
-          <span class="material-symbols-outlined text-[14px]">add</span>
-          <span>Warta</span>
+          <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+          <span>AI Warta</span>
         </button>
         <div class="w-7 h-7 rounded-full bg-[#243319] text-white flex items-center justify-center text-[12px] font-bold">
           <span class="material-symbols-outlined text-[16px]">{{ isAdmin ? 'admin_panel_settings' : 'person' }}</span>
@@ -221,11 +220,11 @@ onMounted(() => {
           <button
             v-if="isAdmin"
             @click="isCreateModalOpen = true"
-            class="inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-1.5 rounded-full bg-[#A8452A] hover:bg-[#923c24] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+            class="inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-1.5 rounded-full bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] text-xs font-bold transition-all shadow-sm cursor-pointer border border-[#4A5B3A]"
           >
-            <span class="material-symbols-outlined text-[16px]">add_circle</span>
-            <span class="hidden lg:inline">+ Buat Warta &amp; Broadcast AI</span>
-            <span class="lg:hidden">+ Warta</span>
+            <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+            <span class="hidden lg:inline">Buat Warta AI (NVIDIA)</span>
+            <span class="lg:hidden">AI Warta</span>
           </button>
 
 

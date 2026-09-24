@@ -11,6 +11,7 @@ import AdminLahanView from '../views/admin/AdminLahanView.vue'
 import AdminLogView from '../views/admin/AdminLogView.vue'
 import AdminPengaturanView from '../views/admin/AdminPengaturanView.vue'
 import KabarTaniView from '../views/petani/KabarTaniView.vue'
+import WartaDetailView from '../views/petani/WartaDetailView.vue'
 import PrediksiPasarView from '../views/petani/PrediksiPasarView.vue'
 
 declare module 'vue-router' {
@@ -66,6 +67,12 @@ const router = createRouter({
     {
       path: '/admin/kabar-tani',
       redirect: '/kabar-tani'
+    },
+    {
+      path: '/warta/:id',
+      name: 'warta-detail',
+      component: WartaDetailView,
+      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
     },
     {
       path: '/prediksi-pasar',
