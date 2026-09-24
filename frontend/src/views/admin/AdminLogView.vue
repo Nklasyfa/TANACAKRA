@@ -253,7 +253,7 @@ const avgLatency = computed(() => {
       <main class="w-full max-w-[1400px] mx-auto p-4 md:p-8 flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:pr-14">
         <div class="flex flex-col gap-1 max-w-3xl">
           <div class="flex items-center gap-3">
             <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Catatan Aktivitas Sistem</h1>

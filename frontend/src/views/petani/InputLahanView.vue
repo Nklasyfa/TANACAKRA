@@ -11,6 +11,7 @@ import { LahanService, type LandInputPayload } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
 import NotificationModal from '@/components/common/NotificationModal.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
@@ -306,11 +307,12 @@ const resetForm = () => {
             <span class="text-[11px] text-[#6B5B4A] mt-0.5 truncate font-medium">Catat Lahan</span>
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <button @click="isNotifOpen = true" class="relative w-11 h-11 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors cursor-pointer" aria-label="Pemberitahuan">
+        <div class="flex items-center gap-2">
+          <button @click="isNotifOpen = true" class="relative w-10 h-10 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors cursor-pointer" aria-label="Pemberitahuan">
             <span class="material-symbols-outlined text-[22px]">notifications</span>
-            <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A]"></span>
+            <span v-if="unreadCount > 0" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#A8452A]"></span>
           </button>
+          <UserDropdown />
         </div>
       </div>
     </header>
@@ -318,6 +320,10 @@ const resetForm = () => {
     <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <PetaniSidebar />
+
+    <div class="hidden md:flex fixed top-6 right-8 z-50">
+      <UserDropdown />
+    </div>
 
     <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[calc(env(safe-area-inset-top,0px)+72px)] md:pt-8 flex flex-col items-center">
       <div class="w-full max-w-[640px] space-y-5 pb-16">

@@ -7,6 +7,7 @@ import { LahanService, AdminService } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
 import NotificationModal from '@/components/common/NotificationModal.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 import { unreadCount } from '@/services/notifications'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -317,11 +318,12 @@ const catatanList = computed(() => {
             <span class="text-[11px] text-on-surface-variant mt-0.5 truncate">Beranda</span>
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <button @click="isNotifOpen = true" class="relative w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer" aria-label="Pemberitahuan">
+        <div class="flex items-center gap-2">
+          <button @click="isNotifOpen = true" class="relative w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer" aria-label="Pemberitahuan">
             <span class="material-symbols-outlined text-[22px]">notifications</span>
-            <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A]"></span>
+            <span v-if="unreadCount > 0" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#A8452A]"></span>
           </button>
+          <UserDropdown />
         </div>
       </div>
     </header>
@@ -329,6 +331,11 @@ const catatanList = computed(() => {
     <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <PetaniSidebar />
+
+    <!-- Desktop floating UserDropdown since there's no desktop header -->
+    <div class="hidden md:flex fixed top-6 right-8 z-50">
+      <UserDropdown />
+    </div>
 
     <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-[calc(env(safe-area-inset-top,0px)+68px)] md:pt-8">
       <div class="max-w-[720px] mx-auto flex flex-col gap-5 md:gap-6 pb-12">

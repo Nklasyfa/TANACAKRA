@@ -142,7 +142,7 @@ const triggerFileUpload = async () => {
       <main class="w-full max-w-[1300px] mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
 
         <!-- 1. Header Toolbar -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E0D8]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E0D8] md:pr-14">
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="px-2.5 py-0.5 rounded-full bg-[#243319] text-[#D5E9C3] text-[10px] font-bold uppercase tracking-wider">

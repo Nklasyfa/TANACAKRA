@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 
 const userProfile = ref<any>({
   username: '',
@@ -68,9 +69,16 @@ const handleSave = () => {
         </div>
         <p class="text-[11px] text-[#645d58] mt-1 font-medium">Dashboard Petani &bull; Profil</p>
       </div>
+      <div class="flex items-center gap-2">
+        <UserDropdown />
+      </div>
     </header>
 
     <PetaniSidebar />
+
+    <div class="hidden md:flex fixed top-6 right-8 z-50">
+      <UserDropdown />
+    </div>
 
     <main class="md:ml-[240px] flex-1 w-full px-4 md:px-8 lg:px-12 pt-5 md:pt-8">
       <div class="w-full max-w-[720px] mx-auto flex flex-col gap-5 pb-12 relative">

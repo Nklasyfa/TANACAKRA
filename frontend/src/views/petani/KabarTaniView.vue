@@ -4,6 +4,7 @@ import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 import { KabarTaniService, type KabarTaniFeedResponse, generateAiWartaArticleAsync } from '@/services/kabarTani'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 
@@ -39,22 +40,62 @@ const generateWithAi = async () => {
   }
 }
 
+const editItemId = ref<string | null>(null)
+
 const publishWarta = () => {
   if (!newTitle.value.trim() || !newSummary.value.trim()) return
-  KabarTaniService.addCustomWarta({
-    title: newTitle.value,
-    summary: newSummary.value,
-    category: newCategory.value,
-    severity: newSeverity.value,
-    source: newSource.value || 'Console Admin Cangkringan',
-    metrics: { 'Waktu Terbit': 'Baru Saja', 'Status': 'Dipublikasikan' },
-    cta_url: '/kabar-tani'
-  })
+
+  if (editItemId.value) {
+    KabarTaniService.updateCustomWarta(editItemId.value, {
+      title: newTitle.value,
+      summary: newSummary.value,
+      category: newCategory.value,
+      severity: newSeverity.value,
+      source: newSource.value || 'Console Admin Cangkringan'
+    })
+  } else {
+    KabarTaniService.addCustomWarta({
+      title: newTitle.value,
+      summary: newSummary.value,
+      category: newCategory.value,
+      severity: newSeverity.value,
+      source: newSource.value || 'Console Admin Cangkringan',
+      metrics: { 'Waktu Terbit': 'Baru Saja', 'Status': 'Dipublikasikan' },
+      cta_url: '/kabar-tani'
+    })
+  }
+
   isCreateModalOpen.value = false
   newTitle.value = ''
   newSummary.value = ''
   aiPrompt.value = ''
+  editItemId.value = null
   loadData()
+}
+
+const openCreateModal = () => {
+  editItemId.value = null
+  newTitle.value = ''
+  newSummary.value = ''
+  aiPrompt.value = ''
+  isCreateModalOpen.value = true
+}
+
+const editWarta = (item: any) => {
+  editItemId.value = item.id
+  newTitle.value = item.title
+  newSummary.value = item.summary
+  newCategory.value = item.category as 'pasar' | 'lahan' | 'cuaca' | 'hama' | 'prediksi'
+  newSeverity.value = item.severity as 'info' | 'warning' | 'danger'
+  newSource.value = item.source || 'Console Admin Cangkringan'
+  isCreateModalOpen.value = true
+}
+
+const deleteWarta = (id: string) => {
+  if (confirm('Yakin ingin menghapus warta ini?')) {
+    KabarTaniService.deleteCustomWarta(id)
+    loadData()
+  }
 }
 
 // Compute user role reactively from localStorage
@@ -185,15 +226,13 @@ onMounted(() => {
       <div class="flex items-center gap-2">
         <button
           v-if="isAdmin"
-          @click="isCreateModalOpen = true"
+          @click="openCreateModal"
           class="flex items-center gap-1 px-2.5 py-1.5 bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] rounded-lg text-[10px] font-bold shadow-sm transition-all border border-[#4A5B3A]"
         >
           <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
           <span>AI Warta</span>
         </button>
-        <div class="w-7 h-7 rounded-full bg-[#243319] text-white flex items-center justify-center text-[12px] font-bold">
-          <span class="material-symbols-outlined text-[16px]">{{ isAdmin ? 'admin_panel_settings' : 'person' }}</span>
-        </div>
+        <UserDropdown />
       </div>
     </header>
 
@@ -216,10 +255,10 @@ onMounted(() => {
           <span class="text-[#231a10] truncate">Warta &amp; Pasar Cangkringan</span>
         </nav>
 
-        <div class="flex items-center gap-2 lg:gap-3 shrink-0">
+        <div class="flex items-center gap-2 lg:gap-3 shrink-0 md:pr-14">
           <button
             v-if="isAdmin"
-            @click="isCreateModalOpen = true"
+            @click="openCreateModal"
             class="inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-1.5 rounded-full bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] text-xs font-bold transition-all shadow-sm cursor-pointer border border-[#4A5B3A]"
           >
             <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
@@ -227,10 +266,7 @@ onMounted(() => {
             <span class="lg:hidden">AI Warta</span>
           </button>
 
-
-          <div class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0 shadow-2xs ml-1">
-            <span class="material-symbols-outlined text-[18px]">{{ isAdmin ? 'admin_panel_settings' : 'person' }}</span>
-          </div>
+          <UserDropdown class="ml-1" />
         </div>
       </header>
 
@@ -391,15 +427,21 @@ onMounted(() => {
                 </span>
               </div>
 
-              <div class="flex items-center justify-between pt-1">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between pt-1 gap-3">
                 <span class="text-[11px] text-[#7E7063] font-medium">Sumber: {{ item.source || 'Tanacakra Core' }}</span>
-                <router-link
-                  :to="item.cta_url || '/prediksi-pasar'"
-                  class="inline-flex items-center gap-1 text-xs font-bold text-[#243319] hover:text-[#A8452A] transition-colors"
-                >
-                  <span>Lihat Rincian</span>
-                  <span class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
-                </router-link>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                  <div v-if="isAdmin && item.id.startsWith('warta-custom-')" class="flex items-center gap-2 border-r border-[#E5E0D8] pr-2 mr-1">
+                    <button @click="editWarta(item)" class="text-[10px] font-bold text-[#7E7063] hover:text-[#243319] transition-colors" title="Edit Warta">Edit</button>
+                    <button @click="deleteWarta(item.id)" class="text-[10px] font-bold text-[#C84C32] hover:text-[#93000a] transition-colors" title="Hapus Warta">Hapus</button>
+                  </div>
+                  <router-link
+                    :to="item.cta_url || '/prediksi-pasar'"
+                    class="inline-flex items-center gap-1 text-xs font-bold text-[#243319] hover:text-[#A8452A] transition-colors"
+                  >
+                    <span>Lihat Rincian</span>
+                    <span class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5">arrow_forward</span>
+                  </router-link>
+                </div>
               </div>
             </div>
           </article>
@@ -462,8 +504,8 @@ onMounted(() => {
                 <span class="material-symbols-outlined text-[#A8452A] text-[22px] shrink-0">campaign</span>
                 <div class="min-w-0">
                   <h3 class="font-bold text-[#231a10] leading-snug">
-                    <span class="md:hidden text-sm">Buat Warta AI</span>
-                    <span class="hidden md:inline text-base">Buat Warta &amp; Broadcast Agro-Intelijen</span>
+                    <span class="md:hidden text-sm">{{ editItemId ? 'Edit Warta' : 'Buat Warta AI' }}</span>
+                    <span class="hidden md:inline text-base">{{ editItemId ? 'Edit Warta Tani' : 'Buat Warta &amp; Broadcast Agro-Intelijen' }}</span>
                   </h3>
                   <p class="text-[11px] text-[#7E7063] truncate">Publikasikan pengumuman atau gunakan generator AI.</p>
                 </div>
@@ -571,7 +613,7 @@ onMounted(() => {
                 class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-[#A8452A] hover:bg-[#923c24] text-white font-bold text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <span class="material-symbols-outlined text-[18px]">send</span>
-                <span>Publikasikan Warta</span>
+                <span>{{ editItemId ? 'Simpan Perubahan' : 'Publikasikan Warta' }}</span>
               </button>
             </div>
 

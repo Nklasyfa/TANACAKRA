@@ -2,12 +2,9 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/services/supabase'
-import NotificationModal from '@/components/common/NotificationModal.vue'
-import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
 const route = useRoute()
-const isNotifOpen = ref(false)
 
 const userName = ref('Petani Cangkringan')
 const userEmail = ref('petani@cangkringan.desa.id')
@@ -69,24 +66,8 @@ const items = [
           <span class="material-symbols-outlined text-[20px]" :class="route.path === item.to ? 'msr-fill' : 'opacity-80'">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </router-link>
-
-        <button
-          @click="isNotifOpen = true"
-          class="flex items-center justify-between w-full px-4 py-2.5 rounded-lg text-[14px] text-on-surface-variant font-medium hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
-        >
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px]">notifications</span>
-            <span>Pemberitahuan</span>
-          </div>
-          <span v-if="unreadCount > 0" class="px-2 py-0.5 rounded-full bg-[#A8452A] text-white text-[10px] font-bold">
-            {{ unreadCount }}
-          </span>
-        </button>
       </nav>
     </div>
-
-    <!-- Notification Modal component -->
-    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <div class="p-2 bg-surface-container-low">
       <div class="p-3 rounded-lg bg-surface-container-lowest border border-[#E5E0D8] mb-1">

@@ -106,6 +106,39 @@ export const KabarTaniService = {
     return item
   },
 
+  updateCustomWarta(id: string, updatedData: Partial<KabarTaniItem>): KabarTaniItem | null {
+    try {
+      const raw = localStorage.getItem('tanacakra_custom_news')
+      if (!raw) return null
+      const existing: KabarTaniItem[] = JSON.parse(raw)
+      const idx = existing.findIndex(i => i.id === id)
+      if (idx !== -1) {
+        existing[idx] = { ...existing[idx], ...updatedData }
+        localStorage.setItem('tanacakra_custom_news', JSON.stringify(existing))
+        return existing[idx]
+      }
+    } catch (e) {
+      console.error('Error updating custom warta:', e)
+    }
+    return null
+  },
+
+  deleteCustomWarta(id: string): boolean {
+    try {
+      const raw = localStorage.getItem('tanacakra_custom_news')
+      if (!raw) return false
+      const existing: KabarTaniItem[] = JSON.parse(raw)
+      const filtered = existing.filter(i => i.id !== id)
+      if (filtered.length !== existing.length) {
+        localStorage.setItem('tanacakra_custom_news', JSON.stringify(filtered))
+        return true
+      }
+    } catch (e) {
+      console.error('Error deleting custom warta:', e)
+    }
+    return false
+  },
+
   async getFeatured(): Promise<KabarTaniFeatured | null> {
     const feed = await this.getFeed()
     return feed.featured

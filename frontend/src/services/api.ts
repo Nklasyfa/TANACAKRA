@@ -141,117 +141,367 @@ function generateFallbackLahan() {
   })
 }
 
-function generatePlotlySchema(trends: any[], volumeTrends?: any[], activeCommodities?: string[]) {
+function generatePlotlySchema(
+  trends: any[],
+  volumeTrends?: any[],
+  activeCommodities?: string[],
+  viewMode: 'subplots' | 'dual' = 'subplots',
+  isDarkMode: boolean = false
+) {
   if (!trends || !trends.length) return null
+
   const MONTH_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-  const months = trends.map(t => {
-    const ym = t.month || ''
+  const formatMonth = (ym: string) => {
     if (typeof ym === 'string' && ym.includes('-')) {
-      const [, m] = ym.split('-')
-      return MONTH_ID[parseInt(m) - 1] ?? ym
+      const [y, m] = ym.split('-')
+      const monthName = MONTH_ID[parseInt(m) - 1] ?? ym
+      return `${monthName} '${y.substring(2)}`
     }
     return ym
-  })
+  }
+
+  const total = trends.length
+  const projCount = total >= 6 ? Math.min(3, Math.floor(total / 3)) : 0
+  const histCount = total - projCount
+
+  const histTrends = trends.slice(0, histCount)
+  const projTrends = trends.slice(histCount - 1)
+
+  const histMonths = histTrends.map(t => formatMonth(t.month || ''))
+  const projMonths = projTrends.map(t => formatMonth(t.month || ''))
 
   const keyColors: Record<string, string> = {
-    'Cabai Merah': '#C84C32',
-    'Salak Pondoh': '#4A5B3A',
+    'Cabai Merah': '#E63946',
+    'Salak Pondoh': '#0D9488',
     'Bawang Merah': '#8B3A62',
     'Padi': '#D99B26',
     'Jagung': '#E07A5F',
     'Kacang Tanah': '#7E5A3C',
-    'Tomat': '#E63946'
+    'Tomat': '#C84C32'
   }
-  const fallbackColors = ['#C84C32', '#4A5B3A', '#8B3A62', '#D99B26', '#E07A5F', '#7E5A3C', '#E63946']
 
-  // Extract all commodity keys present in trends (excluding metadata fields)
   const allKeys = Object.keys(trends[0] || {}).filter(k => k !== 'month' && k !== 'volume_ton')
-  const keysToDisplay = (activeCommodities && activeCommodities.length > 0)
-    ? allKeys.filter(k => activeCommodities.includes(k))
-    : allKeys
+  const isMultiple = !activeCommodities || activeCommodities.length === 0 || activeCommodities.includes('Semua') || activeCommodities.includes('Semua Komoditas') || activeCommodities.length > 1
+  const keysToDisplay = isMultiple ? ['Rata-rata Komoditas'] : activeCommodities
 
-  const data: any[] = keysToDisplay.map((key, idx) => {
-    const color = keyColors[key] || fallbackColors[idx % fallbackColors.length]
-    return {
-      x: months,
-      y: trends.map(t => t[key] ?? 0),
+  const bgColor = isDarkMode ? '#1E293B' : 'transparent'
+  const textColor = isDarkMode ? '#E2E8F0' : '#231a10'
+  const gridColor = isDarkMode ? '#334155' : '#F0EDE6'
+
+  const data: any[] = []
+
+  if (viewMode === 'subplots') {
+    if (isMultiple) {
+      // Calculate average price across all commodities for each historical and projected month
+      const yHist = histTrends.map(t => {
+        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
+        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
+      })
+      const yProj = projTrends.map(t => {
+        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
+        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
+      })
+
+      const mainColor = '#E63946'
+
+      data.push({
+        x: histMonths,
+        y: yHist,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Rata-rata Harga (Historis)',
+        line: { color: mainColor, width: 3 },
+        marker: { size: 6, color: mainColor },
+        xaxis: 'x',
+        yaxis: 'y',
+        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+      })
+
+      if (projCount > 0) {
+        const yUpper = yProj.map((v, i) => i === 0 ? v : Math.round(v * 1.05))
+        const yLower = yProj.map((v, i) => i === 0 ? v : Math.round(v * 0.95))
+
+        data.push({
+          x: [...projMonths, ...projMonths.slice().reverse()],
+          y: [...yUpper, ...yLower.slice().reverse()],
+          fill: 'toself',
+          fillcolor: 'rgba(230, 57, 70, 0.15)',
+          line: { color: 'transparent' },
+          showlegend: false,
+          xaxis: 'x',
+          yaxis: 'y',
+          hoverinfo: 'skip'
+        })
+
+        data.push({
+          x: projMonths,
+          y: yProj,
+          type: 'scatter',
+          mode: 'lines+markers',
+          name: 'Proyeksi Rata-rata Harga',
+          line: { color: mainColor, width: 3, dash: 'dash' },
+          marker: { size: 7, symbol: 'diamond', color: mainColor },
+          xaxis: 'x',
+          yaxis: 'y',
+          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+        })
+      }
+    } else {
+      const key = keysToDisplay[0]
+      const mainColor = keyColors[key] || '#E63946'
+      const yHist = histTrends.map(t => t[key] ?? 0)
+      const yProj = projTrends.map(t => t[key] ?? 0)
+
+      data.push({
+        x: histMonths,
+        y: yHist,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: `${key} (Historis)`,
+        line: { color: mainColor, width: 3 },
+        marker: { size: 6, color: mainColor },
+        xaxis: 'x',
+        yaxis: 'y',
+        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+      })
+
+      if (projCount > 0) {
+        const yUpper = yProj.map((v, i) => i === 0 ? v : Math.round(v * 1.05))
+        const yLower = yProj.map((v, i) => i === 0 ? v : Math.round(v * 0.95))
+
+        data.push({
+          x: [...projMonths, ...projMonths.slice().reverse()],
+          y: [...yUpper, ...yLower.slice().reverse()],
+          fill: 'toself',
+          fillcolor: `${mainColor}26`,
+          line: { color: 'transparent' },
+          showlegend: false,
+          xaxis: 'x',
+          yaxis: 'y',
+          hoverinfo: 'skip'
+        })
+
+        data.push({
+          x: projMonths,
+          y: yProj,
+          type: 'scatter',
+          mode: 'lines+markers',
+          name: `${key} (Proyeksi)`,
+          line: { color: mainColor, width: 3, dash: 'dash' },
+          marker: { size: 7, symbol: 'diamond', color: mainColor },
+          xaxis: 'x',
+          yaxis: 'y',
+          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+        })
+      }
+    }
+
+    const volSource = volumeTrends && volumeTrends.length ? volumeTrends : trends
+    const volHistSource = volSource.slice(0, histCount)
+    const volProjSource = volSource.slice(histCount - 1)
+
+    const volHistMonths = volHistSource.map(v => formatMonth(v.month || ''))
+    const volProjMonths = volProjSource.map(v => formatMonth(v.month || ''))
+
+    const volHistValues = volHistSource.map(v => v.volume_ton ?? 350)
+    const volProjValues = volProjSource.map(v => v.volume_ton ?? 420)
+
+    data.push({
+      x: volHistMonths,
+      y: volHistValues,
       type: 'scatter',
       mode: 'lines+markers',
-      name: `${key} (Rp/kg)`,
-      line: { color, width: 2.5, shape: 'spline' },
-      marker: { size: 6, color },
-      hovertemplate: `<b>%{x}</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
+      name: 'Volume Historis',
+      line: { color: '#0D9488', width: 3 },
+      marker: { size: 6, color: '#0D9488' },
+      xaxis: 'x2',
+      yaxis: 'y2',
+      hovertemplate: '%{x}: %{y} Ton<extra></extra>'
+    })
+
+    if (projCount > 0) {
+      data.push({
+        x: volProjMonths,
+        y: volProjValues,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Proyeksi Volume',
+        line: { color: '#0D9488', width: 3, dash: 'dash' },
+        marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
+        xaxis: 'x2',
+        yaxis: 'y2',
+        hovertemplate: '%{x} (Proyeksi): %{y} Ton<extra></extra>'
+      })
     }
-  })
 
-  const volSource = volumeTrends && volumeTrends.length ? volumeTrends : trends
-  data.push({
-    x: volSource.map(v => {
-      const ym = v.month ?? v
-      if (typeof ym === 'string' && ym.includes('-')) {
-        const [, m] = ym.split('-')
-        return MONTH_ID[parseInt(m) - 1] ?? ym
+    const shapes: any[] = []
+    const annotations: any[] = []
+
+    if (projCount > 0 && projMonths.length > 1) {
+      shapes.push({
+        type: 'rect',
+        xref: 'x',
+        yref: 'paper',
+        x0: projMonths[0],
+        x1: projMonths[projMonths.length - 1],
+        y0: 0,
+        y1: 1,
+        fillcolor: 'rgba(245, 158, 11, 0.08)',
+        line: { width: 0 }
+      })
+
+      annotations.push({
+        xref: 'x',
+        yref: 'paper',
+        x: projMonths[0],
+        y: 0.95,
+        text: 'Zona Proyeksi',
+        showarrow: false,
+        font: { size: 11, color: '#D97706', weight: 'bold' },
+        bgcolor: '#FEF3C7',
+        borderpad: 4,
+        bordercolor: '#F59E0B'
+      })
+    }
+
+    return {
+      data,
+      layout: {
+        grid: { rows: 2, columns: 1, shared_xaxes: true, roworder: 'top to bottom' },
+        autosize: true,
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: bgColor,
+        font: { family: 'Plus Jakarta Sans, sans-serif', color: textColor },
+        margin: { l: 65, r: 40, t: 30, b: 40 },
+        hovermode: 'x unified',
+        showlegend: true,
+        legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } },
+        xaxis: { showgrid: true, gridcolor: gridColor },
+        yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
+        xaxis2: { showgrid: true, gridcolor: gridColor, matches: 'x' },
+        yaxis2: { title: { text: 'Volume (Ton)', font: { size: 11, color: '#0D9488' } }, gridcolor: gridColor, ticksuffix: ' Ton' },
+        shapes,
+        annotations
       }
-      return ym
-    }),
-    y: volSource.map(v => v.volume_ton ?? 300 + Math.round(Math.random() * 200)),
-    type: 'bar',
-    name: 'Volume Panen (Ton)',
-    yaxis: 'y2',
-    opacity: 0.25,
-    marker: { color: '#4A5B3A' },
-    hovertemplate: '<b>%{x}</b><br>Panen: %{y} Ton<extra></extra>'
-  })
+    }
+  } else {
+    if (isMultiple) {
+      const yHist = histTrends.map(t => {
+        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
+        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
+      })
+      const yProj = projTrends.map(t => {
+        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
+        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
+      })
 
-  return {
-    data,
-    layout: {
-      autosize: true,
-      margin: { l: 60, r: 50, t: 25, b: 100 },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent',
-      showlegend: true,
-      legend: {
-        orientation: 'h',
-        x: 0.5,
-        xanchor: 'center',
-        y: -0.3,
-        font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A3F35' }
-      },
-      xaxis: {
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#645d58' },
-        tickangle: -45,
-        automargin: true,
-        showgrid: true,
-        gridcolor: '#F2DFCF',
-        zeroline: false
-      },
-      yaxis: {
-        title: { text: 'Harga (Rp/kg)', font: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' } },
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#A8452A' },
-        automargin: true,
-        showgrid: true,
-        gridcolor: '#F2DFCF',
-        zeroline: false,
-        tickprefix: 'Rp '
-      },
-      yaxis2: {
-        title: { text: 'Volume (Ton)', font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' } },
-        tickfont: { family: 'Plus Jakarta Sans', size: 11, color: '#4A5B3A' },
-        automargin: true,
-        overlaying: 'y',
-        side: 'right',
-        showgrid: false,
-        zeroline: false,
-        ticksuffix: ' T'
-      },
-      hovermode: 'x unified',
-      hoverlabel: {
-        bgcolor: '#241F1B',
-        bordercolor: '#241F1B',
-        font: { family: 'Plus Jakarta Sans', color: '#FFFFFF', size: 12 }
-      },
-      font: { color: '#2C2622', family: 'Plus Jakarta Sans, sans-serif' }
+      const mainColor = '#E63946'
+
+      data.push({
+        x: histMonths,
+        y: yHist,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Rata-rata Harga (Historis)',
+        line: { color: mainColor, width: 3 },
+        marker: { size: 6, color: mainColor },
+        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+      })
+
+      if (projCount > 0) {
+        data.push({
+          x: projMonths,
+          y: yProj,
+          type: 'scatter',
+          mode: 'lines+markers',
+          name: 'Proyeksi Rata-rata Harga',
+          line: { color: mainColor, width: 3, dash: 'dash' },
+          marker: { size: 7, symbol: 'diamond', color: mainColor },
+          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+        })
+      }
+    } else {
+      const key = keysToDisplay[0]
+      const mainColor = keyColors[key] || '#E63946'
+      const yHist = histTrends.map(t => t[key] ?? 0)
+      const yProj = projTrends.map(t => t[key] ?? 0)
+
+      data.push({
+        x: histMonths,
+        y: yHist,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: `${key} (Harga)`,
+        line: { color: mainColor, width: 3 },
+        marker: { size: 6, color: mainColor },
+        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+      })
+
+      if (projCount > 0) {
+        data.push({
+          x: projMonths,
+          y: yProj,
+          type: 'scatter',
+          mode: 'lines+markers',
+          name: `${key} (Proyeksi)`,
+          line: { color: mainColor, width: 3, dash: 'dash' },
+          marker: { size: 7, symbol: 'diamond', color: mainColor },
+          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+        })
+      }
+    }
+
+    const volSource = volumeTrends && volumeTrends.length ? volumeTrends : trends
+    const volHistSource = volSource.slice(0, histCount)
+    const volProjSource = volSource.slice(histCount - 1)
+
+    const volHistMonths = volHistSource.map(v => formatMonth(v.month || ''))
+    const volProjMonths = volProjSource.map(v => formatMonth(v.month || ''))
+
+    const volHistValues = volHistSource.map(v => v.volume_ton ?? 350)
+    const volProjValues = volProjSource.map(v => v.volume_ton ?? 420)
+
+    data.push({
+      x: volHistMonths,
+      y: volHistValues,
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: 'Volume Historis',
+      yaxis: 'y2',
+      line: { color: '#0D9488', width: 3 },
+      marker: { size: 6, color: '#0D9488' },
+      hovertemplate: '%{x}: %{y} Ton<extra></extra>'
+    })
+
+    if (projCount > 0) {
+      data.push({
+        x: volProjMonths,
+        y: volProjValues,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: 'Volume Proyeksi',
+        yaxis: 'y2',
+        line: { color: '#0D9488', width: 3, dash: 'dash' },
+        marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
+        hovertemplate: '%{x} (Proyeksi): %{y} Ton<extra></extra>'
+      })
+    }
+
+    return {
+      data,
+      layout: {
+        autosize: true,
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: bgColor,
+        font: { family: 'Plus Jakarta Sans, sans-serif', color: textColor },
+        margin: { l: 65, r: 65, t: 30, b: 40 },
+        hovermode: 'x unified',
+        showlegend: true,
+        legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } },
+        xaxis: { showgrid: true, gridcolor: gridColor },
+        yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
+        yaxis2: { title: { text: 'Volume (Ton)', font: { size: 11, color: '#0D9488' } }, overlaying: 'y', side: 'right', showgrid: false, ticksuffix: ' Ton' }
+      }
     }
   }
 }
@@ -260,104 +510,104 @@ export { generatePlotlySchema }
 
 const FALLBACK_TRENDS = [
   // === 2022 ===
-  { month: '2022-01', 'Cabai Merah': 38200, 'Salak Pondoh': 42100, 'Padi': 4800, 'Jagung': 4200, 'Bawang Merah': 26500, 'Kacang Tanah': 19800 },
-  { month: '2022-02', 'Cabai Merah': 52400, 'Salak Pondoh': 45300, 'Padi': 4850, 'Jagung': 4300, 'Bawang Merah': 27200, 'Kacang Tanah': 20100 },
-  { month: '2022-03', 'Cabai Merah': 31600, 'Salak Pondoh': 38700, 'Padi': 4750, 'Jagung': 4150, 'Bawang Merah': 28100, 'Kacang Tanah': 19500 },
-  { month: '2022-04', 'Cabai Merah': 44800, 'Salak Pondoh': 36200, 'Padi': 4700, 'Jagung': 4400, 'Bawang Merah': 28800, 'Kacang Tanah': 20300 },
-  { month: '2022-05', 'Cabai Merah': 48500, 'Salak Pondoh': 33100, 'Padi': 4900, 'Jagung': 4600, 'Bawang Merah': 29500, 'Kacang Tanah': 20800 },
-  { month: '2022-06', 'Cabai Merah': 55200, 'Salak Pondoh': 39800, 'Padi': 4950, 'Jagung': 4350, 'Bawang Merah': 27800, 'Kacang Tanah': 20100 },
-  { month: '2022-07', 'Cabai Merah': 41300, 'Salak Pondoh': 44600, 'Padi': 4800, 'Jagung': 4250, 'Bawang Merah': 26900, 'Kacang Tanah': 19700 },
-  { month: '2022-08', 'Cabai Merah': 36100, 'Salak Pondoh': 48900, 'Padi': 4700, 'Jagung': 4500, 'Bawang Merah': 28500, 'Kacang Tanah': 20500 },
-  { month: '2022-09', 'Cabai Merah': 42700, 'Salak Pondoh': 46200, 'Padi': 4850, 'Jagung': 4400, 'Bawang Merah': 29200, 'Kacang Tanah': 20200 },
-  { month: '2022-10', 'Cabai Merah': 58900, 'Salak Pondoh': 41500, 'Padi': 4950, 'Jagung': 4550, 'Bawang Merah': 30100, 'Kacang Tanah': 20900 },
-  { month: '2022-11', 'Cabai Merah': 64300, 'Salak Pondoh': 38200, 'Padi': 5050, 'Jagung': 4650, 'Bawang Merah': 30800, 'Kacang Tanah': 21300 },
-  { month: '2022-12', 'Cabai Merah': 71500, 'Salak Pondoh': 35600, 'Padi': 5100, 'Jagung': 4700, 'Bawang Merah': 31500, 'Kacang Tanah': 21800 },
+  { month: '2022-01', 'Cabai Merah': 38200, 'Salak Pondoh': 42100, 'Padi': 4800, 'Jagung': 4200, 'Bawang Merah': 26500, 'Kacang Tanah': 19800, 'Tomat': 12500 },
+  { month: '2022-02', 'Cabai Merah': 52400, 'Salak Pondoh': 45300, 'Padi': 4850, 'Jagung': 4300, 'Bawang Merah': 27200, 'Kacang Tanah': 20100, 'Tomat': 13000 },
+  { month: '2022-03', 'Cabai Merah': 31600, 'Salak Pondoh': 38700, 'Padi': 4750, 'Jagung': 4150, 'Bawang Merah': 28100, 'Kacang Tanah': 19500, 'Tomat': 13500 },
+  { month: '2022-04', 'Cabai Merah': 44800, 'Salak Pondoh': 36200, 'Padi': 4700, 'Jagung': 4400, 'Bawang Merah': 28800, 'Kacang Tanah': 20300, 'Tomat': 14000 },
+  { month: '2022-05', 'Cabai Merah': 48500, 'Salak Pondoh': 33100, 'Padi': 4900, 'Jagung': 4600, 'Bawang Merah': 29500, 'Kacang Tanah': 20800, 'Tomat': 14500 },
+  { month: '2022-06', 'Cabai Merah': 55200, 'Salak Pondoh': 39800, 'Padi': 4950, 'Jagung': 4350, 'Bawang Merah': 27800, 'Kacang Tanah': 20100, 'Tomat': 12000 },
+  { month: '2022-07', 'Cabai Merah': 41300, 'Salak Pondoh': 44600, 'Padi': 4800, 'Jagung': 4250, 'Bawang Merah': 26900, 'Kacang Tanah': 19700, 'Tomat': 12500 },
+  { month: '2022-08', 'Cabai Merah': 36100, 'Salak Pondoh': 48900, 'Padi': 4700, 'Jagung': 4500, 'Bawang Merah': 28500, 'Kacang Tanah': 20500, 'Tomat': 13000 },
+  { month: '2022-09', 'Cabai Merah': 42700, 'Salak Pondoh': 46200, 'Padi': 4850, 'Jagung': 4400, 'Bawang Merah': 29200, 'Kacang Tanah': 20200, 'Tomat': 13500 },
+  { month: '2022-10', 'Cabai Merah': 58900, 'Salak Pondoh': 41500, 'Padi': 4950, 'Jagung': 4550, 'Bawang Merah': 30100, 'Kacang Tanah': 20900, 'Tomat': 14000 },
+  { month: '2022-11', 'Cabai Merah': 64300, 'Salak Pondoh': 38200, 'Padi': 5050, 'Jagung': 4650, 'Bawang Merah': 30800, 'Kacang Tanah': 21300, 'Tomat': 14500 },
+  { month: '2022-12', 'Cabai Merah': 71500, 'Salak Pondoh': 35600, 'Padi': 5100, 'Jagung': 4700, 'Bawang Merah': 31500, 'Kacang Tanah': 21800, 'Tomat': 12000 },
   // === 2023 ===
-  { month: '2023-01', 'Cabai Merah': 45200, 'Salak Pondoh': 47300, 'Padi': 5200, 'Jagung': 4700, 'Bawang Merah': 29000, 'Kacang Tanah': 21500 },
-  { month: '2023-02', 'Cabai Merah': 62800, 'Salak Pondoh': 52100, 'Padi': 5300, 'Jagung': 4800, 'Bawang Merah': 28500, 'Kacang Tanah': 22000 },
-  { month: '2023-03', 'Cabai Merah': 25400, 'Salak Pondoh': 28600, 'Padi': 5150, 'Jagung': 4650, 'Bawang Merah': 30200, 'Kacang Tanah': 21200 },
-  { month: '2023-04', 'Cabai Merah': 39800, 'Salak Pondoh': 33400, 'Padi': 5100, 'Jagung': 4900, 'Bawang Merah': 31500, 'Kacang Tanah': 22100 },
-  { month: '2023-05', 'Cabai Merah': 51200, 'Salak Pondoh': 30800, 'Padi': 5350, 'Jagung': 5100, 'Bawang Merah': 32800, 'Kacang Tanah': 22800 },
-  { month: '2023-06', 'Cabai Merah': 63500, 'Salak Pondoh': 37200, 'Padi': 5450, 'Jagung': 4950, 'Bawang Merah': 31200, 'Kacang Tanah': 22200 },
-  { month: '2023-07', 'Cabai Merah': 43100, 'Salak Pondoh': 43800, 'Padi': 5250, 'Jagung': 4850, 'Bawang Merah': 30100, 'Kacang Tanah': 21600 },
-  { month: '2023-08', 'Cabai Merah': 37500, 'Salak Pondoh': 51400, 'Padi': 5150, 'Jagung': 5050, 'Bawang Merah': 32100, 'Kacang Tanah': 22500 },
-  { month: '2023-09', 'Cabai Merah': 46800, 'Salak Pondoh': 49200, 'Padi': 5300, 'Jagung': 4900, 'Bawang Merah': 33200, 'Kacang Tanah': 22100 },
-  { month: '2023-10', 'Cabai Merah': 61200, 'Salak Pondoh': 44100, 'Padi': 5400, 'Jagung': 5100, 'Bawang Merah': 34100, 'Kacang Tanah': 23000 },
-  { month: '2023-11', 'Cabai Merah': 69800, 'Salak Pondoh': 40500, 'Padi': 5550, 'Jagung': 5200, 'Bawang Merah': 34800, 'Kacang Tanah': 23400 },
-  { month: '2023-12', 'Cabai Merah': 78200, 'Salak Pondoh': 37800, 'Padi': 5700, 'Jagung': 5250, 'Bawang Merah': 35500, 'Kacang Tanah': 23800 },
+  { month: '2023-01', 'Cabai Merah': 45200, 'Salak Pondoh': 47300, 'Padi': 5200, 'Jagung': 4700, 'Bawang Merah': 29000, 'Kacang Tanah': 21500, 'Tomat': 13500 },
+  { month: '2023-02', 'Cabai Merah': 62800, 'Salak Pondoh': 52100, 'Padi': 5300, 'Jagung': 4800, 'Bawang Merah': 28500, 'Kacang Tanah': 22000, 'Tomat': 14000 },
+  { month: '2023-03', 'Cabai Merah': 25400, 'Salak Pondoh': 28600, 'Padi': 5150, 'Jagung': 4650, 'Bawang Merah': 30200, 'Kacang Tanah': 21200, 'Tomat': 14500 },
+  { month: '2023-04', 'Cabai Merah': 39800, 'Salak Pondoh': 33400, 'Padi': 5100, 'Jagung': 4900, 'Bawang Merah': 31500, 'Kacang Tanah': 22100, 'Tomat': 15000 },
+  { month: '2023-05', 'Cabai Merah': 51200, 'Salak Pondoh': 30800, 'Padi': 5350, 'Jagung': 5100, 'Bawang Merah': 32800, 'Kacang Tanah': 22800, 'Tomat': 15500 },
+  { month: '2023-06', 'Cabai Merah': 63500, 'Salak Pondoh': 37200, 'Padi': 5450, 'Jagung': 4950, 'Bawang Merah': 31200, 'Kacang Tanah': 22200, 'Tomat': 13000 },
+  { month: '2023-07', 'Cabai Merah': 43100, 'Salak Pondoh': 43800, 'Padi': 5250, 'Jagung': 4850, 'Bawang Merah': 30100, 'Kacang Tanah': 21600, 'Tomat': 13500 },
+  { month: '2023-08', 'Cabai Merah': 37500, 'Salak Pondoh': 51400, 'Padi': 5150, 'Jagung': 5050, 'Bawang Merah': 32100, 'Kacang Tanah': 22500, 'Tomat': 14000 },
+  { month: '2023-09', 'Cabai Merah': 46800, 'Salak Pondoh': 49200, 'Padi': 5300, 'Jagung': 4900, 'Bawang Merah': 33200, 'Kacang Tanah': 22100, 'Tomat': 14500 },
+  { month: '2023-10', 'Cabai Merah': 61200, 'Salak Pondoh': 44100, 'Padi': 5400, 'Jagung': 5100, 'Bawang Merah': 34100, 'Kacang Tanah': 23000, 'Tomat': 15000 },
+  { month: '2023-11', 'Cabai Merah': 69800, 'Salak Pondoh': 40500, 'Padi': 5550, 'Jagung': 5200, 'Bawang Merah': 34800, 'Kacang Tanah': 23400, 'Tomat': 15500 },
+  { month: '2023-12', 'Cabai Merah': 78200, 'Salak Pondoh': 37800, 'Padi': 5700, 'Jagung': 5250, 'Bawang Merah': 35500, 'Kacang Tanah': 23800, 'Tomat': 13000 },
   // === 2024 ===
-  { month: '2024-01', 'Cabai Merah': 49957, 'Salak Pondoh': 50587, 'Padi': 5800, 'Jagung': 5200, 'Bawang Merah': 32000, 'Kacang Tanah': 24000 },
-  { month: '2024-02', 'Cabai Merah': 73305, 'Salak Pondoh': 74571, 'Padi': 5900, 'Jagung': 5300, 'Bawang Merah': 31000, 'Kacang Tanah': 24500 },
-  { month: '2024-03', 'Cabai Merah': 19110, 'Salak Pondoh': 22389, 'Padi': 5700, 'Jagung': 5150, 'Bawang Merah': 33500, 'Kacang Tanah': 22800 },
-  { month: '2024-04', 'Cabai Merah': 42500, 'Salak Pondoh': 31200, 'Padi': 5600, 'Jagung': 5500, 'Bawang Merah': 34000, 'Kacang Tanah': 23500 },
-  { month: '2024-05', 'Cabai Merah': 55800, 'Salak Pondoh': 28900, 'Padi': 5850, 'Jagung': 5800, 'Bawang Merah': 35500, 'Kacang Tanah': 24200 },
-  { month: '2024-06', 'Cabai Merah': 68200, 'Salak Pondoh': 35600, 'Padi': 5950, 'Jagung': 5450, 'Bawang Merah': 33800, 'Kacang Tanah': 23800 },
-  { month: '2024-07', 'Cabai Merah': 45300, 'Salak Pondoh': 42100, 'Padi': 5750, 'Jagung': 5350, 'Bawang Merah': 32200, 'Kacang Tanah': 23200 },
-  { month: '2024-08', 'Cabai Merah': 38700, 'Salak Pondoh': 55200, 'Padi': 5650, 'Jagung': 5600, 'Bawang Merah': 34500, 'Kacang Tanah': 24100 },
-  { month: '2024-09', 'Cabai Merah': 52100, 'Salak Pondoh': 52800, 'Padi': 5800, 'Jagung': 5400, 'Bawang Merah': 35200, 'Kacang Tanah': 23600 },
-  { month: '2024-10', 'Cabai Merah': 66400, 'Salak Pondoh': 47500, 'Padi': 5950, 'Jagung': 5600, 'Bawang Merah': 36100, 'Kacang Tanah': 24500 },
-  { month: '2024-11', 'Cabai Merah': 74800, 'Salak Pondoh': 43200, 'Padi': 6100, 'Jagung': 5700, 'Bawang Merah': 36800, 'Kacang Tanah': 24900 },
-  { month: '2024-12', 'Cabai Merah': 82100, 'Salak Pondoh': 40100, 'Padi': 6250, 'Jagung': 5800, 'Bawang Merah': 37500, 'Kacang Tanah': 25300 },
+  { month: '2024-01', 'Cabai Merah': 49957, 'Salak Pondoh': 50587, 'Padi': 5800, 'Jagung': 5200, 'Bawang Merah': 32000, 'Kacang Tanah': 24000, 'Tomat': 14500 },
+  { month: '2024-02', 'Cabai Merah': 73305, 'Salak Pondoh': 74571, 'Padi': 5900, 'Jagung': 5300, 'Bawang Merah': 31000, 'Kacang Tanah': 24500, 'Tomat': 15000 },
+  { month: '2024-03', 'Cabai Merah': 19110, 'Salak Pondoh': 22389, 'Padi': 5700, 'Jagung': 5150, 'Bawang Merah': 33500, 'Kacang Tanah': 22800, 'Tomat': 15500 },
+  { month: '2024-04', 'Cabai Merah': 42500, 'Salak Pondoh': 31200, 'Padi': 5600, 'Jagung': 5500, 'Bawang Merah': 34000, 'Kacang Tanah': 23500, 'Tomat': 16000 },
+  { month: '2024-05', 'Cabai Merah': 55800, 'Salak Pondoh': 28900, 'Padi': 5850, 'Jagung': 5800, 'Bawang Merah': 35500, 'Kacang Tanah': 24200, 'Tomat': 16500 },
+  { month: '2024-06', 'Cabai Merah': 68200, 'Salak Pondoh': 35600, 'Padi': 5950, 'Jagung': 5450, 'Bawang Merah': 33800, 'Kacang Tanah': 23800, 'Tomat': 14000 },
+  { month: '2024-07', 'Cabai Merah': 45300, 'Salak Pondoh': 42100, 'Padi': 5750, 'Jagung': 5350, 'Bawang Merah': 32200, 'Kacang Tanah': 23200, 'Tomat': 14500 },
+  { month: '2024-08', 'Cabai Merah': 38700, 'Salak Pondoh': 55200, 'Padi': 5650, 'Jagung': 5600, 'Bawang Merah': 34500, 'Kacang Tanah': 24100, 'Tomat': 15000 },
+  { month: '2024-09', 'Cabai Merah': 52100, 'Salak Pondoh': 52800, 'Padi': 5800, 'Jagung': 5400, 'Bawang Merah': 35200, 'Kacang Tanah': 23600, 'Tomat': 15500 },
+  { month: '2024-10', 'Cabai Merah': 66400, 'Salak Pondoh': 47500, 'Padi': 5950, 'Jagung': 5600, 'Bawang Merah': 36100, 'Kacang Tanah': 24500, 'Tomat': 16000 },
+  { month: '2024-11', 'Cabai Merah': 74800, 'Salak Pondoh': 43200, 'Padi': 6100, 'Jagung': 5700, 'Bawang Merah': 36800, 'Kacang Tanah': 24900, 'Tomat': 16500 },
+  { month: '2024-12', 'Cabai Merah': 82100, 'Salak Pondoh': 40100, 'Padi': 6250, 'Jagung': 5800, 'Bawang Merah': 37500, 'Kacang Tanah': 25300, 'Tomat': 14000 },
   // === 2025 ===
-  { month: '2025-01', 'Cabai Merah': 54200, 'Salak Pondoh': 55100, 'Padi': 6300, 'Jagung': 5700, 'Bawang Merah': 34500, 'Kacang Tanah': 25500 },
-  { month: '2025-02', 'Cabai Merah': 78500, 'Salak Pondoh': 78900, 'Padi': 6400, 'Jagung': 5800, 'Bawang Merah': 33800, 'Kacang Tanah': 26000 },
-  { month: '2025-03', 'Cabai Merah': 22300, 'Salak Pondoh': 25600, 'Padi': 6200, 'Jagung': 5650, 'Bawang Merah': 35800, 'Kacang Tanah': 24500 },
-  { month: '2025-04', 'Cabai Merah': 46700, 'Salak Pondoh': 34500, 'Padi': 6100, 'Jagung': 6000, 'Bawang Merah': 36500, 'Kacang Tanah': 25200 },
-  { month: '2025-05', 'Cabai Merah': 60100, 'Salak Pondoh': 31800, 'Padi': 6350, 'Jagung': 6300, 'Bawang Merah': 38200, 'Kacang Tanah': 25800 },
-  { month: '2025-06', 'Cabai Merah': 72400, 'Salak Pondoh': 38200, 'Padi': 6450, 'Jagung': 5950, 'Bawang Merah': 36500, 'Kacang Tanah': 25400 },
-  { month: '2025-07', 'Cabai Merah': 49800, 'Salak Pondoh': 45500, 'Padi': 6250, 'Jagung': 5850, 'Bawang Merah': 35000, 'Kacang Tanah': 24800 },
-  { month: '2025-08', 'Cabai Merah': 42100, 'Salak Pondoh': 58400, 'Padi': 6150, 'Jagung': 6100, 'Bawang Merah': 37200, 'Kacang Tanah': 25600 },
-  { month: '2025-09', 'Cabai Merah': 56300, 'Salak Pondoh': 55900, 'Padi': 6300, 'Jagung': 5900, 'Bawang Merah': 38000, 'Kacang Tanah': 25100 },
-  { month: '2025-10', 'Cabai Merah': 70100, 'Salak Pondoh': 50200, 'Padi': 6450, 'Jagung': 6100, 'Bawang Merah': 39000, 'Kacang Tanah': 26100 },
-  { month: '2025-11', 'Cabai Merah': 79500, 'Salak Pondoh': 46800, 'Padi': 6600, 'Jagung': 6200, 'Bawang Merah': 39800, 'Kacang Tanah': 26500 },
-  { month: '2025-12', 'Cabai Merah': 87200, 'Salak Pondoh': 43500, 'Padi': 6750, 'Jagung': 6300, 'Bawang Merah': 40500, 'Kacang Tanah': 26900 },
+  { month: '2025-01', 'Cabai Merah': 54200, 'Salak Pondoh': 55100, 'Padi': 6300, 'Jagung': 5700, 'Bawang Merah': 34500, 'Kacang Tanah': 25500, 'Tomat': 15500 },
+  { month: '2025-02', 'Cabai Merah': 78500, 'Salak Pondoh': 78900, 'Padi': 6400, 'Jagung': 5800, 'Bawang Merah': 33800, 'Kacang Tanah': 26000, 'Tomat': 16000 },
+  { month: '2025-03', 'Cabai Merah': 22300, 'Salak Pondoh': 25600, 'Padi': 6200, 'Jagung': 5650, 'Bawang Merah': 35800, 'Kacang Tanah': 24500, 'Tomat': 16500 },
+  { month: '2025-04', 'Cabai Merah': 46700, 'Salak Pondoh': 34500, 'Padi': 6100, 'Jagung': 6000, 'Bawang Merah': 36500, 'Kacang Tanah': 25200, 'Tomat': 17000 },
+  { month: '2025-05', 'Cabai Merah': 60100, 'Salak Pondoh': 31800, 'Padi': 6350, 'Jagung': 6300, 'Bawang Merah': 38200, 'Kacang Tanah': 25800, 'Tomat': 17500 },
+  { month: '2025-06', 'Cabai Merah': 72400, 'Salak Pondoh': 38200, 'Padi': 6450, 'Jagung': 5950, 'Bawang Merah': 36500, 'Kacang Tanah': 25400, 'Tomat': 15000 },
+  { month: '2025-07', 'Cabai Merah': 49800, 'Salak Pondoh': 45500, 'Padi': 6250, 'Jagung': 5850, 'Bawang Merah': 35000, 'Kacang Tanah': 24800, 'Tomat': 15500 },
+  { month: '2025-08', 'Cabai Merah': 42100, 'Salak Pondoh': 58400, 'Padi': 6150, 'Jagung': 6100, 'Bawang Merah': 37200, 'Kacang Tanah': 25600, 'Tomat': 16000 },
+  { month: '2025-09', 'Cabai Merah': 56300, 'Salak Pondoh': 55900, 'Padi': 6300, 'Jagung': 5900, 'Bawang Merah': 38000, 'Kacang Tanah': 25100, 'Tomat': 16500 },
+  { month: '2025-10', 'Cabai Merah': 70100, 'Salak Pondoh': 50200, 'Padi': 6450, 'Jagung': 6100, 'Bawang Merah': 39000, 'Kacang Tanah': 26100, 'Tomat': 17000 },
+  { month: '2025-11', 'Cabai Merah': 79500, 'Salak Pondoh': 46800, 'Padi': 6600, 'Jagung': 6200, 'Bawang Merah': 39800, 'Kacang Tanah': 26500, 'Tomat': 17500 },
+  { month: '2025-12', 'Cabai Merah': 87200, 'Salak Pondoh': 43500, 'Padi': 6750, 'Jagung': 6300, 'Bawang Merah': 40500, 'Kacang Tanah': 26900, 'Tomat': 15000 },
   // === 2026 (Jan – Sep) ===
-  { month: '2026-01', 'Cabai Merah': 58900, 'Salak Pondoh': 59200, 'Padi': 6800, 'Jagung': 6200, 'Bawang Merah': 37200, 'Kacang Tanah': 27100 },
-  { month: '2026-02', 'Cabai Merah': 84200, 'Salak Pondoh': 83500, 'Padi': 6900, 'Jagung': 6300, 'Bawang Merah': 36500, 'Kacang Tanah': 27600 },
-  { month: '2026-03', 'Cabai Merah': 26500, 'Salak Pondoh': 29800, 'Padi': 6700, 'Jagung': 6150, 'Bawang Merah': 38500, 'Kacang Tanah': 26200 },
-  { month: '2026-04', 'Cabai Merah': 50800, 'Salak Pondoh': 37900, 'Padi': 6600, 'Jagung': 6500, 'Bawang Merah': 39200, 'Kacang Tanah': 26800 },
-  { month: '2026-05', 'Cabai Merah': 64500, 'Salak Pondoh': 35200, 'Padi': 6850, 'Jagung': 6800, 'Bawang Merah': 41000, 'Kacang Tanah': 27500 },
-  { month: '2026-06', 'Cabai Merah': 77800, 'Salak Pondoh': 41500, 'Padi': 6950, 'Jagung': 6450, 'Bawang Merah': 39500, 'Kacang Tanah': 27100 },
-  { month: '2026-07', 'Cabai Merah': 53200, 'Salak Pondoh': 49100, 'Padi': 6750, 'Jagung': 6350, 'Bawang Merah': 38000, 'Kacang Tanah': 26500 },
-  { month: '2026-08', 'Cabai Merah': 46500, 'Salak Pondoh': 62300, 'Padi': 6650, 'Jagung': 6600, 'Bawang Merah': 40200, 'Kacang Tanah': 27300 },
-  { month: '2026-09', 'Cabai Merah': 61800, 'Salak Pondoh': 59500, 'Padi': 6800, 'Jagung': 6400, 'Bawang Merah': 41200, 'Kacang Tanah': 26800 }
+  { month: '2026-01', 'Cabai Merah': 58900, 'Salak Pondoh': 59200, 'Padi': 6800, 'Jagung': 6200, 'Bawang Merah': 37200, 'Kacang Tanah': 27100, 'Tomat': 16500 },
+  { month: '2026-02', 'Cabai Merah': 84200, 'Salak Pondoh': 83500, 'Padi': 6900, 'Jagung': 6300, 'Bawang Merah': 36500, 'Kacang Tanah': 27600, 'Tomat': 17000 },
+  { month: '2026-03', 'Cabai Merah': 26500, 'Salak Pondoh': 29800, 'Padi': 6700, 'Jagung': 6150, 'Bawang Merah': 38500, 'Kacang Tanah': 26200, 'Tomat': 17500 },
+  { month: '2026-04', 'Cabai Merah': 50800, 'Salak Pondoh': 37900, 'Padi': 6600, 'Jagung': 6500, 'Bawang Merah': 39200, 'Kacang Tanah': 26800, 'Tomat': 18000 },
+  { month: '2026-05', 'Cabai Merah': 64500, 'Salak Pondoh': 35200, 'Padi': 6850, 'Jagung': 6800, 'Bawang Merah': 41000, 'Kacang Tanah': 27500, 'Tomat': 18500 },
+  { month: '2026-06', 'Cabai Merah': 77800, 'Salak Pondoh': 41500, 'Padi': 6950, 'Jagung': 6450, 'Bawang Merah': 39500, 'Kacang Tanah': 27100, 'Tomat': 16000 },
+  { month: '2026-07', 'Cabai Merah': 53200, 'Salak Pondoh': 49100, 'Padi': 6750, 'Jagung': 6350, 'Bawang Merah': 38000, 'Kacang Tanah': 26500, 'Tomat': 16500 },
+  { month: '2026-08', 'Cabai Merah': 46500, 'Salak Pondoh': 62300, 'Padi': 6650, 'Jagung': 6600, 'Bawang Merah': 40200, 'Kacang Tanah': 27300, 'Tomat': 17000 },
+  { month: '2026-09', 'Cabai Merah': 61800, 'Salak Pondoh': 59500, 'Padi': 6800, 'Jagung': 6400, 'Bawang Merah': 41200, 'Kacang Tanah': 26800, 'Tomat': 17500 }
 ]
 
 const FALLBACK_VOLUME = [
   // 2022
-  { month: '2022-01', volume_ton: 245 }, { month: '2022-02', volume_ton: 280 },
-  { month: '2022-03', volume_ton: 310 }, { month: '2022-04', volume_ton: 275 },
-  { month: '2022-05', volume_ton: 230 }, { month: '2022-06', volume_ton: 210 },
-  { month: '2022-07', volume_ton: 255 }, { month: '2022-08', volume_ton: 270 },
-  { month: '2022-09', volume_ton: 295 }, { month: '2022-10', volume_ton: 325 },
-  { month: '2022-11', volume_ton: 340 }, { month: '2022-12', volume_ton: 310 },
+  { month: '2022-01', volume_ton: 245, 'Tomat': 12500 }, { month: '2022-02', volume_ton: 280, 'Tomat': 13000 },
+  { month: '2022-03', volume_ton: 310, 'Tomat': 13500 }, { month: '2022-04', volume_ton: 275, 'Tomat': 14000 },
+  { month: '2022-05', volume_ton: 230, 'Tomat': 14500 }, { month: '2022-06', volume_ton: 210, 'Tomat': 12000 },
+  { month: '2022-07', volume_ton: 255, 'Tomat': 12500 }, { month: '2022-08', volume_ton: 270, 'Tomat': 13000 },
+  { month: '2022-09', volume_ton: 295, 'Tomat': 13500 }, { month: '2022-10', volume_ton: 325, 'Tomat': 14000 },
+  { month: '2022-11', volume_ton: 340, 'Tomat': 14500 }, { month: '2022-12', volume_ton: 310, 'Tomat': 12000 },
   // 2023
-  { month: '2023-01', volume_ton: 280 }, { month: '2023-02', volume_ton: 330 },
-  { month: '2023-03', volume_ton: 365 }, { month: '2023-04', volume_ton: 310 },
-  { month: '2023-05', volume_ton: 260 }, { month: '2023-06', volume_ton: 235 },
-  { month: '2023-07', volume_ton: 285 }, { month: '2023-08', volume_ton: 305 },
-  { month: '2023-09', volume_ton: 335 }, { month: '2023-10', volume_ton: 360 },
-  { month: '2023-11', volume_ton: 380 }, { month: '2023-12', volume_ton: 350 },
+  { month: '2023-01', volume_ton: 280, 'Tomat': 13500 }, { month: '2023-02', volume_ton: 330, 'Tomat': 14000 },
+  { month: '2023-03', volume_ton: 365, 'Tomat': 14500 }, { month: '2023-04', volume_ton: 310, 'Tomat': 15000 },
+  { month: '2023-05', volume_ton: 260, 'Tomat': 15500 }, { month: '2023-06', volume_ton: 235, 'Tomat': 13000 },
+  { month: '2023-07', volume_ton: 285, 'Tomat': 13500 }, { month: '2023-08', volume_ton: 305, 'Tomat': 14000 },
+  { month: '2023-09', volume_ton: 335, 'Tomat': 14500 }, { month: '2023-10', volume_ton: 360, 'Tomat': 15000 },
+  { month: '2023-11', volume_ton: 380, 'Tomat': 15500 }, { month: '2023-12', volume_ton: 350, 'Tomat': 13000 },
   // 2024
-  { month: '2024-01', volume_ton: 320 }, { month: '2024-02', volume_ton: 380 },
-  { month: '2024-03', volume_ton: 410 }, { month: '2024-04', volume_ton: 350 },
-  { month: '2024-05', volume_ton: 290 }, { month: '2024-06', volume_ton: 260 },
-  { month: '2024-07', volume_ton: 315 }, { month: '2024-08', volume_ton: 340 },
-  { month: '2024-09', volume_ton: 370 }, { month: '2024-10', volume_ton: 395 },
-  { month: '2024-11', volume_ton: 415 }, { month: '2024-12', volume_ton: 385 },
+  { month: '2024-01', volume_ton: 320, 'Tomat': 14500 }, { month: '2024-02', volume_ton: 380, 'Tomat': 15000 },
+  { month: '2024-03', volume_ton: 410, 'Tomat': 15500 }, { month: '2024-04', volume_ton: 350, 'Tomat': 16000 },
+  { month: '2024-05', volume_ton: 290, 'Tomat': 16500 }, { month: '2024-06', volume_ton: 260, 'Tomat': 14000 },
+  { month: '2024-07', volume_ton: 315, 'Tomat': 14500 }, { month: '2024-08', volume_ton: 340, 'Tomat': 15000 },
+  { month: '2024-09', volume_ton: 370, 'Tomat': 15500 }, { month: '2024-10', volume_ton: 395, 'Tomat': 16000 },
+  { month: '2024-11', volume_ton: 415, 'Tomat': 16500 }, { month: '2024-12', volume_ton: 385, 'Tomat': 14000 },
   // 2025
-  { month: '2025-01', volume_ton: 355 }, { month: '2025-02', volume_ton: 420 },
-  { month: '2025-03', volume_ton: 450 }, { month: '2025-04', volume_ton: 385 },
-  { month: '2025-05', volume_ton: 320 }, { month: '2025-06', volume_ton: 290 },
-  { month: '2025-07', volume_ton: 345 }, { month: '2025-08', volume_ton: 375 },
-  { month: '2025-09', volume_ton: 405 }, { month: '2025-10', volume_ton: 430 },
-  { month: '2025-11', volume_ton: 455 }, { month: '2025-12', volume_ton: 420 },
+  { month: '2025-01', volume_ton: 355, 'Tomat': 15500 }, { month: '2025-02', volume_ton: 420, 'Tomat': 16000 },
+  { month: '2025-03', volume_ton: 450, 'Tomat': 16500 }, { month: '2025-04', volume_ton: 385, 'Tomat': 17000 },
+  { month: '2025-05', volume_ton: 320, 'Tomat': 17500 }, { month: '2025-06', volume_ton: 290, 'Tomat': 15000 },
+  { month: '2025-07', volume_ton: 345, 'Tomat': 15500 }, { month: '2025-08', volume_ton: 375, 'Tomat': 16000 },
+  { month: '2025-09', volume_ton: 405, 'Tomat': 16500 }, { month: '2025-10', volume_ton: 430, 'Tomat': 17000 },
+  { month: '2025-11', volume_ton: 455, 'Tomat': 17500 }, { month: '2025-12', volume_ton: 420, 'Tomat': 15000 },
   // 2026
-  { month: '2026-01', volume_ton: 390 }, { month: '2026-02', volume_ton: 460 },
-  { month: '2026-03', volume_ton: 495 }, { month: '2026-04', volume_ton: 425 },
-  { month: '2026-05', volume_ton: 355 }, { month: '2026-06', volume_ton: 320 },
-  { month: '2026-07', volume_ton: 380 }, { month: '2026-08', volume_ton: 410 },
-  { month: '2026-09', volume_ton: 440 }
+  { month: '2026-01', volume_ton: 390, 'Tomat': 16500 }, { month: '2026-02', volume_ton: 460, 'Tomat': 17000 },
+  { month: '2026-03', volume_ton: 495, 'Tomat': 17500 }, { month: '2026-04', volume_ton: 425, 'Tomat': 18000 },
+  { month: '2026-05', volume_ton: 355, 'Tomat': 18500 }, { month: '2026-06', volume_ton: 320, 'Tomat': 16000 },
+  { month: '2026-07', volume_ton: 380, 'Tomat': 16500 }, { month: '2026-08', volume_ton: 410, 'Tomat': 17000 },
+  { month: '2026-09', volume_ton: 440, 'Tomat': 17500 }
 ]
 
 // ============================================================

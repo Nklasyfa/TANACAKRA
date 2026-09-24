@@ -75,20 +75,19 @@ const items = [
           <span class="material-symbols-outlined text-[20px]" :class="isActive(item.to) ? 'text-[#d5e9c3]' : 'opacity-80'">{{ item.icon }}</span>
           <span>{{ item.label }}</span>
         </router-link>
-
-        <button
-          @click="isNotifOpen = true"
-          class="flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-[14px] text-[#5C4A32] font-medium hover:bg-[#F2EBDC] hover:text-[#231a10] transition-colors cursor-pointer"
-        >
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-[20px]">notifications</span>
-            <span>Pemberitahuan</span>
-          </div>
-          <span v-if="unreadCount > 0" class="px-2 py-0.5 rounded-full bg-[#A8452A] text-white text-[10px] font-bold">
-            {{ unreadCount }}
-          </span>
-        </button>
       </nav>
+    </div>
+
+    <!-- Desktop Floating Notification Button -->
+    <div class="hidden md:flex fixed top-6 right-8 z-50">
+      <button
+        @click="isNotifOpen = true"
+        class="relative w-11 h-11 flex items-center justify-center rounded-full bg-white border border-[#E2D8C7] text-[#4A3F35] shadow-sm hover:shadow hover:text-[#A8452A] transition-all cursor-pointer group"
+        aria-label="Pemberitahuan"
+      >
+        <span class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">notifications</span>
+        <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A] ring-2 ring-white"></span>
+      </button>
     </div>
 
     <!-- Notification Modal -->

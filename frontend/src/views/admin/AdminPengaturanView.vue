@@ -177,7 +177,7 @@ onMounted(async () => {
       <div class="p-4 md:p-8 max-w-[1000px] mx-auto flex flex-col gap-6">
 
       <!-- Header Baris Atas -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:pr-14">
         <div class="flex flex-col gap-1 max-w-3xl">
           <span class="text-[11px] font-bold uppercase tracking-wider text-[#A8452A]">Konfigurasi Konsol Inti</span>
           <h1 class="font-display text-2xl md:text-3xl font-bold text-[#231a10] tracking-tight">Pengaturan Sistem</h1>

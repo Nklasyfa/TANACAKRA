@@ -504,7 +504,7 @@ watch(
       <div class="max-w-[1200px] mx-auto w-full p-4 md:pt-8 md:p-8">
 
         <!-- Content Header (Desktop) -->
-        <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <header class="hidden md:flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:pr-14">
           <div>
             <h2 class="text-2xl md:text-[28px] font-bold text-[#231a10] tracking-tight">Manajemen Lahan Pertanian</h2>
             <p class="text-[13px] text-[#645d58] mt-1">Inventarisasi {{ lahanList.length }} petak lahan lereng Merapi dan tata kelola pipeline data tanah.</p>
