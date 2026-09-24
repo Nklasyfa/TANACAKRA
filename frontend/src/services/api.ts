@@ -99,6 +99,7 @@ const DESA_COORDS: Record<string, [number, number]> = {
 }
 
 function generateFallbackLahan() {
+  const COMMODITIES = ['Cabai Merah', 'Jagung', 'Salak Pondoh', 'Tomat', 'Bawang Merah', 'Padi']
   return Array.from({ length: 108 }, (_, i) => {
     const desa = DESA_LIST[i % 5]
     const [baseLat, baseLng] = DESA_COORDS[desa]
@@ -113,11 +114,13 @@ function generateFallbackLahan() {
       'Blok G - Kebun Salak'
     ]
     const fieldName = sampleFieldNames[i % sampleFieldNames.length]
+    const commodity = COMMODITIES[i % COMMODITIES.length]
     return {
       id: i + 1,
       input_parameters: {
         farm_id: 'CGK' + String(i + 1).padStart(3, '0'),
         field_name: fieldName,
+        komoditas: commodity,
         desa,
         soil_type: 'Regosol Vulkanik',
         soil_ph: ph,
@@ -127,6 +130,10 @@ function generateFallbackLahan() {
         irrigation: ['Tadah Hujan', 'Semi-Teknis', 'Teknis'][i % 3],
         latitude: baseLat + (Math.random() - 0.5) * 0.025,
         longitude: baseLng + (Math.random() - 0.5) * 0.025
+      },
+      planting_info: {
+        commodity: commodity,
+        variety: i % 2 === 0 ? 'Lokal Cangkringan' : 'Unggul Merapi'
       },
       created_at: new Date(2024, i % 12, 1 + (i % 28)).toISOString()
     }

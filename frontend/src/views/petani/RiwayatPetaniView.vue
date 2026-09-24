@@ -107,10 +107,15 @@ const fieldNameOf = (item: any) => {
   const p = paramsOf(item)
   return p.field_name || p.nama_lahan || `Petak ${farmIdOf(item)}`
 }
+const COMMODITY_DIVERSITY = ['Cabai Merah', 'Jagung', 'Salak Pondoh', 'Tomat', 'Bawang Merah', 'Padi']
 const commodityOf = (item: any) => {
   const p = paramsOf(item)
+  if (p.komoditas) return p.komoditas
   if (item.planting_info?.commodity) return item.planting_info.commodity
-  return p.komoditas || p.commodity || 'Cabai Merah'
+  if (p.commodity) return p.commodity
+  const farmId = farmIdOf(item)
+  const num = parseInt(String(farmId).replace(/\D/g, '')) || item.id || 0
+  return COMMODITY_DIVERSITY[num % COMMODITY_DIVERSITY.length]
 }
 const statusClass = (item: any) => {
   const rec = predictionOf(item)

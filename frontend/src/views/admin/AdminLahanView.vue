@@ -230,6 +230,18 @@ const submitSample = async () => {
 const DESA_OPTIONS = ['Wukirsari', 'Argomulyo', 'Umbulharjo', 'Kepuharjo', 'Glagaharjo']
 const IRIGASI_OPTIONS = ['Tadah Hujan', 'Semi-Teknis', 'Teknis']
 const SOIL_OPTIONS = ['Regosol Vulkanik', 'Andosol', 'Mediteran', 'Grumusol', 'Aluvial']
+const COMMODITY_OPTIONS = ['Cabai Merah', 'Jagung', 'Salak Pondoh', 'Tomat', 'Bawang Merah', 'Padi']
+
+const commodityOf = (item: any) => {
+  if (!item) return 'Cabai Merah'
+  const p = item.input_parameters || {}
+  if (p.komoditas) return p.komoditas
+  if (item.planting_info?.commodity) return item.planting_info.commodity
+  if (p.commodity) return p.commodity
+  const num = parseInt(String(p.farm_id || '').replace(/\D/g, '')) || item.id || 0
+  return COMMODITY_OPTIONS[num % COMMODITY_OPTIONS.length]
+}
+
 const isEditOpen = ref(false)
 const isSavingEdit = ref(false)
 const isDeleting = ref(false)
@@ -243,6 +255,7 @@ const openEdit = (item: any) => {
   editForm.value = {
     farm_id: p.farm_id || ('LHN-' + item.id),
     field_name: p.field_name || '',
+    komoditas: p.komoditas || item.planting_info?.commodity || commodityOf(item),
     desa: p.desa || 'Wukirsari',
     soil_type: p.soil_type || 'Regosol Vulkanik',
     soil_ph: parseFloat(p.soil_ph || p.pH || 6.5),
@@ -564,7 +577,7 @@ watch(
                   <td class="py-3 px-4">
                     <div class="font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</div>
                     <div class="text-[10px] mt-0.5 text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded inline-flex items-center gap-1 w-fit border border-[#D2DEC0]">
-                      <span class="material-symbols-outlined text-[10px]">eco</span> {{ item.input_parameters?.komoditas || item.planting_info?.commodity || 'Cabai Merah' }}
+                      <span class="material-symbols-outlined text-[10px]">eco</span> {{ commodityOf(item) }}
                     </div>
                   </td>
                   <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
@@ -721,11 +734,11 @@ watch(
 
         <div class="flex-1 overflow-y-auto p-4 md:p-5 space-y-4 text-xs md:text-sm">
           <div class="bg-[#FFF1E6] p-3 rounded-lg border border-[#F2DFCF] space-y-2">
-            <div v-if="selectedLahan.planting_info" class="flex justify-between border-b border-[#F2DFCF] pb-2 mb-2">
+            <div class="flex justify-between border-b border-[#F2DFCF] pb-2 mb-2">
               <span class="text-[#645d58]">Komoditas Tanam:</span>
               <span class="font-semibold text-[#3A4A2E] flex items-center gap-1">
                 <span class="material-symbols-outlined text-[14px]">eco</span>
-                {{ selectedLahan.planting_info.commodity }} {{ selectedLahan.planting_info.variety ? `(${selectedLahan.planting_info.variety})` : '' }}
+                {{ commodityOf(selectedLahan) }} {{ selectedLahan.planting_info?.variety ? `(${selectedLahan.planting_info.variety})` : '' }}
               </span>
             </div>
             <div class="flex justify-between"><span class="text-[#645d58]">Tipe Tanah:</span><span class="font-semibold text-[#231a10]">{{ selectedLahan.input_parameters?.soil_type || 'Regosol Vulkanik' }}</span></div>
@@ -777,6 +790,12 @@ watch(
             <div>
               <label class="block text-xs font-bold text-[#231a10] mb-1.5">Nama Blok / Petak</label>
               <input v-model="editForm.field_name" type="text" placeholder="contoh: Blok A - Rojolele" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Komoditas Tanam</label>
+              <select v-model="editForm.komoditas" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
+                <option v-for="c in COMMODITY_OPTIONS" :key="c" :value="c">{{ c }}</option>
+              </select>
             </div>
             <div>
               <label class="block text-xs font-bold text-[#231a10] mb-1.5">Desa</label>
