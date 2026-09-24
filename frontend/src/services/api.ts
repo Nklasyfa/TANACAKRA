@@ -46,6 +46,7 @@ export interface LandInputPayload {
   nitrogen: number
   fosfor: number
   kalium: number
+  komoditas?: string
 }
 
 export function downloadCsv(filename: string, rows: Record<string, any>[]) {

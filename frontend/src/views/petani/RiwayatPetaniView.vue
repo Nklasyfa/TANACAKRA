@@ -107,6 +107,11 @@ const fieldNameOf = (item: any) => {
   const p = paramsOf(item)
   return p.field_name || p.nama_lahan || `Petak ${farmIdOf(item)}`
 }
+const commodityOf = (item: any) => {
+  const p = paramsOf(item)
+  if (item.planting_info?.commodity) return item.planting_info.commodity
+  return p.komoditas || p.commodity || 'Cabai Merah'
+}
 const statusClass = (item: any) => {
   const rec = predictionOf(item)
   if (rec?.status_kesehatan) {
@@ -307,10 +312,9 @@ const saveEdit = async () => {
                       </span>
                       <span>&bull; Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
                     </div>
-                    <div v-if="item.planting_info" class="mt-1 flex items-center gap-1 text-[11px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
+                    <div class="mt-1 flex items-center gap-1 text-[11px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
                       <span class="material-symbols-outlined text-[12px]">eco</span>
-                      <span class="font-semibold">{{ item.planting_info.commodity }}</span>
-                      <span v-if="item.planting_info.variety" class="italic">({{ item.planting_info.variety }})</span>
+                      <span class="font-semibold">Komoditas: {{ commodityOf(item) }}</span>
                     </div>
                   </td>
                   <td class="py-3 px-4 tabular-nums">
@@ -390,10 +394,9 @@ const saveEdit = async () => {
                   <span class="text-[11px] text-[#645d58]">Desa {{ paramsOf(item).desa || 'Cangkringan' }}</span>
                 </div>
                 <h3 class="font-bold text-[14px] text-[#241F1B] leading-snug">{{ fieldNameOf(item) }}</h3>
-                <div v-if="item.planting_info" class="mt-1 mb-1.5 flex items-center gap-1 text-[10px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
+                <div class="mt-1 mb-1.5 flex items-center gap-1 text-[10px] text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded border border-[#D2DEC0] w-fit">
                   <span class="material-symbols-outlined text-[11px]">eco</span>
-                  <span class="font-semibold">{{ item.planting_info.commodity }}</span>
-                  <span v-if="item.planting_info.variety" class="italic">({{ item.planting_info.variety }})</span>
+                  <span class="font-semibold">Komoditas: {{ commodityOf(item) }}</span>
                 </div>
                 <div class="text-[11px] text-[#645d58] font-medium flex items-center gap-1 mt-1 tabular-nums">
                   <span class="material-symbols-outlined text-[13px] text-[#A8452A]">calendar_today</span>

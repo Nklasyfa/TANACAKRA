@@ -20,6 +20,7 @@ const currentStep = ref<1 | 2 | 3 | 'loading' | 'success'>(1)
 const fieldName = ref('Blok A - Rojolele')
 const fieldArea = ref(1200)
 const selectedFarmId = ref('CGK001')
+const selectedCommodity = ref<'Cabai Merah' | 'Jagung' | 'Salak Pondoh' | 'Tomat' | 'Bawang Merah' | 'Padi'>('Cabai Merah')
 const availableFarms = ref<any[]>([])
 
 // Map & Geolocation state
@@ -241,7 +242,7 @@ const submitData = async () => {
   plotlySchema.value = null
 
   const moistureMap = { Kering: 30, Lembab: 55, Basah: 80 }
-  const payload: LandInputPayload & { kondisi_tanah: string; field_name: string; area_sqm: number; latitude: number; longitude: number } = {
+  const payload: LandInputPayload & { kondisi_tanah: string; field_name: string; area_sqm: number; latitude: number; longitude: number; komoditas: string } = {
     pH: parseFloat(phValue.value.toString()),
     kelembapan: moistureMap[kondisiTanah.value],
     nitrogen: parseInt(nValue.value.toString()),
@@ -251,7 +252,8 @@ const submitData = async () => {
     field_name: fieldName.value,
     area_sqm: fieldArea.value,
     latitude: coords.value.lat,
-    longitude: coords.value.lng
+    longitude: coords.value.lng,
+    komoditas: selectedCommodity.value
   }
 
   // Trigger real backend call with responsive progress feedback
@@ -423,21 +425,52 @@ const resetForm = () => {
                 </div>
               </div>
 
-              <!-- Input Luas Lahan -->
-              <div class="space-y-1.5">
-                <label for="field_area" class="text-xs text-[#241F1B] block font-bold">
-                  Luas lahan (m²) <span class="text-[#A8452A]">*</span>
-                </label>
-                <div class="relative flex items-center">
-                  <input
-                    id="field_area"
-                    v-model.number="fieldArea"
-                    type="number"
-                    placeholder="1200"
-                    class="w-full h-11 pl-3.5 pr-12 bg-[#F9F7F4] text-[#241F1B] text-sm font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
-                  />
-                  <span class="absolute right-3.5 text-[#7E7063] text-xs font-bold pointer-events-none">m²</span>
+              <!-- Input Luas Lahan & Komoditas Ditanam -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                  <label for="field_area" class="text-xs text-[#241F1B] block font-bold">
+                    Luas lahan (m²) <span class="text-[#A8452A]">*</span>
+                  </label>
+                  <div class="relative flex items-center">
+                    <input
+                      id="field_area"
+                      v-model.number="fieldArea"
+                      type="number"
+                      placeholder="1200"
+                      class="w-full h-11 pl-3.5 pr-12 bg-[#F9F7F4] text-[#241F1B] text-sm font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
+                    />
+                    <span class="absolute right-3.5 text-[#7E7063] text-xs font-bold pointer-events-none">m²</span>
+                  </div>
                 </div>
+
+                <div class="space-y-1.5">
+                  <label for="commodity_type" class="text-xs text-[#241F1B] block font-bold">
+                    Komoditas yang Ditanam <span class="text-[#A8452A]">*</span>
+                  </label>
+                  <select
+                    id="commodity_type"
+                    v-model="selectedCommodity"
+                    class="w-full h-11 px-3.5 bg-[#F9F7F4] text-[#241F1B] text-sm font-bold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition appearance-none cursor-pointer"
+                  >
+                    <option value="Cabai Merah">🌶️ Cabai Merah</option>
+                    <option value="Jagung">🌽 Jagung</option>
+                    <option value="Salak Pondoh">🌴 Salak Pondoh</option>
+                    <option value="Tomat">🍅 Tomat</option>
+                    <option value="Bawang Merah">🧅 Bawang Merah</option>
+                    <option value="Padi">🌾 Padi</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Info Karakteristik Kebutuhan Komoditas -->
+              <div class="p-3 rounded-xl bg-[#FFFBF7] border border-[#E5E0D8] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[#243319] text-[18px]">eco</span>
+                  <span class="font-bold text-[#231a10]">Kebutuhan Karakter Tanah:</span>
+                </div>
+                <span class="font-semibold text-[#A8452A]">
+                  {{ selectedCommodity === 'Padi' ? 'Lahan Basah/Genangan (Kelembapan 75-90%)' : selectedCommodity === 'Salak Pondoh' ? 'Lahan Lembab-Kering (Kelembapan 45-60%)' : 'Lahan Gembur (Kelembapan 50-70%, pH 6.0-7.0)' }}
+                </span>
               </div>
 
               <!-- Peta Preview Interaktif Leaflet -->
@@ -734,6 +767,10 @@ const resetForm = () => {
                   <span class="material-symbols-outlined text-[14px] text-[#A8452A]">calendar_today</span>
                   <span>{{ new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) }}</span>
                 </span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
+                <span class="text-xs text-[#7E7063] font-medium">Komoditas Ditanam</span>
+                <span class="text-xs font-bold text-[#A8452A]">{{ selectedCommodity }}</span>
               </div>
               <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-[#E5E0D8]">
                 <span class="text-xs text-[#7E7063] font-medium">Luas Lahan</span>

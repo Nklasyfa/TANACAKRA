@@ -563,8 +563,8 @@ watch(
                 <tr v-for="item in paginatedLahan" :key="item.id" class="hover:bg-[#FFF1E6]/60 transition-colors cursor-pointer" @click="openDrawer(item)">
                   <td class="py-3 px-4">
                     <div class="font-mono font-semibold text-[#243319]">{{ item.input_parameters?.farm_id || ('LHN-' + item.id) }}</div>
-                    <div v-if="item.planting_info" class="text-[10px] mt-0.5 text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded inline-flex items-center gap-1 w-fit border border-[#D2DEC0]">
-                      <span class="material-symbols-outlined text-[10px]">eco</span> {{ item.planting_info.commodity }}
+                    <div class="text-[10px] mt-0.5 text-[#3A4A2E] bg-[#EEF2E6] px-1.5 py-0.5 rounded inline-flex items-center gap-1 w-fit border border-[#D2DEC0]">
+                      <span class="material-symbols-outlined text-[10px]">eco</span> {{ item.input_parameters?.komoditas || item.planting_info?.commodity || 'Cabai Merah' }}
                     </div>
                   </td>
                   <td class="py-3 px-4 font-medium text-[#231a10]">{{ item.input_parameters?.desa || 'Cangkringan' }}</td>
