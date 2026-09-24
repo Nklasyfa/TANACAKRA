@@ -150,6 +150,52 @@ const stackList = [
         </div>
       </section>
 
+      <!-- Tim Pengembang & Mitra VINIX7 -->
+      <section class="bg-white rounded-2xl border border-[#DED7CA] shadow-sm p-5 md:p-7">
+        <div class="mb-4">
+          <h2 class="font-display font-semibold text-lg md:text-xl text-abu-vulkanik">Tim Pengembang &amp; Mitra Pelatihan</h2>
+          <p class="text-[11px] md:text-xs text-tanah-subur mt-1">Kolaborasi mahasiswa UNESA &amp; mitra pelatihan VINIX7.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-genteng text-white flex items-center justify-center font-bold text-xs mb-2">TF</div>
+              <h3 class="text-sm font-bold text-abu-vulkanik">Tia Fitrianingsih</h3>
+              <p class="text-[11px] text-genteng font-semibold">Project Manager (PM)</p>
+            </div>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; System Architect &amp; Riset SRS</p>
+          </div>
+          <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-[#243319] text-[#d5e9c3] flex items-center justify-center font-bold text-xs mb-2">SAS</div>
+              <h3 class="text-sm font-bold text-abu-vulkanik">Shofie Ardhya Shafina</h3>
+              <p class="text-[11px] text-[#243319] font-semibold">Data Analyst</p>
+            </div>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Scikit-learn ML &amp; Proyeksi Pasar</p>
+          </div>
+          <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-terasering text-white flex items-center justify-center font-bold text-xs mb-2">NSS</div>
+              <h3 class="text-sm font-bold text-abu-vulkanik">Nakula Syafa Saputra</h3>
+              <p class="text-[11px] text-terasering font-semibold">Programmer</p>
+            </div>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Fullstack Vue 3 &amp; Django REST</p>
+          </div>
+          <div class="bg-[#243319] text-white rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-[#d5e9c3] text-[#111f08] flex items-center justify-center font-bold text-xs mb-2">V7</div>
+              <h3 class="text-sm font-bold text-white">VINIX7</h3>
+              <p class="text-[11px] text-[#d5e9c3] font-semibold">Mitra Pelatihan &amp; Inkubator</p>
+              <p class="text-[10px] text-white/80 mt-1">PT Vinix Seven Aurum (Pelatihan &amp; Mentorship Digital)</p>
+            </div>
+            <div class="mt-2 text-[10px] text-[#d5e9c3] flex items-center gap-1 border-t border-white/15 pt-2">
+              <span class="material-symbols-outlined text-[12px]">location_on</span>
+              <span>Jl. Watugede No. 58, Sleman, DIY</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- CTA -->
       <section class="bg-gradient-to-r from-genteng to-genteng-hover rounded-2xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>

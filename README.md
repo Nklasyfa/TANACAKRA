@@ -208,11 +208,12 @@ API backend akan berjalan di `http://127.0.0.1:8000/api/v1/`.
 
 ## 👥 Tim Pengembang (Tanacakra Team)
 
-- **Syafa (Nklasyfa)** — *Lead Software Engineer & Frontend Architect*
-- **Tia** — *Project Manager*
-- **Shoffie** — *Data Analyst & ML Specialist*
-- **Nakula** — *Software Programmer*
-- **VINIX7** — *Mitra Training & Development Partner*
+- **Tia Fitrianingsih** — *Project Manager (PM)*
+- **Shofie Ardhya Shafina** — *Data Analyst*
+- **Nakula Syafa Saputra** — *Programmer*
+- **VINIX7 (PT Vinix Seven Aurum)** — *Mitra Training & Development Partner*
+  - **Penjelasan**: Lembaga pelatihan & inkubasi teknologi digital yang berfokus pada pengembangan talenta Software Engineering, Data Science, serta akselerasi inovasi agrikultur presisi.
+  - **Alamat Kantor**: Jl. Watugede No. 58, Sleman, D.I. Yogyakarta
 
 ---
 

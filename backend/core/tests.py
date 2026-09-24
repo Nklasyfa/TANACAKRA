@@ -154,3 +154,58 @@ class TanacakraAPITests(TestCase):
         self.client.force_authenticate(user=self.petani)
         response = self.client.post(reverse('broadcast-alert'), {"pesan": "uji"}, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TanacakraOwnershipTests(TestCase):
+    """K3: Regresi IDOR & scoping data lintas pengguna."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.petani = User.objects.create_user(username="petani_a", password="password123", role="PETANI")
+        self.lain = User.objects.create_user(username="petani_b", password="password123", role="PETANI")
+        self.admin = User.objects.create_user(username="admin_a", password="adminpass", role="ADMIN")
+        self.ds_a = DatasetInput.objects.create(user=self.petani, input_parameters={"farm_id": "CGK-A1", "pH": 6.5})
+        self.ds_b = DatasetInput.objects.create(user=self.lain, input_parameters={"farm_id": "CGK-B1", "pH": 5.2})
+
+    def test_lahan_list_scoped_to_owner(self):
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.get(reverse('lahan-list'))
+        ids = [row["id"] for row in response.data]
+        self.assertEqual(ids, [self.ds_a.id])
+        self.assertNotIn(self.ds_b.id, ids)
+
+    def test_lahan_list_admin_sees_all(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.get(reverse('lahan-list'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
+    def test_lahan_history_no_cross_user_leak(self):
+        # Riwayat milik petani A tidak boleh terbaca oleh petani B,
+        # dan tidak ada lagi fallback 10 dataset acak milik orang lain.
+        self.client.force_authenticate(user=self.lain)
+        response = self.client.get(reverse('lahan-history', kwargs={'lahan_id': 'CGK-A1'}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_lahan_history_owner_ok(self):
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.get(reverse('lahan-history', kwargs={'lahan_id': 'CGK-A1'}))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["history"]), 1)
+
+    def test_pipeline_infer_rejects_other_users_dataset(self):
+        # Petani B mencoba me-rerun dataset milik A -> 404 (tidak membocorkan keberadaan)
+        self.client.force_authenticate(user=self.lain)
+        response = self.client.post(reverse('pipeline-infer'), {"dataset_id": self.ds_a.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.ds_a.refresh_from_db()
+        self.assertFalse(hasattr(self.ds_a, 'output'))
+
+    def test_pipeline_infer_owner_allowed(self):
+        self.client.force_authenticate(user=self.petani)
+        response = self.client.post(reverse('pipeline-infer'), {"dataset_id": self.ds_a.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_pipeline_infer_admin_allowed(self):
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post(reverse('pipeline-infer'), {"dataset_id": self.ds_b.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -9,29 +9,42 @@ logger = logging.getLogger(__name__)
 class TanacakraMLEngine:
     """
     Data Science Pipeline independen berbasis Scikit-learn.
-    Melatih model pada 300 data historis ML_Dataset Cangkringan (curah hujan, suhu, kelembapan, soil_ph, NDVI, yield_ton_ha).
+    Melatih model pada data historis ML_Dataset Cangkringan (curah hujan, suhu, kelembapan, soil_ph, NDVI, yield_ton_ha).
+    T2: Training dilakukan secara lazy (saat inferensi pertama), bukan saat import modul,
+    agar cold-start worker tidak lambat dan error bisa ditangani eksplisit.
     """
     def __init__(self):
         self._is_trained = False
+        self._trained_rows = 0
+        self._fallback_mode = False
         self.clf_model = RandomForestClassifier(n_estimators=25, random_state=42)
         self.reg_model = RandomForestRegressor(n_estimators=25, random_state=42)
         self.classes_labels = ["Kondisi Optimal", "Perlu Pembenahan pH", "Kurang Nutrisi NPK", "Kritis / Kering"]
+
+    def _ensure_trained(self):
+        if self._is_trained:
+            return
         self._train_from_excel_dataset()
 
-    def _train_from_excel_dataset(self):
+    def _find_dataset_path(self):
+        # Lokasi pencarian dataset: env override dulu, lalu kandidat path standar.
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
         possible_paths = [
+            os.environ.get("ML_DATASET_PATH"),
             os.path.join(base_dir, "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx"),
             os.path.join(base_dir, "data", "TANACAKRA_Data_Analysis.xlsx"),
+            os.path.join(base_dir, "backend", "data", "TANACAKRA_Data_Analysis.xlsx"),
             os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "data pendukung", "TANACAKRA_Data_Analysis.xlsx"))
         ]
-        dataset_path = None
         for path in possible_paths:
-            if os.path.exists(path):
-                dataset_path = path
-                break
+            if path and os.path.exists(path):
+                return path
+        return None
 
-        if dataset_path and os.path.exists(dataset_path):
+    def _train_from_excel_dataset(self):
+        dataset_path = self._find_dataset_path()
+
+        if dataset_path:
             try:
                 df = pd.read_excel(dataset_path, sheet_name="ML_Dataset")
                 # Normalize column names to lowercase for robust lookup
@@ -63,10 +76,14 @@ class TanacakraMLEngine:
                 self.clf_model.fit(X, y_class)
                 self.reg_model.fit(X, y_yield)
                 self._is_trained = True
+                self._trained_rows = len(df)
+                self._fallback_mode = False
                 logger.info(f"Successfully trained ML model on {len(df)} rows from TANACAKRA_Data_Analysis.xlsx")
                 return
             except Exception as e:
                 logger.warning(f"Could not train from excel file: {e}. Fallback to synthetic training.")
+        else:
+            logger.warning("Dataset Excel ML tidak ditemukan. Fallback ke sintetik; set env ML_DATASET_PATH di deployment.")
 
         # Fallback synthetic training
         X_syn = np.array([
@@ -80,11 +97,20 @@ class TanacakraMLEngine:
         self.clf_model.fit(X_syn, y_class_syn)
         self.reg_model.fit(X_syn, y_yield_syn)
         self._is_trained = True
+        self._trained_rows = len(X_syn)
+        self._fallback_mode = True
+
+    def retrain(self):
+        """Paksa muat ulang dataset (dipanggil setelah upload Excel master data)."""
+        self._is_trained = False
+        self._ensure_trained()
+        return {"trained_rows": self._trained_rows, "fallback_mode": self._fallback_mode}
 
     def predict(self, input_parameters: dict) -> dict:
         """
         Mengeksekusi inferensi Scikit-learn berdasarkan dictionary parameter tanah.
         """
+        self._ensure_trained()
         ph = float(input_parameters.get('pH', input_parameters.get('soil_ph', 6.5)))
         kelembapan = float(input_parameters.get('kelembapan', input_parameters.get('humidity_percent', 60)))
         rainfall = float(input_parameters.get('rainfall_mm', 200))
@@ -141,7 +167,11 @@ class TanacakraMLEngine:
                 "NDVI": ndvi
             },
             "rekomendasi_tindakan": rekomendasi_tindakan,
-            "catatan_lokasi": "Disesuaikan dengan 300 record dataset historis lahan pertanian Cangkringan, Sleman, DIY."
+            "catatan_lokasi": (
+                f"Dilatih pada {self._trained_rows} record dataset historis ML Cangkringan, Sleman, DIY."
+                if not self._fallback_mode
+                else "PERHATIAN: Dataset pelatihan historis tidak ditemukan; model berjalan pada fallback sintetik. Hubungi admin."
+            )
         }
 
 # Singleton instance

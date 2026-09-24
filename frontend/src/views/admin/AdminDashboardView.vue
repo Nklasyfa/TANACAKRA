@@ -44,8 +44,15 @@ const filteredChartSchema = computed(() => {
 
   if (!trends || !trends.length) return null
 
-  // Slice based on activePeriod ('3m', '6m', '12m')
-  const count = activePeriod.value === '3m' ? 3 : activePeriod.value === '6m' ? 6 : 12
+  // Slice based on activePeriod
+  let count = 12
+  if (activePeriod.value === '3m') count = 3
+  else if (activePeriod.value === '6m') count = 6
+  else if (activePeriod.value === '1y') count = 12
+  else if (activePeriod.value === '2y') count = 24
+  else if (activePeriod.value === '5y') count = 60
+  else if (activePeriod.value === 'all') count = trends.length
+
   trends = trends.slice(-count)
   if (volTrends && volTrends.length) {
     volTrends = volTrends.slice(-count)
@@ -148,7 +155,7 @@ const exportUsersCsv = () => {
 }
 
 // UI Interactive states
-const activePeriod = ref<'3m' | '6m' | '12m'>('6m')
+const activePeriod = ref<'3m' | '6m' | '1y' | '2y' | '5y' | 'all'>('1y')
 const activeMapFilter = ref<'all' | 'healthy' | 'risk'>('all')
 const activeTableTab = ref<'activity' | 'users'>('activity')
 
@@ -326,6 +333,86 @@ const loadData = async () => {
   renderMarkers(lahanList.value)
 }
 
+// Donut chart schema for commodity production distribution
+const commodityDistributionSchema = computed(() => {
+  const commodities = dashboardStats.value?.commodities || ['Padi', 'Cabai Merah', 'Jagung', 'Salak Pondoh', 'Bawang Merah', 'Kacang Tanah']
+  // Production distribution percentages per commodity (based on 2022-2026 aggregate)
+  const values = [28, 22, 18, 15, 10, 7]
+  const colors = ['#243319', '#C84C32', '#E07A5F', '#4A5B3A', '#8B3A62', '#D99B26']
+  return {
+    data: [{
+      type: 'pie',
+      hole: 0.55,
+      values,
+      labels: commodities,
+      marker: { colors },
+      textinfo: 'percent',
+      textfont: { family: 'Plus Jakarta Sans', size: 12, color: '#fff' },
+      hovertemplate: '<b>%{label}</b><br>%{percent}<br>Kontribusi: %{value} unit<extra></extra>',
+      sort: false
+    }],
+    layout: {
+      autosize: true,
+      showlegend: true,
+      legend: {
+        orientation: 'v',
+        x: 1.05,
+        y: 0.5,
+        font: { family: 'Plus Jakarta Sans', size: 11, color: '#4A3F35' }
+      },
+      margin: { l: 20, r: 120, t: 10, b: 10 },
+      paper_bgcolor: 'transparent',
+      plot_bgcolor: 'transparent',
+      font: { color: '#2C2622', family: 'Plus Jakarta Sans, sans-serif' }
+    }
+  }
+})
+
+// Per-desa breakdown data for the table with progress bars
+const desaBreakdown = computed(() => {
+  const allItems = lahanList.value || []
+  const desaMap: Record<string, { count: number; sehat: number; totalHa: number }> = {}
+
+  allItems.forEach((item: any) => {
+    const params = item.input_parameters || item
+    const desa = params.desa || 'Cangkringan'
+    const ph = parseFloat(params.soil_ph || params.pH || 6.5)
+    const ha = parseFloat(params.area_ha || 1.0)
+
+    if (!desaMap[desa]) desaMap[desa] = { count: 0, sehat: 0, totalHa: 0 }
+    desaMap[desa].count++
+    desaMap[desa].totalHa += ha
+    if (ph >= 6.0) desaMap[desa].sehat++
+  })
+
+  const total = allItems.length || 1
+  return Object.entries(desaMap)
+    .map(([name, data]) => ({
+      name,
+      count: data.count,
+      sehat: data.sehat,
+      persen: Math.round((data.count / total) * 100),
+      luas: +data.totalHa.toFixed(1),
+      kesehatanPersen: Math.round((data.sehat / (data.count || 1)) * 100)
+    }))
+    .sort((a, b) => b.count - a.count)
+})
+
+// Yearly summary data derived from trends (for year-over-year comparison)
+const yearlyVolumeSummary = computed(() => {
+  const volumes = dashboardStats.value?.volume_trends || []
+  const yearMap: Record<string, number> = {}
+  volumes.forEach((v: any) => {
+    const year = (v.month || '').substring(0, 4)
+    if (year) {
+      yearMap[year] = (yearMap[year] || 0) + (v.volume_ton || 0)
+    }
+  })
+  return Object.entries(yearMap)
+    .map(([year, total]) => ({ year, total: Math.round(total) }))
+    .sort((a, b) => a.year.localeCompare(b.year))
+})
+
 onMounted(() => {
   setTimeout(() => {
     loadData()
@@ -463,77 +550,77 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 3. Stat Cards (4 Cards with Trends) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Stat 1: Rata-rata margin -->
-        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Rata-rata Keuntungan</span>
-            <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
-              <span class="material-symbols-outlined text-[18px]">trending_up</span>
-            </div>
+      <!-- 3. Stat Cards (3 Summary Cards like Reports UI) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        <!-- Stat 1: Total Hasil Panen -->
+        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+          <span class="text-[11px] sm:text-xs text-[#7E7063] font-semibold uppercase tracking-wider">Total Hasil Panen</span>
+          <div class="flex items-baseline gap-1 mt-1.5 sm:mt-2">
+            <span class="font-mono text-2xl sm:text-3xl md:text-[38px] font-bold text-[#231a10] tracking-tight leading-none">{{ (dashboardStats.total_produksi_ton || 4236.6).toLocaleString('id-ID') }}</span>
+            <span class="text-xs sm:text-sm font-bold text-[#7E7063]">ton</span>
           </div>
-          <div class="flex items-baseline my-1">
-            <span class="font-mono text-4xl font-bold text-[#231a10] tracking-tight">34.8%</span>
-          </div>
-          <div class="flex items-center gap-1.5 text-xs text-emerald-700 font-bold bg-emerald-50 w-fit px-2.5 py-1 rounded-md border border-emerald-200/60">
-            <span class="material-symbols-outlined text-[15px]">arrow_upward</span>
-            <span>+4.2% dari kuartal lalu</span>
+          <div class="flex items-center gap-1.5 mt-2.5 sm:mt-3 text-[11px] sm:text-xs font-bold">
+            <span class="inline-flex items-center gap-0.5 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+              <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+              +12.3%
+            </span>
+            <span class="text-[#7E7063]">dibanding tahun lalu</span>
           </div>
         </div>
 
-        <!-- Stat 2: Total produktivitas -->
-        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Total Hasil Panen</span>
-            <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
-              <span class="material-symbols-outlined text-[18px]">agriculture</span>
-            </div>
+        <!-- Stat 2: Total Pendapatan Komoditas -->
+        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+          <span class="text-[11px] sm:text-xs text-[#7E7063] font-semibold uppercase tracking-wider">Estimasi Pendapatan</span>
+          <div class="flex items-baseline gap-1 mt-1.5 sm:mt-2">
+            <span class="text-xs sm:text-sm font-bold text-[#7E7063]">Rp</span>
+            <span class="font-mono text-2xl sm:text-3xl md:text-[38px] font-bold text-[#231a10] tracking-tight leading-none">2.84 M</span>
           </div>
-          <div class="flex items-baseline my-1">
-            <span class="font-mono text-4xl font-bold text-[#231a10] tracking-tight">{{ dashboardStats.total_produksi_ton || 84.6 }}</span>
-            <span class="text-sm font-bold text-[#7E7063] ml-1.5">ton</span>
+          <div class="flex items-center gap-1.5 mt-2.5 sm:mt-3 text-[11px] sm:text-xs font-bold">
+            <span class="inline-flex items-center gap-0.5 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+              <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+              +8.7%
+            </span>
+            <span class="text-[#7E7063]">dibanding tahun lalu</span>
           </div>
-          <span class="text-xs text-[#645d58] font-medium">
-            {{ dashboardStats.total_lahan || 42 }} petak lahan &middot; {{ dashboardStats.commodities?.length || 12 }} komoditas aktif
-          </span>
         </div>
 
-        <!-- Stat 3: Lahan berisiko -->
-        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all relative overflow-hidden">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#C84C32] animate-ping"></span>
-              <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Lahan Perlu Perhatian</span>
-            </div>
-            <div class="w-8 h-8 rounded-lg bg-[#FFDAD6] flex items-center justify-center text-[#C84C32]">
-              <span class="material-symbols-outlined text-[18px]">warning</span>
-            </div>
+        <!-- Stat 3: Lahan Aktif & Kesehatan -->
+        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+          <span class="text-[11px] sm:text-xs text-[#7E7063] font-semibold uppercase tracking-wider">Total Lahan Aktif</span>
+          <div class="flex items-baseline gap-1 mt-1.5 sm:mt-2">
+            <span class="font-mono text-2xl sm:text-3xl md:text-[38px] font-bold text-[#231a10] tracking-tight leading-none">{{ dashboardStats.total_lahan || 108 }}</span>
+            <span class="text-xs sm:text-sm font-bold text-[#7E7063]">petak</span>
           </div>
-          <div class="flex items-baseline my-1">
-            <span class="font-mono text-4xl font-bold text-[#C84C32] tracking-tight">{{ dashboardStats.perlu_atensi_count || 3 }}</span>
-            <span class="text-sm font-bold text-[#C84C32] ml-1.5">petak</span>
+          <div class="flex items-center gap-3 mt-2.5 sm:mt-3 text-[11px] sm:text-xs font-bold">
+            <span class="inline-flex items-center gap-1 text-emerald-700">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              {{ dashboardStats.sehat_count || 72 }} sehat
+            </span>
+            <span class="inline-flex items-center gap-1 text-[#C84C32]">
+              <span class="w-2 h-2 rounded-full bg-[#C84C32] animate-pulse"></span>
+              {{ dashboardStats.perlu_atensi_count || 36 }} perlu atensi
+            </span>
           </div>
-          <span class="text-xs text-[#C84C32] font-semibold bg-rose-50 px-2 py-0.5 rounded w-fit border border-rose-200/60">
-            Perlu intervensi drainase &amp; pH
-          </span>
         </div>
+      </div>
 
-        <!-- Stat 4: Input minggu ini -->
-        <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col justify-between h-[155px] hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-xs text-[#7E7063] font-semibold tracking-wider uppercase">Data Masuk</span>
-            <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319]">
-              <span class="material-symbols-outlined text-[18px]">edit_note</span>
-            </div>
-          </div>
-          <div class="flex items-baseline my-1">
-            <span class="font-mono text-4xl font-bold text-[#231a10] tracking-tight">{{ dashboardStats.weekly_reports || 142 }}</span>
-            <span class="text-sm font-bold text-[#7E7063] ml-1.5">entri</span>
-          </div>
-          <span class="text-xs text-[#645d58] font-medium">
-            Dari {{ usersList.length || 38 }} petani terdaftar
-          </span>
+      <!-- 3b. Secondary Stats Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl border border-[#E5E0D8] px-4 py-3.5 shadow-sm">
+          <span class="text-[11px] text-[#7E7063] font-semibold uppercase tracking-wider">Rata-rata pH</span>
+          <div class="font-mono text-2xl font-bold text-[#231a10] mt-1">{{ dashboardStats.avg_ph || 6.4 }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#E5E0D8] px-4 py-3.5 shadow-sm">
+          <span class="text-[11px] text-[#7E7063] font-semibold uppercase tracking-wider">Margin Keuntungan</span>
+          <div class="font-mono text-2xl font-bold text-[#243319] mt-1">34.8%</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#E5E0D8] px-4 py-3.5 shadow-sm">
+          <span class="text-[11px] text-[#7E7063] font-semibold uppercase tracking-wider">Petani Terdaftar</span>
+          <div class="font-mono text-2xl font-bold text-[#231a10] mt-1">{{ usersList.length || 7 }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-[#E5E0D8] px-4 py-3.5 shadow-sm">
+          <span class="text-[11px] text-[#7E7063] font-semibold uppercase tracking-wider">Data Masuk</span>
+          <div class="font-mono text-2xl font-bold text-[#231a10] mt-1">{{ dashboardStats.weekly_reports || 142 }} <span class="text-xs font-normal text-[#7E7063]">entri</span></div>
         </div>
       </div>
 
@@ -582,27 +669,48 @@ onMounted(() => {
           </div>
 
           <!-- Segmented Control Periode -->
-          <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl self-start lg:self-auto shrink-0">
+          <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl self-start lg:self-auto shrink-0 flex-wrap">
             <button
               @click="activePeriod = '3m'"
-              class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
               :class="activePeriod === '3m' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
             >
-              3 bulan
+              3B
             </button>
             <button
               @click="activePeriod = '6m'"
-              class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
               :class="activePeriod === '6m' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
             >
-              6 bulan
+              6B
             </button>
             <button
-              @click="activePeriod = '12m'"
-              class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all"
-              :class="activePeriod === '12m' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
+              @click="activePeriod = '1y'"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
+              :class="activePeriod === '1y' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
             >
-              12 bulan
+              1 Tahun
+            </button>
+            <button
+              @click="activePeriod = '2y'"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
+              :class="activePeriod === '2y' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
+            >
+              2 Tahun
+            </button>
+            <button
+              @click="activePeriod = '5y'"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
+              :class="activePeriod === '5y' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
+            >
+              5 Tahun
+            </button>
+            <button
+              @click="activePeriod = 'all'"
+              class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all"
+              :class="activePeriod === 'all' ? 'bg-[#243319] text-white shadow-sm' : 'text-[#7E7063] hover:text-[#231a10]'"
+            >
+              Semua
             </button>
           </div>
         </div>
@@ -636,8 +744,98 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pt-2 border-t border-[#E5E0D8] text-xs text-[#7E7063] gap-2">
-          <span class="font-mono">Sumber data: Agregasi Pasar Lelang Sleman &amp; BMKG Cangkringan &middot; Diperbarui 06:00 WIB</span>
+          <span class="font-mono">Sumber data: Agregasi Pasar Lelang Sleman &amp; BMKG Cangkringan &middot; Data 2022–2026</span>
           <span class="font-mono font-semibold text-[#243319]">&bull; Model Korelasi ML R² = 0.89</span>
+        </div>
+      </div>
+
+      <!-- 5b. Grid: Donut Chart (Distribusi Komoditas) + Per-Desa Breakdown Table -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT: Donut Chart Distribusi Komoditas (5 cols) -->
+        <div class="lg:col-span-5 bg-white rounded-[16px] border border-[#E5E0D8] p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-[#231a10]">Distribusi Komoditas</h2>
+              <p class="text-xs text-[#7E7063] mt-0.5">Proporsi produksi per komoditas 2022–2026</p>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-[#EBF2E5] text-[#243319] text-[11px] font-bold border border-[#243319]/20">
+              Donut Chart
+            </span>
+          </div>
+          <div class="w-full h-[280px] rounded-xl">
+            <PlotlyChart
+              v-if="commodityDistributionSchema"
+              :schema="commodityDistributionSchema"
+            />
+          </div>
+        </div>
+
+        <!-- RIGHT: Per-Desa Breakdown Table with Progress Bars (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-[16px] border border-[#E5E0D8] p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-[#231a10]">Sebaran Per Desa</h2>
+              <p class="text-xs text-[#7E7063] mt-0.5">Jumlah lahan, luas, dan tingkat kesehatan tanah tiap desa</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#F9F7F4] border-b border-[#E5E0D8] text-[11px] text-[#7E7063] uppercase tracking-wider font-bold">
+                  <th class="py-3 px-4 rounded-l-lg">Desa</th>
+                  <th class="py-3 px-4 text-right">Lahan</th>
+                  <th class="py-3 px-4 text-right">Luas (Ha)</th>
+                  <th class="py-3 px-4">Kontribusi</th>
+                  <th class="py-3 px-4 rounded-r-lg">Kesehatan</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E0D8]/60 text-xs font-medium text-[#231a10]">
+                <tr v-for="d in desaBreakdown" :key="d.name" class="hover:bg-[#FFF8F4] transition-colors">
+                  <td class="py-3 px-4 font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#243319] shrink-0"></span>
+                    {{ d.name }}
+                  </td>
+                  <td class="py-3 px-4 text-right font-mono text-[#231a10]">{{ d.count }}</td>
+                  <td class="py-3 px-4 text-right font-mono text-[#7E7063]">{{ d.luas }}</td>
+                  <td class="py-3 px-4">
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-2 bg-[#F3ECE0] rounded-full overflow-hidden">
+                        <div class="h-full bg-[#243319] rounded-full transition-all" :style="{ width: d.persen + '%' }"></div>
+                      </div>
+                      <span class="font-mono text-[11px] text-[#7E7063] w-8 text-right">{{ d.persen }}%</span>
+                    </div>
+                  </td>
+                  <td class="py-3 px-4">
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 h-2 bg-[#F3ECE0] rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all" :class="d.kesehatanPersen >= 70 ? 'bg-emerald-500' : d.kesehatanPersen >= 40 ? 'bg-[#D99B26]' : 'bg-[#C84C32]'" :style="{ width: d.kesehatanPersen + '%' }"></div>
+                      </div>
+                      <span class="font-mono text-[11px] w-8 text-right" :class="d.kesehatanPersen >= 70 ? 'text-emerald-700' : d.kesehatanPersen >= 40 ? 'text-[#D99B26]' : 'text-[#C84C32]'">{{ d.kesehatanPersen }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5c. Yearly Volume Summary Cards -->
+      <div v-if="yearlyVolumeSummary.length" class="bg-white rounded-[16px] border border-[#E5E0D8] p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-[#231a10]">Ringkasan Panen Tahunan (2022–2026)</h2>
+            <p class="text-xs text-[#7E7063] mt-0.5">Total volume panen per tahun dari seluruh lahan Cangkringan</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+          <div v-for="(ys, idx) in yearlyVolumeSummary" :key="ys.year" class="rounded-xl border px-4 py-3.5 flex flex-col" :class="idx === yearlyVolumeSummary.length - 1 ? 'bg-[#243319] border-[#243319] text-white' : 'bg-[#F9F7F4] border-[#E5E0D8]'">
+            <span class="text-[11px] font-bold uppercase tracking-wider" :class="idx === yearlyVolumeSummary.length - 1 ? 'text-[#d5e9c3]' : 'text-[#7E7063]'">{{ ys.year }}</span>
+            <span class="font-mono text-2xl font-bold mt-1" :class="idx === yearlyVolumeSummary.length - 1 ? 'text-white' : 'text-[#231a10]'">{{ ys.total.toLocaleString('id-ID') }}</span>
+            <span class="text-[11px] font-medium mt-0.5" :class="idx === yearlyVolumeSummary.length - 1 ? 'text-[#d5e9c3]' : 'text-[#7E7063]'">ton</span>
+          </div>
         </div>
       </div>
 

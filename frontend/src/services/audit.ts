@@ -47,15 +47,15 @@ function generateInitialLogs(): RichLogItem[] {
       category: 'input',
       avatar: 'SM',
       avatarBg: 'bg-[#d5e9c3] text-[#111f08]',
-      userName: 'Suparman',
-      userRole: 'Petani Cangkringan (suparman@gmail.com)',
+      userName: 'Petani Contoh',
+      userRole: 'Petani Cangkringan',
       title: 'Input data observasi tanah vulkanik petak B-04',
       subtitle: 'Kelembaban: 24.2% · pH: 6.4 · Suhu tanah: 21.8°C',
       method: 'POST',
       endpoint: '/api/v1/telemetri/observasi',
       statusText: 'Tercatat (201)',
       statusCode: 201,
-      payload: JSON.stringify({ actor_id: 'usr_suparman', device_ip: '114.122.45.18', user_agent: 'TanacakraPWA/1.4 Android', payload: { plot: 'MR-BLK-B04', humidity: 24.2, ph: 6.4, strata: 'merapi_ash_2010', node_id: 'NODE_B04_MANUAL' } })
+      payload: JSON.stringify({ actor_id: 'usr_demo_1', device_ip: '10.0.0.1', user_agent: 'TanacakraPWA/1.4 Android', payload: { plot: 'MR-BLK-B04', humidity: 24.2, ph: 6.4, strata: 'merapi_ash_2010', node_id: 'NODE_B04_MANUAL' } })
     },
     {
       id: 102,

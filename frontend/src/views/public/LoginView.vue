@@ -234,11 +234,11 @@ const handleResetPassword = async () => {
       Tidak ada koneksi. Coba lagi saat sinyal tersedia.
     </div>
 
-    <main class="relative z-10 w-full max-w-[440px] bg-white rounded-[14px] p-[32px] sm:p-[40px] border border-[#E2D8C7] shadow-[0_8px_32px_rgba(36,31,27,0.16)] mx-4 my-8">
-      <div class="w-[48px] h-[48px] rounded-[12px] bg-[#F3ECE0] mx-auto flex items-center justify-center p-2">
+    <main class="relative z-10 w-full max-w-[440px] bg-white rounded-[14px] p-5 sm:p-8 md:p-[40px] border border-[#E2D8C7] shadow-[0_8px_32px_rgba(36,31,27,0.16)] mx-3 sm:mx-4 my-6 sm:my-8">
+      <div class="w-[44px] h-[44px] sm:w-[48px] sm:h-[48px] rounded-[12px] bg-[#F3ECE0] mx-auto flex items-center justify-center p-2">
         <img src="@/assets/tanacakra-icon.svg" alt="Ikon Terasering Tanacakra" class="w-full h-full object-contain" />
       </div>
-      <h1 class="text-center text-[20px] font-bold text-[#241F1B] mt-[12px] mb-[20px] tracking-tight leading-none">Tanacakra</h1>
+      <h1 class="text-center text-lg sm:text-[20px] font-bold text-[#241F1B] mt-2 sm:mt-[12px] mb-4 sm:mb-[20px] tracking-tight leading-none">Tanacakra</h1>
 
       <div class="bg-[#F3ECE0] rounded-[8px] p-[4px] grid grid-cols-2 gap-1 mb-4">
         <button

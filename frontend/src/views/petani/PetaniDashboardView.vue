@@ -334,25 +334,25 @@ const catatanList = computed(() => {
       <div class="max-w-[720px] mx-auto flex flex-col gap-5 md:gap-6 pb-12">
 
         <!-- 1. Sapaan -->
-        <header class="flex flex-col gap-1.5 pt-2">
-          <h1 class="font-display text-[28px] leading-[34px] font-bold tracking-tight text-[#241F1B]">
+        <header class="flex flex-col gap-1 pt-1 sm:pt-2">
+          <h1 class="font-display text-xl sm:text-2xl md:text-[28px] leading-tight font-bold tracking-tight text-[#241F1B]">
             {{ greetingLabel }}, <span class="italic font-normal">{{ userName }}</span>
           </h1>
           <div class="flex items-center gap-1.5 text-on-surface-variant">
-            <span class="material-symbols-outlined text-[15px] text-secondary">calendar_today</span>
-            <span class="text-[13px] text-secondary">{{ todayLabel }} · Cangkringan, Sleman</span>
+            <span class="material-symbols-outlined text-[14px] sm:text-[15px] text-secondary">calendar_today</span>
+            <span class="text-xs sm:text-[13px] text-secondary">{{ todayLabel }} · Cangkringan, Sleman</span>
           </div>
         </header>
 
         <!-- 2. Strip Cuaca Hari Ini -->
-        <section class="card p-4 md:p-5 flex flex-col gap-3">
-          <div class="flex items-center justify-between gap-2">
+        <section class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 md:p-5 shadow-sm flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-1.5">
             <div class="flex items-center gap-1.5">
               <span class="material-symbols-outlined text-primary text-[18px]">partly_cloudy_day</span>
-              <span class="text-[13px] font-medium text-secondary">Cuaca hari ini di Cangkringan</span>
+              <span class="text-xs sm:text-[13px] font-medium text-secondary">Cuaca hari ini di Cangkringan</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-secondary bg-surface-container px-2 py-0.5 rounded-full">
+              <span class="text-[10px] sm:text-[11px] text-secondary bg-surface-container px-2 py-0.5 rounded-full">
                 {{ cuacaReal?.sumber || 'BMKG' }} · {{ cuacaReal?.lokasi || lokasiPendek }}
               </span>
               <button @click="reloadCuaca" class="text-secondary hover:text-[#241F1B] transition-colors p-0.5" title="Perbarui data cuaca" type="button">
@@ -361,7 +361,7 @@ const catatanList = computed(() => {
             </div>
           </div>
 
-          <div v-if="cuacaLoading" class="py-3 flex items-center gap-2 text-[13px] text-secondary">
+          <div v-if="cuacaLoading" class="py-3 flex items-center gap-2 text-xs sm:text-[13px] text-secondary">
             <div class="h-2 w-20 rounded-full bg-surface-container overflow-hidden">
               <div class="h-full w-1/2 rounded-full bg-primary animate-pulse"></div>
             </div>
@@ -375,7 +375,7 @@ const catatanList = computed(() => {
                   <span class="material-symbols-outlined text-[14px]">thermostat</span> Suhu
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5">
-                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? Math.round(cuacaReal.suhu) : '—' }}</span>
+                  <span class="text-lg sm:text-[24px] font-bold text-[#241F1B] tracking-tight leading-7 sm:leading-8">{{ cuacaReal ? Math.round(cuacaReal.suhu) : '—' }}</span>
                   <span class="text-[11px] text-secondary font-semibold">°C</span>
                 </div>
               </div>
@@ -384,7 +384,7 @@ const catatanList = computed(() => {
                   <span class="material-symbols-outlined text-[14px]">humidity_mid</span> Kelembapan
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5">
-                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? Math.round(cuacaReal.kelembaban) : '—' }}</span>
+                  <span class="text-lg sm:text-[24px] font-bold text-[#241F1B] tracking-tight leading-7 sm:leading-8">{{ cuacaReal ? Math.round(cuacaReal.kelembaban) : '—' }}</span>
                   <span class="text-[11px] text-secondary font-semibold">%</span>
                 </div>
               </div>
@@ -393,7 +393,7 @@ const catatanList = computed(() => {
                   <span class="material-symbols-outlined text-[14px]">rainy</span> Curah Hujan
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5">
-                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaReal ? cuacaReal.curahHujanMm : '—' }}</span>
+                  <span class="text-lg sm:text-[24px] font-bold text-[#241F1B] tracking-tight leading-7 sm:leading-8">{{ cuacaReal ? cuacaReal.curahHujanMm : '—' }}</span>
                   <span class="text-[11px] text-secondary font-semibold">mm</span>
                 </div>
               </div>
@@ -402,7 +402,7 @@ const catatanList = computed(() => {
                   <span class="material-symbols-outlined text-[14px]">filter_drama</span> Kondisi
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5">
-                  <span class="text-[24px] font-bold text-[#241F1B] tracking-tight leading-8">{{ cuacaDisplay.emoji }}</span>
+                  <span class="text-lg sm:text-[24px] font-bold text-[#241F1B] tracking-tight leading-7 sm:leading-8">{{ cuacaDisplay.emoji }}</span>
                 </div>
               </div>
               <div class="flex flex-col justify-between bg-surface-container-low md:bg-transparent rounded-lg p-2 md:p-0">
@@ -410,13 +410,13 @@ const catatanList = computed(() => {
                   <span class="material-symbols-outlined text-[14px]">air</span> Lokasi
                 </span>
                 <div class="mt-1 flex items-baseline gap-0.5 min-w-0">
-                  <span class="text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-8 truncate">{{ lokasiPendek }}</span>
+                  <span class="text-base sm:text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-7 sm:leading-8 truncate">{{ lokasiPendek }}</span>
                 </div>
               </div>
             </div>
             <div class="pt-3 border-t border-[#F3ECE0] flex items-start gap-2">
               <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">nature_people</span>
-              <p class="text-[13px] md:text-[15px] leading-6 text-[#4A3F35]">
+              <p class="text-xs sm:text-[13px] md:text-[15px] leading-relaxed text-[#4A3F35]">
                 <span class="font-semibold text-[#3A4A2E]">{{ cuacaDisplay.label }}.</span> {{ cuacaDisplay.message }}
               </p>
             </div>
@@ -424,24 +424,24 @@ const catatanList = computed(() => {
         </section>
 
         <!-- 3. Kartu Kondisi Lahan -->
-        <section class="card p-5 md:p-6 flex flex-col gap-3">
+        <section class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 md:p-6 shadow-sm flex flex-col gap-3">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-medium uppercase tracking-wider text-secondary">Kondisi lahan Anda hari ini</span>
+            <span class="text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-secondary">Kondisi lahan Anda hari ini</span>
             <span class="w-2.5 h-2.5 rounded-full bg-[#D97706] animate-pulse"></span>
           </div>
           <div class="flex items-start gap-3 mt-0.5">
             <span class="w-3 h-3 rounded-full bg-[#D97706] shrink-0 mt-1.5 ring-4 ring-[#D97706]/15"></span>
             <div class="min-w-0">
-              <p class="text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-7">
+              <p class="text-base sm:text-[18px] md:text-[20px] font-bold text-[#241F1B] tracking-tight leading-snug sm:leading-7">
                 <span :class="lahanStatus.color">{{ lahanStatus.label }}</span> &mdash; {{ lahanStatus.message }}
               </p>
-              <p v-if="todaySummary.ph" class="text-[13px] text-secondary mt-2">
+              <p v-if="todaySummary.ph" class="text-xs sm:text-[13px] text-secondary mt-1.5 sm:mt-2">
                 pH rata-rata: <strong class="text-[#241F1B]">{{ todaySummary.ph }}</strong> · Tanah: <strong class="text-[#241F1B]">{{ todaySummary.kondisi }}</strong>
               </p>
             </div>
           </div>
           <div class="pt-2 flex justify-end">
-            <button @click="router.push('/riwayat')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-surface-container text-on-surface font-semibold text-[13px] px-4 py-2 rounded-lg hover:bg-surface-container-high transition-colors">
+            <button @click="router.push('/riwayat')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#F9F7F4] text-[#231a10] border border-[#E5E0D8] font-semibold text-xs sm:text-[13px] px-4 py-2 rounded-lg hover:bg-[#F0EDE6] transition-colors">
               <span>Lihat detail lahan</span>
               <span class="material-symbols-outlined text-[16px] leading-none">arrow_forward</span>
             </button>
@@ -449,21 +449,21 @@ const catatanList = computed(() => {
         </section>
 
         <!-- 4. Tombol Aksi Utama -->
-        <button @click="router.push('/input-lahan')" class="w-full h-[52px] rounded-[12px] bg-cta hover:bg-cta-hover text-white flex items-center justify-center gap-2 text-[16px] font-semibold shadow-[0_3px_12px_rgba(168,69,42,0.22)] transition-all hover:shadow-[0_5px_16px_rgba(168,69,42,0.3)] active:scale-[0.99]">
-          <span class="material-symbols-outlined text-[20px]">add_circle</span>
+        <button @click="router.push('/input-lahan')" class="w-full h-[46px] sm:h-[52px] rounded-[12px] bg-cta hover:bg-cta-hover text-white flex items-center justify-center gap-2 text-sm sm:text-[16px] font-semibold shadow-[0_3px_12px_rgba(168,69,42,0.22)] transition-all hover:shadow-[0_5px_16px_rgba(168,69,42,0.3)] active:scale-[0.99]">
+          <span class="material-symbols-outlined text-[18px] sm:text-[20px]">add_circle</span>
           <span>Catat Data Lahan</span>
         </button>
 
         <!-- 5. Peta Lahan -->
-        <section class="card p-4 md:p-5">
+        <section class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 md:p-5 shadow-sm">
           <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#F3ECE0]">
             <div>
-              <h3 class="text-[15px] font-bold text-[#241F1B]">Peta Lahan Desa Cangkringan</h3>
-              <p class="text-[12px] text-secondary mt-0.5">{{ lahanList.length }} petak lahan terdaftar</p>
+              <h3 class="text-sm sm:text-[15px] font-bold text-[#241F1B]">Peta Lahan Desa Cangkringan</h3>
+              <p class="text-[11px] sm:text-[12px] text-secondary mt-0.5">{{ lahanList.length }} petak lahan terdaftar</p>
             </div>
           </div>
 
-          <div id="mapPetaniLeaflet" class="w-full h-[240px] md:h-[300px] rounded-[10px] overflow-hidden z-10"></div>
+          <div id="mapPetaniLeaflet" class="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-[10px] overflow-hidden z-10"></div>
 
           <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
             <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#6FA05C] inline-block"></span> Hijau = tanah subur</span>
@@ -482,20 +482,20 @@ const catatanList = computed(() => {
               <span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
             </router-link>
           </div>
-          <div class="card overflow-hidden" v-if="kabarTaniLoading">
+          <div class="bg-white rounded-[16px] border border-[#E5E0D8] shadow-sm overflow-hidden" v-if="kabarTaniLoading">
             <div class="p-4 space-y-3">
-              <div v-for="i in 3" :key="i" class="h-16 bg-[#E5E0D8] rounded animate-pulse"></div>
+              <div v-for="i in 3" :key="i" class="h-16 bg-[#F9F7F4] rounded animate-pulse"></div>
             </div>
           </div>
-          <div class="card overflow-hidden" v-else>
-            <article v-for="item in kabarTaniItems" :key="item.id" class="p-4 border-b border-[#E2D8C7] flex items-start justify-between gap-4 hover:bg-surface-container-low transition-colors last:border-0">
+          <div class="bg-white rounded-[16px] border border-[#E5E0D8] shadow-sm overflow-hidden" v-else>
+            <article v-for="item in kabarTaniItems" :key="item.id" class="p-4 border-b border-[#E5E0D8] flex items-start justify-between gap-4 hover:bg-[#FFF8F4] transition-colors last:border-0">
               <div class="flex items-start gap-2.5 min-w-0">
                 <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5" :class="item.severity === 'danger' ? 'text-error' : item.severity === 'warning' ? 'text-[#D97706]' : 'text-primary'">
                   {{ item.category === 'pasar' ? 'trending_up' : item.category === 'lahan' ? 'warning' : item.category === 'cuaca' ? 'cloud' : item.category === 'hama' ? 'bug_report' : 'psychology' }}
                 </span>
                 <p class="text-[15px] leading-6 text-[#241F1B] font-medium">{{ item.title }}</p>
               </div>
-              <time class="text-[11px] text-secondary shrink-0 mt-1">{{ formatKabarTime(item.timestamp) }}</time>
+              <time class="text-[11px] text-secondary shrink-0 mt-1 font-mono">{{ formatKabarTime(item.timestamp) }}</time>
             </article>
             <div v-if="kabarTaniItems.length === 0" class="p-4 text-center text-secondary">
               Tidak ada berita terbaru saat ini
@@ -509,26 +509,26 @@ const catatanList = computed(() => {
             <h2 class="font-display text-[18px] leading-6 font-bold text-[#241F1B]">Catatan Terakhir Anda</h2>
             <span class="text-[11px] text-secondary">{{ catatanList.length }} Entri Terkini</span>
           </div>
-          <div class="card overflow-hidden">
+          <div class="bg-white rounded-[16px] border border-[#E5E0D8] shadow-sm overflow-hidden">
             <template v-if="catatanList.length > 0">
               <template v-for="(note, i) in catatanList" :key="i">
                 <router-link
                   to="/riwayat"
-                  class="p-4 flex items-center justify-between hover:bg-surface-container-low transition-colors"
-                  :class="i < catatanList.length - 1 ? 'border-b border-[#E2D8C7]' : ''"
+                  class="p-4 flex items-center justify-between hover:bg-[#F9F7F4] transition-colors"
+                  :class="i < catatanList.length - 1 ? 'border-b border-[#E5E0D8]' : ''"
                 >
                   <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center shrink-0" :class="note.tone === 'warn' ? 'text-[#D97706]' : 'text-primary'">
+                    <div class="w-8 h-8 rounded-lg bg-[#EBF2E5] flex items-center justify-center shrink-0" :class="note.tone === 'warn' ? 'text-[#D97706]' : 'text-[#243319]'">
                       <span class="material-symbols-outlined text-[18px]">{{ note.icon }}</span>
                     </div>
                     <div class="flex flex-col min-w-0">
                       <span class="text-[14px] font-semibold text-[#241F1B] truncate">{{ note.title }}</span>
-                      <span class="text-[12px] text-secondary">{{ note.date }}</span>
+                      <span class="text-[12px] text-[#7E7063] font-mono">{{ note.date }}</span>
                     </div>
                   </div>
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium shrink-0 ml-2"
-                    :class="note.tone === 'warn' ? 'bg-[#D97706]/15 text-[#92400E]' : 'bg-[#3A4A2E]/10 text-[#3A4A2E]'"
+                    :class="note.tone === 'warn' ? 'bg-[#D97706]/15 text-[#92400E]' : 'bg-[#EBF2E5] text-[#243319]'"
                   >
                     {{ note.label }}
                   </span>
@@ -542,36 +542,36 @@ const catatanList = computed(() => {
         </section>
 
         <!-- 8. Saran Tanam ML (data live) -->
-        <section v-if="dashboardData?.best_commodity" class="card bg-surface-container p-5 md:p-6 flex flex-col gap-4">
+        <section v-if="dashboardData?.best_commodity" class="bg-[#FFFBF7] rounded-[16px] border border-[#E5E0D8] p-5 md:p-6 shadow-sm flex flex-col gap-4">
           <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-[24px] text-primary shrink-0">insights</span>
+            <span class="material-symbols-outlined text-[24px] text-[#243319] shrink-0">insights</span>
             <div class="flex flex-col gap-1">
-              <p class="text-[15px] font-bold leading-[22px] text-[#241F1B]">
+              <p class="text-[15px] font-bold leading-[22px] text-[#231a10]">
                 Saran tanam: {{ dashboardData.best_commodity.title.split('&').join('dan') }}
               </p>
               <p class="text-[13px] md:text-[15px] leading-[22px] text-[#4A3F35]">{{ dashboardData.best_commodity.reason }}</p>
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <span class="chip-positive normal-case tracking-normal">Harga: {{ dashboardData.best_commodity.avg_price }}</span>
-            <span class="chip-positive normal-case tracking-normal">Hasil: {{ dashboardData.best_commodity.expected_yield }}</span>
+            <span class="px-2.5 py-1 rounded-md border border-[#E5E0D8] bg-white text-xs font-bold text-[#243319]">Harga: {{ dashboardData.best_commodity.avg_price }}</span>
+            <span class="px-2.5 py-1 rounded-md border border-[#E5E0D8] bg-white text-xs font-bold text-[#243319]">Hasil: {{ dashboardData.best_commodity.expected_yield }}</span>
           </div>
         </section>
 
         <!-- 9. Kartu Ajakan Dasbor -->
-        <section class="card bg-surface-container p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 md:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-lg bg-surface-container-lowest flex items-center justify-center text-primary shrink-0">
+            <div class="w-9 h-9 rounded-lg bg-[#EBF2E5] flex items-center justify-center text-[#243319] shrink-0">
               <span class="material-symbols-outlined text-[20px]">insights</span>
             </div>
             <div>
-              <p class="text-[15px] font-medium leading-relaxed text-[#241F1B]">
+              <p class="text-[15px] font-medium leading-relaxed text-[#231a10]">
                 Ingin lihat prediksi lengkap hasil panen &amp; tren harga pasar komoditas?
               </p>
-              <p class="text-[13px] text-secondary mt-1">Dihitung berbasis data agroklimat mikro lereng Merapi.</p>
+              <p class="text-[13px] text-[#7E7063] mt-1">Dihitung berbasis data agroklimat mikro lereng Merapi.</p>
             </div>
           </div>
-          <button @click="router.push('/prediksi-pasar')" class="w-full sm:w-auto shrink-0 bg-surface-container-lowest border border-[#E2D8C7] px-4 py-2 rounded-lg text-sm font-semibold text-[#241F1B] hover:border-[#D0C4B0] hover:shadow-sm transition-all whitespace-nowrap">
+          <button @click="router.push('/prediksi-pasar')" class="w-full sm:w-auto shrink-0 bg-[#F9F7F4] border border-[#E5E0D8] px-4 py-2 rounded-lg text-sm font-semibold text-[#231a10] hover:bg-[#F0EDE6] transition-all whitespace-nowrap">
             Buka Panel Dasbor
           </button>
         </section>

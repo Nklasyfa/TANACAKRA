@@ -186,6 +186,12 @@ def pipeline_infer(request):
     except DatasetInput.DoesNotExist:
         return Response({"error": f"Dataset #{dataset_id} tidak ditemukan di PostgreSQL"}, status=status.HTTP_404_NOT_FOUND)
 
+    # K3: Enforce kepemilikan dataset — selain pemilik & ADMIN tidak boleh inferensi.
+    # Dimakmurkan sebagai 404 agar tidak membocorkan keberadaan dataset milik orang lain.
+    if dataset.user_id != request.user.id and request.user.role != 'ADMIN' and not request.user.is_superuser:
+        log_audit(request.user, f"Percobaan inferensi dataset milik pengguna lain (#{dataset_id})", "/api/v1/pipeline/infer")
+        return Response({"error": f"Dataset #{dataset_id} tidak ditemukan di PostgreSQL"}, status=status.HTTP_404_NOT_FOUND)
+
     start_time = time.time()
     prediction_result = ml_engine.predict(dataset.input_parameters)
     execution_time = round(time.time() - start_time, 3)
@@ -210,8 +216,12 @@ def pipeline_infer(request):
 def lahan_list(request):
     """
     Mengambil daftar master lahan Cangkringan.
+    K3: PETANI hanya melihat dataset miliknya sendiri; ADMIN/superuser melihat seluruhnya.
     """
-    datasets = DatasetInput.objects.all().order_by('-created_at')
+    datasets = DatasetInput.objects.all()
+    if request.user.role != 'ADMIN' and not request.user.is_superuser:
+        datasets = datasets.filter(user=request.user)
+    datasets = datasets.order_by('-created_at')
     serializer = DatasetInputSerializer(datasets, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -220,10 +230,16 @@ def lahan_list(request):
 def lahan_history(request, lahan_id):
     """
     Mengambil histori masukan tanah & grafik tren berdasarkan lahan_id.
+    K3: riwayat dibatasi hanya untuk dataset milik user yang login (ADMIN melihat semua).
+    Tidak ada lagi fallback yang mengembalikan dataset acak milik pengguna lain.
     """
-    datasets = DatasetInput.objects.filter(input_parameters__farm_id=lahan_id).order_by('-created_at')
+    datasets = DatasetInput.objects.filter(input_parameters__farm_id=lahan_id)
+    if request.user.role != 'ADMIN' and not request.user.is_superuser:
+        datasets = datasets.filter(user=request.user)
+    datasets = datasets.order_by('-created_at')
+
     if not datasets.exists():
-        datasets = DatasetInput.objects.all().order_by('-created_at')[:10]
+        return Response({"error": f"Riwayat lahan {lahan_id} tidak ditemukan"}, status=status.HTTP_404_NOT_FOUND)
 
     datasets_data = DatasetInputSerializer(datasets, many=True).data
     trend_chart = plotly_engine.generate_history_trend_chart(datasets_data)
@@ -679,14 +695,23 @@ def kabar_tani_feed(request):
 def upload_excel_data(request):
     """
     Endpoint untuk menerima file excel dan memprosesnya menggunakan import_excel_data.py
+    T4: Validasi ekstensi & ukuran file, simpan dengan nama terkendali, lalu retrain ML engine.
     """
     if 'file' not in request.FILES:
         return Response({"error": "File Excel tidak ditemukan di request"}, status=status.HTTP_400_BAD_REQUEST)
     
     excel_file = request.FILES['file']
+
+    MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+    filename = (excel_file.name or '').lower()
+    if not filename.endswith('.xlsx'):
+        return Response({"error": "Format file tidak didukung. Unggah file berformat .xlsx"}, status=status.HTTP_400_BAD_REQUEST)
+    if excel_file.size > MAX_UPLOAD_BYTES:
+        return Response({"error": f"Ukuran file melebihi batas {MAX_UPLOAD_BYTES // (1024 * 1024)} MB"}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
     
     import os
     from django.conf import settings
+    # Path terkendali: nama file selalu fix, ekstensi sudah divalidasi di atas
     save_path = os.path.join(settings.BASE_DIR, 'data', 'data inti', 'TANACAKRA_Data_Inti.xlsx')
     
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -702,11 +727,15 @@ def upload_excel_data(request):
     try:
         from import_excel_data import import_data
         import_data()
+        retrain_info = ml_engine.retrain()
         log_audit(request.user, "Import/Upload Master Data Excel", "/api/v1/upload-excel")
-        return Response({"message": "File Excel berhasil diunggah dan diproses oleh sistem."}, status=status.HTTP_200_OK)
+        return Response({
+            "message": "File Excel berhasil diunggah dan diproses oleh sistem.",
+            "model_retrained": retrain_info
+        }, status=status.HTTP_200_OK)
     except Exception as e:
         logger.exception("Gagal memproses file Excel")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error": "Gagal memproses file Excel. Periksa struktur sheet dan kolom data."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([IsAdminOrPenyuluh])
