@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "npm run build",
+  "buildCommand": "node -e \"if (require('fs').existsSync('frontend')) { require('child_process').execSync('npm --prefix frontend install && npm --prefix frontend run build', {stdio:'inherit'}); } else { require('child_process').execSync('npm install && npm run build', {stdio:'inherit'}); }\"",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
