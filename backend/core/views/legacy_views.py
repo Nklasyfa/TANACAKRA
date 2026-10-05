@@ -523,6 +523,9 @@ def kabar_tani_feed(request):
         if abs(pct_change) >= 3:  # Only significant changes
             direction = "naik" if pct_change > 0 else "turun"
             trend_icon = "trending_up" if pct_change > 0 else "trending_down"
+            last_price_obj = prices.last()
+            record_date = last_price_obj.date if (last_price_obj and last_price_obj.date) else now.date()
+            price_ts = datetime.combine(record_date, datetime.min.time().replace(hour=7, minute=39)).isoformat()
             items.append({
                 "id": f"pasar-{commodity.lower().replace(' ', '-')}",
                 "category": "pasar",
@@ -530,7 +533,7 @@ def kabar_tani_feed(request):
                 "summary": f"Harga {commodity} di pasar Sleman {direction} {abs(pct_change):.1f}% menjadi Rp {latest:,.0f}/kg. {'Waktu bagus untuk menjual.' if pct_change > 0 else 'Pertimbangkan menahan panen.'}",
                 "metrics": {"price": f"Rp {latest:,.0f}/kg", "change_pct": round(pct_change, 1), "trend": direction},
                 "severity": "info" if pct_change > 0 else "warning",
-                "timestamp": (now - timedelta(hours=categories["pasar"] * 2 + 1)).isoformat(),
+                "timestamp": price_ts,
                 "source": "Data Harga Pasar Induk Sleman",
                 "cta_url": f"/prediksi-pasar?commodity={commodity}"
             })
@@ -546,7 +549,8 @@ def kabar_tani_feed(request):
             low_ph_farms.append({
                 "farm_id": params.get('farm_id', f"CGK{d.id:03d}"),
                 "desa": params.get('desa', 'Cangkringan'),
-                "ph": ph
+                "ph": ph,
+                "created_at": d.created_at
             })
 
     # NDVI check from GISData (threshold < 0.55 = stress)
@@ -555,6 +559,7 @@ def kabar_tani_feed(request):
     if low_ph_farms:
         desa_name = low_ph_farms[0]['desa']
         avg_low_ph = round(sum(f['ph'] for f in low_ph_farms) / len(low_ph_farms), 1)
+        ph_ts = low_ph_farms[0]['created_at'].isoformat() if low_ph_farms[0].get('created_at') else now.isoformat()
         items.append({
             "id": f"lahan-ph-agregat-{desa_name.lower()}",
             "category": "lahan",
@@ -562,7 +567,7 @@ def kabar_tani_feed(request):
             "summary": f"Terdeteksi {len(low_ph_farms)} petak lahan di wilayah {desa_name} mengalami keasaman tanah (rata-rata pH {avg_low_ph}). Diimbau penambahan kapur dolomit sebelum penanaman.",
             "metrics": {"ph_rata": avg_low_ph, "status": "Perlu Pembenahan", "desa": desa_name},
             "severity": "warning",
-            "timestamp": now.isoformat(),
+            "timestamp": ph_ts,
             "source": "Sensor Telemetri Agroklimat & Agregasi Sektor",
             "cta_url": "/input-lahan"
         })
@@ -589,6 +594,8 @@ def kabar_tani_feed(request):
         rain_mm = float(latest_weather.rainfall_mm)
         temp = float(latest_weather.temperature_c)
         humidity = float(latest_weather.humidity_percent)
+        weather_date = latest_weather.date if latest_weather.date else now.date()
+        weather_ts = datetime.combine(weather_date, datetime.min.time().replace(hour=6, minute=0)).isoformat()
         # Determine condition from rainfall
         if rain_mm > 100:
             condition = "hujan lebat"
@@ -610,7 +617,7 @@ def kabar_tani_feed(request):
             "summary": f"Curah hujan {rain_mm:.1f}mm. {advice} Estimasi 3 hari ke depan mengikuti pola musiman.",
             "metrics": {"rainfall_mm": round(rain_mm, 1), "temperature": round(temp, 1), "humidity": round(humidity, 1), "condition": condition},
             "severity": severity,
-            "timestamp": (now - timedelta(hours=4)).isoformat(),
+            "timestamp": weather_ts,
             "source": "BMKG Stasiun Cangkringan (Data Historis)",
             "cta_url": "/kabar-tani?filter=cuaca"
         })
@@ -619,6 +626,8 @@ def kabar_tani_feed(request):
     # ===== 4. HAMA & PENYAKIT - severity High =====
     high_pests = PestDiseaseData.objects.filter(severity='High').order_by('-date')[:3]
     for pest in high_pests:
+        pest_date = pest.date if pest.date else now.date()
+        pest_ts = datetime.combine(pest_date, datetime.min.time().replace(hour=10, minute=38)).isoformat()
         items.append({
             "id": f"hama-{pest.commodity.lower().replace(' ', '-')}-{pest.date.isoformat()}",
             "category": "hama",
@@ -626,7 +635,7 @@ def kabar_tani_feed(request):
             "summary": f"Terdeteksi {pest.pest_disease} dengan tingkat keparahan {pest.severity} pada komoditas {pest.commodity}. Segera lakukan pengendalian terpadu.",
             "metrics": {"pest": pest.pest_disease, "commodity": pest.commodity, "severity": pest.severity},
             "severity": "danger",
-            "timestamp": (now - timedelta(hours=categories["hama"] * 3 + 2)).isoformat(),
+            "timestamp": pest_ts,
             "source": "Monitoring Hama/Penyakit Lapangan",
             "cta_url": f"/kabar-tani?filter=hama"
         })

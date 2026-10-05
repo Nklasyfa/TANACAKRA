@@ -265,20 +265,13 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
 }
 
 function getFallbackFeed(): KabarTaniFeedResponse {
-  const nowMs = Date.now()
-  const min15 = new Date(nowMs - 15 * 60 * 1000).toISOString()
-  const min45 = new Date(nowMs - 45 * 60 * 1000).toISOString()
-  const hour2 = new Date(nowMs - 2 * 3600 * 1000).toISOString()
-  const hour4 = new Date(nowMs - 4 * 3600 * 1000).toISOString()
-  const hour6 = new Date(nowMs - 6 * 3600 * 1000).toISOString()
-
   return {
     featured: {
       title: "Harga cabai di pasar Sleman naik 8% dibanding minggu lalu",
       summary: "Hasil agregasi data pasar induk Yogyakarta menunjukkan tren peningkatan permintaan cabai rawit merah. Bersamaan dengan prakiraan hujan teratur 2–5 mm dari stasiun BMKG Cangkringan, kondisi agronomi sangat ideal untuk memulai siklus penanaman Blok A tanpa ancaman kekeringan tanah.",
       category: "pasar",
       metrics: { "Volatilitas Pasar": "+8.0%", "Prakiraan Presipitasi": "2–5 mm", "Lembap Udara": "78% RH", "Saran Siklus": "Tanam Blok A" },
-      timestamp: min15,
+      timestamp: "2026-09-24T07:39:00Z",
       cta_url: "/warta/featured-1",
       id: "featured-1"
     },
@@ -290,7 +283,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Lonjakan harga cabai rawit merah di pasar induk Sleman mencapai Rp55.000/kg didorong penurunan pasokan regional.",
         metrics: { "Harga": "Rp55.000/kg", "Perubahan": "+8%" },
         severity: "info",
-        timestamp: min15,
+        timestamp: "2026-09-24T07:39:00Z",
         source: "Pasar Induk Sleman",
         cta_url: "/warta/pasar-cabai-1"
       },
@@ -301,7 +294,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan.",
         metrics: { "Harga": "Rp14.500/kg", "Perubahan": "0%" },
         severity: "info",
-        timestamp: min45,
+        timestamp: "2026-09-24T07:09:00Z",
         source: "Pasar Induk Sleman",
         cta_url: "/warta/pasar-tomat-1"
       },
@@ -312,7 +305,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Sensor telemetri mencatat retensi air tanah turun hingga 34% pada lapisan perakaran cabai rawit, dianjurkan penyiraman sore 15mm.",
         metrics: { "Kelembapan": "34% (Kritis)", "Rekomendasi": "Penyiraman 15mm" },
         severity: "danger",
-        timestamp: hour2,
+        timestamp: "2026-09-22T14:15:00Z",
         source: "Telemetri IoT Lahan",
         cta_url: "/warta/lahan-blok-b-1"
       },
@@ -323,7 +316,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Curah hujan stabil 2 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan.",
         metrics: { "Curah Hujan": "2 mm", "Kelembapan": "78%" },
         severity: "info",
-        timestamp: hour4,
+        timestamp: "2026-09-20T06:00:00Z",
         source: "BMKG Stasiun Cangkringan",
         cta_url: "/warta/cuaca-1"
       },
@@ -334,7 +327,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Estimasi kuantum panen di Blok A diperkirakan mencapai 2,1 ton jika tingkat kalium tanah dipertahankan di atas 200 ppm.",
         metrics: { "Proyeksi": "2,1 Ton (+12%)", "Kondisi": "Kalium >200 ppm" },
         severity: "info",
-        timestamp: hour6,
+        timestamp: "2026-09-18T09:30:00Z",
         source: "Model AI-Yield Scikit-learn",
         cta_url: "/warta/prediksi-1"
       },
@@ -345,7 +338,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering. Hama ini bisa menyebar sangat cepat akibat fluktuasi kelembapan di wilayah lereng Merapi.",
         metrics: { "Risiko": "Tinggi", "Hama": "Thrips & Ulat Grayak" },
         severity: "danger",
-        timestamp: hour2,
+        timestamp: "2026-09-20T10:38:00Z",
         source: "Data Analitik Hama Cangkringan",
         cta_url: "/warta/hama-thrips-1"
       }
