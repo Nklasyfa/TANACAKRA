@@ -242,10 +242,10 @@ const scrollToSection = (id: string) => {
             <span class="w-2 h-2 rounded-full bg-[#d5e9c3] animate-pulse"></span>
             Telemetri Strata Merapi &bull; Sleman DIY
           </div>
-          <h1 class="font-headline-xl text-2xl sm:text-4xl md:text-[56px] lg:text-[76px] leading-[1.08] font-normal text-white tracking-tight drop-shadow-sm">
+          <h1 class="font-headline-xl text-2xl sm:text-4xl md:text-[56px] lg:text-[76px] leading-[1.25] sm:leading-[1.18] md:leading-[1.1] lg:leading-[1.08] font-normal text-white tracking-tight drop-shadow-sm">
             Keputusan tani dari data, bukan insting.
           </h1>
-          <p class="text-xs sm:text-base md:text-lg text-white/90 max-w-[520px] mt-3 sm:mt-6 leading-relaxed font-normal">
+          <p class="text-xs sm:text-base md:text-lg text-white/90 max-w-[520px] mt-4 sm:mt-6 leading-relaxed font-normal">
             Tanacakra membantu kelompok tani Cangkringan mengoptimalkan rotasi tanaman, analisis hara vulkanik, dan proyeksi nilai jual pasar secara ilmiah.
           </p>
         </div>
@@ -276,7 +276,7 @@ const scrollToSection = (id: string) => {
           <span class="inline-block bg-[#EBF2E5] text-[#243319] text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider font-bold border border-[#d5e9c3]/50">
             Tentang Sistem
           </span>
-          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B] max-w-[720px] mt-2 sm:mt-4">
+          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B] max-w-[720px] mt-2 sm:mt-4">
             Tanah lereng Merapi subur, tapi cepat berubah.
           </h2>
         </div>
@@ -338,7 +338,7 @@ const scrollToSection = (id: string) => {
           <span class="inline-block bg-[#EBF2E5] text-[#243319] text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider font-bold border border-[#d5e9c3]/50">
             Alur Kerja
           </span>
-          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Tiga langkah sederhana.</h2>
+          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Tiga langkah sederhana.</h2>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           <div class="relative bg-[#F9F7F4] rounded-2xl p-5 sm:p-8 border border-[#E5E0D8] overflow-hidden flex flex-col justify-between min-h-[190px] sm:min-h-[270px] group hover:bg-[#F2ECE0] transition-colors duration-300">
@@ -380,7 +380,7 @@ const scrollToSection = (id: string) => {
           <span class="inline-block bg-[#EBF2E5] text-[#243319] text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider font-bold border border-[#d5e9c3]/50">
             Ekosistem Fitur
           </span>
-          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Yang bisa Anda lakukan.</h2>
+          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Yang bisa Anda lakukan.</h2>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           <!-- Card 1: Panen & Harga -->
@@ -472,7 +472,7 @@ const scrollToSection = (id: string) => {
                   Mitra Pelatihan VINIX7
                 </span>
               </div>
-              <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B]">
+              <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B]">
                 Tim Pembuat &amp; Inovator Tanacakra
               </h2>
               <p class="text-xs sm:text-[15px] md:text-base text-[#4A4036] mt-2.5 sm:mt-4 leading-relaxed max-w-3xl">
@@ -714,7 +714,7 @@ const scrollToSection = (id: string) => {
             <span class="inline-block bg-[#EBF2E5] text-[#243319] text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider font-bold mb-2 sm:mb-3 border border-[#d5e9c3]/50">
               Warta Agrikultur
             </span>
-            <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B]">Kabar Hari Ini</h2>
+            <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B]">Kabar Hari Ini</h2>
             <p class="text-xs sm:text-[15px] text-[#7E7063] mt-1 sm:mt-2">Diperbarui otomatis dari data pasar, BMKG, dan prediksi AI.</p>
           </div>
           <router-link to="/kabar-tani" class="inline-flex items-center gap-1.5 text-[#243319] text-xs sm:text-sm font-bold hover:underline group self-start md:self-auto">
@@ -767,7 +767,7 @@ const scrollToSection = (id: string) => {
           <span class="inline-block bg-[#EBF2E5] text-[#243319] text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider font-bold border border-[#d5e9c3]/50">
             Peta Jalan
           </span>
-          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Langkah tumbuh bersama petani.</h2>
+          <h2 class="font-headline-xl text-xl sm:text-3xl md:text-[44px] leading-[1.25] sm:leading-[1.18] md:leading-[1.15] font-normal text-[#241F1B] mt-2 sm:mt-4">Langkah tumbuh bersama petani.</h2>
         </div>
         <div class="relative border-t border-[#E5E0D8] pt-6 sm:pt-10 mt-6 sm:mt-12">
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-6">

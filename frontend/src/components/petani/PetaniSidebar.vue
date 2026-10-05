@@ -34,7 +34,8 @@ const items = [
   { to: '/input-lahan', icon: 'edit_note', label: 'Catat Data' },
   { to: '/prediksi-pasar', icon: 'trending_up', label: 'Prediksi & Pasar' },
   { to: '/kabar-tani', icon: 'newspaper', label: 'Kabar Tani' },
-  { to: '/profil', icon: 'manage_accounts', label: 'Pengaturan/Profil' }
+  { to: '/profil', icon: 'manage_accounts', label: 'Pengaturan/Profil' },
+  { to: '/infografis', icon: 'help_outline', label: 'Panduan Pakai' }
 ]
 </script>
 
