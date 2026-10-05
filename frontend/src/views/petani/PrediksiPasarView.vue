@@ -655,7 +655,7 @@ const createSchedule = () => {
                   AgriAnalytics Pro
                 </span>
               </div>
-              <p class="text-[12px] text-[#6B5B4A]">Proyeksi 3 bulan ke depan berbasis siklus pasar dan mikroklimat Merapi</p>
+              <p class="text-[12px] text-[#6B5B4A]">Proyeksi hasil panen &amp; tren harga hingga akhir tahun berbasis siklus panen komoditas (per-periode panen)</p>
             </div>
 
             <!-- Controls: Tampilan Switcher & Commodity Dropdown -->
@@ -706,7 +706,7 @@ const createSchedule = () => {
           <div class="flex items-center justify-between pt-3 mt-1 border-t border-[#F2DFCF]/60 text-xs text-[#6B5B4A]">
             <div class="flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[16px] text-amber-600">info</span>
-              <span><strong>Catatan:</strong> Garis putus-putus (<span class="inline-block w-4 border-b-2 border-dashed border-[#6B5B4A]"></span>) dan area peneduh menunjukkan proyeksi indikatif dengan batas kepercayaan 90%.</span>
+              <span><strong>Catatan:</strong> Data diukur per-siklus panen. Garis putus-putus (<span class="inline-block w-4 border-b-2 border-dashed border-[#6B5B4A]"></span>) &amp; area peneduh menunjukkan zona proyeksi panen akhir tahun dengan batas kepercayaan 90%.</span>
             </div>
             <span v-if="projectionZone && selectedCommodity !== ALL_COMMODITIES" class="font-mono text-[11px] text-[#A8452A] font-semibold bg-[#A8452A]/10 px-2 py-0.5 rounded">Zona Proyeksi: {{ projectionZone }}</span>
           </div>

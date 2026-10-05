@@ -26,6 +26,7 @@ dist/
 # UI mocks, heavy PDFs & assets
 ui/
 *.pdf
+poster_*.jpg
 data/
 /assets/
 /asset/

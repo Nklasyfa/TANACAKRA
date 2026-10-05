@@ -214,7 +214,7 @@ function generatePlotlySchema(
         marker: { size: 6, color: mainColor },
         xaxis: 'x',
         yaxis: 'y',
-        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+        hovertemplate: '%{x} (Panen): Rp %{y:,.0f}/kg<extra></extra>'
       })
 
       if (projCount > 0) {
@@ -238,12 +238,12 @@ function generatePlotlySchema(
           y: yProj,
           type: 'scatter',
           mode: 'lines+markers',
-          name: 'Proyeksi Rata-rata Harga',
+          name: 'Proyeksi Rata-rata Harga (Akhir Tahun)',
           line: { color: mainColor, width: 3, dash: 'dash' },
           marker: { size: 7, symbol: 'diamond', color: mainColor },
           xaxis: 'x',
           yaxis: 'y',
-          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: '%{x} (Proyeksi Panen): Rp %{y:,.0f}/kg<extra></extra>'
         })
       }
     } else {
@@ -257,12 +257,12 @@ function generatePlotlySchema(
         y: yHist,
         type: 'scatter',
         mode: 'lines+markers',
-        name: `${key} (Historis)`,
+        name: `${key} (Panen Historis)`,
         line: { color: mainColor, width: 3 },
         marker: { size: 6, color: mainColor },
         xaxis: 'x',
         yaxis: 'y',
-        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+        hovertemplate: '%{x} (Panen): Rp %{y:,.0f}/kg<extra></extra>'
       })
 
       if (projCount > 0) {
@@ -286,12 +286,12 @@ function generatePlotlySchema(
           y: yProj,
           type: 'scatter',
           mode: 'lines+markers',
-          name: `${key} (Proyeksi)`,
+          name: `${key} (Proyeksi Panen)`,
           line: { color: mainColor, width: 3, dash: 'dash' },
           marker: { size: 7, symbol: 'diamond', color: mainColor },
           xaxis: 'x',
           yaxis: 'y',
-          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: '%{x} (Proyeksi Panen): Rp %{y:,.0f}/kg<extra></extra>'
         })
       }
     }
@@ -311,12 +311,12 @@ function generatePlotlySchema(
       y: volHistValues,
       type: 'scatter',
       mode: 'lines+markers',
-      name: 'Volume Historis',
+      name: 'Hasil Panen (Historis)',
       line: { color: '#0D9488', width: 3 },
       marker: { size: 6, color: '#0D9488' },
       xaxis: 'x2',
       yaxis: 'y2',
-      hovertemplate: '%{x}: %{y} Ton<extra></extra>'
+      hovertemplate: '%{x} (Hasil Panen): %{y} Ton<extra></extra>'
     })
 
     if (projCount > 0) {
@@ -325,12 +325,12 @@ function generatePlotlySchema(
         y: volProjValues,
         type: 'scatter',
         mode: 'lines+markers',
-        name: 'Proyeksi Volume',
+        name: 'Proyeksi Hasil Panen (Akhir Tahun)',
         line: { color: '#0D9488', width: 3, dash: 'dash' },
         marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
         xaxis: 'x2',
         yaxis: 'y2',
-        hovertemplate: '%{x} (Proyeksi): %{y} Ton<extra></extra>'
+        hovertemplate: '%{x} (Proyeksi Hasil Panen): %{y} Ton<extra></extra>'
       })
     }
 
@@ -355,7 +355,7 @@ function generatePlotlySchema(
         yref: 'paper',
         x: projMonths[0],
         y: 0.95,
-        text: 'Zona Proyeksi',
+        text: 'Zona Proyeksi Panen Akhir Tahun',
         showarrow: false,
         font: { size: 11, color: '#D97706', weight: 'bold' },
         bgcolor: '#FEF3C7',
@@ -376,7 +376,7 @@ function generatePlotlySchema(
         hovermode: 'x unified',
         showlegend: true,
         legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } },
-        xaxis: { showgrid: true, gridcolor: gridColor },
+        xaxis: { showgrid: true, gridcolor: gridColor, title: { text: 'Siklus Panen Komoditas', font: { size: 11 } } },
         yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
         xaxis2: { showgrid: true, gridcolor: gridColor, matches: 'x' },
         yaxis2: { title: { text: 'Volume (Ton)', font: { size: 11, color: '#0D9488' } }, gridcolor: gridColor, ticksuffix: ' Ton' },
@@ -561,7 +561,7 @@ const FALLBACK_TRENDS = [
   { month: '2025-10', 'Cabai Merah': 70100, 'Salak Pondoh': 50200, 'Padi': 6450, 'Jagung': 6100, 'Bawang Merah': 39000, 'Kacang Tanah': 26100, 'Tomat': 17000 },
   { month: '2025-11', 'Cabai Merah': 79500, 'Salak Pondoh': 46800, 'Padi': 6600, 'Jagung': 6200, 'Bawang Merah': 39800, 'Kacang Tanah': 26500, 'Tomat': 17500 },
   { month: '2025-12', 'Cabai Merah': 87200, 'Salak Pondoh': 43500, 'Padi': 6750, 'Jagung': 6300, 'Bawang Merah': 40500, 'Kacang Tanah': 26900, 'Tomat': 15000 },
-  // === 2026 (Jan – Sep) ===
+  // === 2026 (Jan – Des) ===
   { month: '2026-01', 'Cabai Merah': 58900, 'Salak Pondoh': 59200, 'Padi': 6800, 'Jagung': 6200, 'Bawang Merah': 37200, 'Kacang Tanah': 27100, 'Tomat': 16500 },
   { month: '2026-02', 'Cabai Merah': 84200, 'Salak Pondoh': 83500, 'Padi': 6900, 'Jagung': 6300, 'Bawang Merah': 36500, 'Kacang Tanah': 27600, 'Tomat': 17000 },
   { month: '2026-03', 'Cabai Merah': 26500, 'Salak Pondoh': 29800, 'Padi': 6700, 'Jagung': 6150, 'Bawang Merah': 38500, 'Kacang Tanah': 26200, 'Tomat': 17500 },
@@ -570,7 +570,10 @@ const FALLBACK_TRENDS = [
   { month: '2026-06', 'Cabai Merah': 77800, 'Salak Pondoh': 41500, 'Padi': 6950, 'Jagung': 6450, 'Bawang Merah': 39500, 'Kacang Tanah': 27100, 'Tomat': 16000 },
   { month: '2026-07', 'Cabai Merah': 53200, 'Salak Pondoh': 49100, 'Padi': 6750, 'Jagung': 6350, 'Bawang Merah': 38000, 'Kacang Tanah': 26500, 'Tomat': 16500 },
   { month: '2026-08', 'Cabai Merah': 46500, 'Salak Pondoh': 62300, 'Padi': 6650, 'Jagung': 6600, 'Bawang Merah': 40200, 'Kacang Tanah': 27300, 'Tomat': 17000 },
-  { month: '2026-09', 'Cabai Merah': 61800, 'Salak Pondoh': 59500, 'Padi': 6800, 'Jagung': 6400, 'Bawang Merah': 41200, 'Kacang Tanah': 26800, 'Tomat': 17500 }
+  { month: '2026-09', 'Cabai Merah': 61800, 'Salak Pondoh': 59500, 'Padi': 6800, 'Jagung': 6400, 'Bawang Merah': 41200, 'Kacang Tanah': 26800, 'Tomat': 17500 },
+  { month: '2026-10', 'Cabai Merah': 73500, 'Salak Pondoh': 52100, 'Padi': 6950, 'Jagung': 6650, 'Bawang Merah': 42500, 'Kacang Tanah': 27600, 'Tomat': 18000 },
+  { month: '2026-11', 'Cabai Merah': 82100, 'Salak Pondoh': 47800, 'Padi': 7100, 'Jagung': 6800, 'Bawang Merah': 43800, 'Kacang Tanah': 28100, 'Tomat': 18500 },
+  { month: '2026-12', 'Cabai Merah': 91000, 'Salak Pondoh': 44500, 'Padi': 7250, 'Jagung': 6900, 'Bawang Merah': 44800, 'Kacang Tanah': 28500, 'Tomat': 16000 }
 ]
 
 const FALLBACK_VOLUME = [
@@ -607,7 +610,8 @@ const FALLBACK_VOLUME = [
   { month: '2026-03', volume_ton: 495, 'Tomat': 17500 }, { month: '2026-04', volume_ton: 425, 'Tomat': 18000 },
   { month: '2026-05', volume_ton: 355, 'Tomat': 18500 }, { month: '2026-06', volume_ton: 320, 'Tomat': 16000 },
   { month: '2026-07', volume_ton: 380, 'Tomat': 16500 }, { month: '2026-08', volume_ton: 410, 'Tomat': 17000 },
-  { month: '2026-09', volume_ton: 440, 'Tomat': 17500 }
+  { month: '2026-09', volume_ton: 440, 'Tomat': 17500 }, { month: '2026-10', volume_ton: 465, 'Tomat': 18000 },
+  { month: '2026-11', volume_ton: 490, 'Tomat': 18500 }, { month: '2026-12', volume_ton: 450, 'Tomat': 16000 }
 ]
 
 // ============================================================
