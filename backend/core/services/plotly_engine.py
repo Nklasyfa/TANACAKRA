@@ -142,7 +142,7 @@ class TanacakraPlotlyEngine:
                 "name": f"{key} (Rp/kg)",
                 "line": {"color": color, "width": 2.5, "shape": "spline"},
                 "marker": {"size": 6, "color": color},
-                "hovertemplate": f"<b>%{{x}}</b><br>{key}: Rp %{{y:,.0f}}/kg<extra></extra>"
+                "hovertemplate": f"<b>%{{x}} (Siklus Panen)</b><br>{key}: Rp %{{y:,.0f}}/kg<extra></extra>"
             })
 
         volume_data = volume_trends or []
@@ -156,23 +156,23 @@ class TanacakraPlotlyEngine:
             "x": volume_months,
             "y": volume_vals,
             "type": "bar",
-            "name": "Volume Panen (Ton)",
+            "name": "Hasil Panen (Ton)",
             "yaxis": "y2",
             "opacity": 0.35,
             "marker": {"color": "#D97706"},
-            "hovertemplate": "<b>%{x}</b><br>Volume Panen: %{y:.1f} Ton<extra></extra>"
+            "hovertemplate": "<b>%{x} (Hasil Panen)</b><br>Volume Panen: %{y:.1f} Ton<extra></extra>"
         })
 
         return {
             "data": data,
             "layout": {
                 "title": {
-                    "text": "<b>Fluktuasi Harga Pasar & Volume Panen Cangkringan</b>",
+                    "text": "<b>Fluktuasi Harga Pasar & Perkiraan Hasil Panen Cangkringan</b>",
                     "font": {"size": 15, "color": "#2C2622", "family": "Plus Jakarta Sans, sans-serif"}
                 },
                 "margin": {"l": 60, "r": 60, "t": 50, "b": 45},
                 "xaxis": {
-                    "title": "Bulan Transaksi",
+                    "title": "Siklus Panen Komoditas",
                     "showgrid": True,
                     "gridcolor": "#EFEAE0",
                     "tickfont": {"size": 11, "color": "#5C4A32"}
