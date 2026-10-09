@@ -255,7 +255,7 @@ onMounted(() => {
           <span class="text-[#231a10] truncate">Warta &amp; Pasar Cangkringan</span>
         </nav>
 
-        <div class="flex items-center gap-2 lg:gap-3 shrink-0 md:pr-14">
+        <div class="flex items-center gap-2 lg:gap-3 shrink-0">
           <button
             v-if="isAdmin"
             @click="openCreateModal"

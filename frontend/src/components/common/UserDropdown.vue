@@ -2,10 +2,13 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/services/supabase'
+import NotificationModal from '@/components/common/NotificationModal.vue'
+import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
 const isOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
+const isNotifOpen = ref(false)
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value
@@ -39,39 +42,53 @@ const goToSettings = () => {
 </script>
 
 <template>
-  <div class="relative" ref="dropdownRef">
+  <div class="flex items-center gap-2 lg:gap-3">
+    <!-- Notification Bell -->
     <button
-      @click="toggleDropdown"
-      class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0 shadow-2xs cursor-pointer hover:bg-[#3a4a2e] transition-colors"
-      aria-label="Menu Pengguna"
+      @click="isNotifOpen = true"
+      class="relative w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E5E0D8] text-[#243319] shadow-2xs hover:bg-[#F9F7F4] transition-colors cursor-pointer shrink-0"
+      aria-label="Pemberitahuan"
     >
-      <span class="material-symbols-outlined text-[18px]">person</span>
+      <span class="material-symbols-outlined text-[18px]">notifications</span>
+      <span v-if="unreadCount > 0" class="absolute top-0 right-0 w-2 h-2 rounded-full bg-[#A8452A] ring-2 ring-white"></span>
     </button>
+    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
-    <Transition name="dropdown">
-      <div
-        v-if="isOpen"
-        class="absolute right-0 mt-2 w-48 bg-white border border-[#E5E0D8] rounded-xl shadow-lg z-50 overflow-hidden"
+    <!-- User Profile Dropdown -->
+    <div class="relative" ref="dropdownRef">
+      <button
+        @click="toggleDropdown"
+        class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center shrink-0 shadow-2xs cursor-pointer hover:bg-[#3a4a2e] transition-colors"
+        aria-label="Menu Pengguna"
       >
-        <div class="py-1 flex flex-col">
-          <button
-            @click="goToSettings"
-            class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#231a10] hover:bg-[#F9F7F4] transition-colors text-left"
-          >
-            <span class="material-symbols-outlined text-[18px] text-[#7E7063]">manage_accounts</span>
-            <span>Pengaturan Akun</span>
-          </button>
-          <div class="h-px bg-[#E5E0D8] my-1"></div>
-          <button
-            @click="handleLogout"
-            class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#93000a] hover:bg-[#FFDAD6] transition-colors text-left"
-          >
-            <span class="material-symbols-outlined text-[18px]">logout</span>
-            <span>Keluar Sesi</span>
-          </button>
+        <span class="material-symbols-outlined text-[18px]">person</span>
+      </button>
+
+      <Transition name="dropdown">
+        <div
+          v-if="isOpen"
+          class="absolute right-0 mt-2 w-48 bg-white border border-[#E5E0D8] rounded-xl shadow-lg z-50 overflow-hidden"
+        >
+          <div class="py-1 flex flex-col">
+            <button
+              @click="goToSettings"
+              class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#231a10] hover:bg-[#F9F7F4] transition-colors text-left"
+            >
+              <span class="material-symbols-outlined text-[18px] text-[#7E7063]">manage_accounts</span>
+              <span>Pengaturan Akun</span>
+            </button>
+            <div class="h-px bg-[#E5E0D8] my-1"></div>
+            <button
+              @click="handleLogout"
+              class="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#93000a] hover:bg-[#FFDAD6] transition-colors text-left"
+            >
+              <span class="material-symbols-outlined text-[18px]">logout</span>
+              <span>Keluar Sesi</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </div>
   </div>
 </template>
 

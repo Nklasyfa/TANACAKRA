@@ -12,10 +12,7 @@ import { AuditLogger } from '@/services/audit'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
-import NotificationModal from '@/components/common/NotificationModal.vue'
-import { unreadCount } from '@/services/notifications'
-
-const isNotifOpen = ref(false)
+import UserDropdown from '@/components/common/UserDropdown.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -572,14 +569,9 @@ onMounted(() => {
       </div>
       <div class="flex items-center gap-2">
         <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <button @click="isNotifOpen = true" class="relative w-9 h-9 flex items-center justify-center rounded-full bg-[#F9F7F4] border border-[#E5E0D8] text-[#243319] cursor-pointer">
-          <span class="material-symbols-outlined text-[20px]">notifications</span>
-          <span v-if="unreadCount > 0" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#A8452A]"></span>
-        </button>
+        <UserDropdown />
       </div>
     </header>
-
-    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <!-- Sidebar Admin -->
     <AdminSidebar />
@@ -589,7 +581,7 @@ onMounted(() => {
       <main class="w-full max-w-[1500px] mx-auto p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8">
 
       <!-- 1. Header Toolbar -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E0D8] md:pr-14">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#E5E0D8]">
         <div>
           <div class="flex items-center gap-2 mb-1">
             <span class="px-2.5 py-0.5 rounded-full bg-[#243319] text-[#d5e9c3] text-[10px] font-bold uppercase tracking-wider">
@@ -614,6 +606,7 @@ onMounted(() => {
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>PostgreSQL Synchronized</span>
           </div>
+          <UserDropdown class="hidden md:flex ml-2" />
         </div>
       </div>
 
@@ -995,7 +988,7 @@ onMounted(() => {
               Donut Chart
             </span>
           </div>
-          <div class="w-full h-[280px] rounded-xl">
+          <div class="w-full h-[300px] md:h-[320px] rounded-xl overflow-hidden">
             <PlotlyChart
               v-if="commodityDistributionSchema"
               :schema="commodityDistributionSchema"

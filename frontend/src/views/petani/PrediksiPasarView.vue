@@ -6,12 +6,9 @@ import BottomNav from '@/components/petani/BottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import { LahanService, AdminService, TindakanService, generatePlotlySchema } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
-import NotificationModal from '@/components/common/NotificationModal.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
-import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
-const isNotifOpen = ref(false)
 
 const isLoading = ref(true)
 const lahanList = ref<any[]>([])
@@ -22,6 +19,7 @@ const selectedFarm = ref('all')
 const selectedCommodity = ref('')
 const ALL_COMMODITIES = 'Semua Komoditas'
 const chartViewMode = ref<'subplots' | 'dual'>('subplots')
+const activePeriod = ref<'6m' | '1y' | 'all'>('1y')
 
 const applying = ref(false)
 const applied = ref(false)
@@ -268,9 +266,19 @@ const keselarasan = computed(() => {
 })
 
 const chartSchema = computed(() => {
-  const trends = (dashboardData.value?.price_trends || []) as Record<string, any>[]
-  const volTrends = (dashboardData.value?.volume_trends || []) as Record<string, any>[]
+  let trends = (dashboardData.value?.price_trends || []) as Record<string, any>[]
+  let volTrends = (dashboardData.value?.volume_trends || []) as Record<string, any>[]
   if (!trends.length) return null
+
+  let count = 12
+  if (activePeriod.value === '6m') count = 6
+  else if (activePeriod.value === '1y') count = 12
+  else if (activePeriod.value === 'all') count = trends.length
+
+  trends = trends.slice(-count)
+  if (volTrends && volTrends.length) {
+    volTrends = volTrends.slice(-count)
+  }
 
   const activeList = (selectedCommodity.value && selectedCommodity.value !== ALL_COMMODITIES)
     ? [selectedCommodity.value]
@@ -359,16 +367,10 @@ const createSchedule = () => {
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="isNotifOpen = true" class="relative w-10 h-10 flex items-center justify-center rounded-full text-[#6B5B4A] hover:text-[#241F1B] hover:bg-[#E8DED7] transition-colors cursor-pointer" aria-label="Pemberitahuan">
-            <span class="material-symbols-outlined text-[22px]">notifications</span>
-            <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A]"></span>
-          </button>
           <UserDropdown />
         </div>
       </div>
     </header>
-
-    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <PetaniSidebar />
 
@@ -693,12 +695,37 @@ const createSchedule = () => {
                 </select>
                 <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6B5B4A] text-[18px] pointer-events-none">expand_more</span>
               </div>
+
+              <!-- Segmented Control Periode -->
+              <div class="inline-flex p-1 bg-[#F9F5F0] border border-[#E2D8C7] rounded-xl text-xs font-bold">
+                <button
+                  @click="activePeriod = '6m'"
+                  class="px-2.5 py-1 rounded-lg transition-all"
+                  :class="activePeriod === '6m' ? 'bg-[#3A4A2E] text-white shadow-xs' : 'text-[#6B5B4A] hover:text-[#241F1B]'"
+                >
+                  6B
+                </button>
+                <button
+                  @click="activePeriod = '1y'"
+                  class="px-2.5 py-1 rounded-lg transition-all"
+                  :class="activePeriod === '1y' ? 'bg-[#3A4A2E] text-white shadow-xs' : 'text-[#6B5B4A] hover:text-[#241F1B]'"
+                >
+                  1T
+                </button>
+                <button
+                  @click="activePeriod = 'all'"
+                  class="px-2.5 py-1 rounded-lg transition-all"
+                  :class="activePeriod === 'all' ? 'bg-[#3A4A2E] text-white shadow-xs' : 'text-[#6B5B4A] hover:text-[#241F1B]'"
+                >
+                  Semua
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="w-full relative">
+          <div class="w-full h-[360px] md:h-[440px] relative overflow-hidden">
             <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
-            <div v-else class="h-[360px] md:h-[440px] flex items-center justify-center text-xs text-[#75786f]">
+            <div v-else class="h-full flex items-center justify-center text-xs text-[#75786f]">
               {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
             </div>
           </div>

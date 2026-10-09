@@ -6,9 +6,7 @@ import { useRouter } from 'vue-router'
 import { LahanService, AdminService } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
-import NotificationModal from '@/components/common/NotificationModal.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
-import { unreadCount } from '@/services/notifications'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
@@ -16,7 +14,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
 const router = useRouter()
-const isNotifOpen = ref(false)
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
 const lahanList = ref<any[]>([])
@@ -319,16 +316,10 @@ const catatanList = computed(() => {
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="isNotifOpen = true" class="relative w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer" aria-label="Pemberitahuan">
-            <span class="material-symbols-outlined text-[22px]">notifications</span>
-            <span v-if="unreadCount > 0" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#A8452A]"></span>
-          </button>
           <UserDropdown />
         </div>
       </div>
     </header>
-
-    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <PetaniSidebar />
 
