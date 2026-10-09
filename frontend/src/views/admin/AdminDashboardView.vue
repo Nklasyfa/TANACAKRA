@@ -174,23 +174,16 @@ const analystInsightHtml = computed(() => {
 })
 
 const filteredChartSchema = computed(() => {
-  let trends = dashboardStats.value?.price_trends || []
-  let volTrends = dashboardStats.value?.volume_trends || []
+  let trends = (dashboardStats.value?.price_trends || []) as Record<string, any>[]
+  let volTrends = (dashboardStats.value?.volume_trends || []) as Record<string, any>[]
 
   if (!trends || !trends.length) return null
 
-  // Slice based on activePeriod
-  let count = 12
-  if (activePeriod.value === '3m') count = 3
-  else if (activePeriod.value === '6m') count = 6
-  else if (activePeriod.value === '1y') count = 12
-  else if (activePeriod.value === '2y') count = 24
-  else if (activePeriod.value === '5y') count = 60
-  else if (activePeriod.value === 'all') count = trends.length
-
-  trends = trends.slice(-count)
-  if (volTrends && volTrends.length) {
-    volTrends = volTrends.slice(-count)
+  if (selectedYear.value !== 'all') {
+    trends = trends.filter(t => (t.month || '').startsWith(selectedYear.value))
+    if (volTrends && volTrends.length) {
+      volTrends = volTrends.filter(v => (v.month || '').startsWith(selectedYear.value))
+    }
   }
 
   const activeList = selectedCommodity.value === 'Semua' ? allCommodities.value : [selectedCommodity.value]
@@ -290,7 +283,8 @@ const exportUsersCsv = () => {
 }
 
 // UI Interactive states
-const activePeriod = ref<'3m' | '6m' | '1y' | '2y' | '5y' | 'all'>('1y')
+const selectedYear = ref<string>('all')
+const availableYears = ['all', '2022', '2023', '2024', '2025', '2026']
 const activeMapFilter = ref<'all' | 'healthy' | 'risk'>('all')
 const activeTableTab = ref<'activity' | 'users'>('activity')
 
@@ -897,28 +891,16 @@ onMounted(() => {
               <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[#7E7063] pointer-events-none">expand_more</span>
             </div>
 
-            <!-- Segmented Control Periode -->
-            <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl text-xs font-bold">
+            <!-- Segmented Control Filter Tahun -->
+            <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl text-xs font-bold overflow-x-auto">
               <button
-                @click="activePeriod = '6m'"
-                class="px-2.5 py-1 rounded-lg transition-all"
-                :class="activePeriod === '6m' ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
+                v-for="yr in availableYears"
+                :key="yr"
+                @click="selectedYear = yr"
+                class="px-2.5 py-1 rounded-lg transition-all whitespace-nowrap"
+                :class="selectedYear === yr ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
               >
-                6B
-              </button>
-              <button
-                @click="activePeriod = '1y'"
-                class="px-2.5 py-1 rounded-lg transition-all"
-                :class="activePeriod === '1y' ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
-              >
-                1T
-              </button>
-              <button
-                @click="activePeriod = 'all'"
-                class="px-2.5 py-1 rounded-lg transition-all"
-                :class="activePeriod === 'all' ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
-              >
-                Semua
+                {{ yr === 'all' ? 'Semua Tahun' : yr === '2026' ? '2026 (Proyeksi)' : yr }}
               </button>
             </div>
           </div>

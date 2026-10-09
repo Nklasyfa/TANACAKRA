@@ -161,11 +161,13 @@ function generatePlotlySchema(
   }
 
   const total = trends.length
-  const projCount = total >= 6 ? Math.min(3, Math.floor(total / 3)) : 0
+  const lastMonth = trends[total - 1]?.month || ''
+  const hasProjections = lastMonth.startsWith('2026')
+  const projCount = (hasProjections && total >= 3) ? 3 : 0
   const histCount = total - projCount
 
   const histTrends = trends.slice(0, histCount)
-  const projTrends = trends.slice(histCount - 1)
+  const projTrends = projCount > 0 ? trends.slice(histCount - 1) : []
 
   const histMonths = histTrends.map(t => formatMonth(t.month || ''))
   const projMonths = projTrends.map(t => formatMonth(t.month || ''))
