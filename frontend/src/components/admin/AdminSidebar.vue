@@ -2,12 +2,9 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '@/services/supabase'
-import NotificationModal from '@/components/common/NotificationModal.vue'
-import { unreadCount } from '@/services/notifications'
 
 const router = useRouter()
 const route = useRoute()
-const isNotifOpen = ref(false)
 
 const userName = ref('Admin Utama')
 const userEmail = ref('Super Admin')
@@ -78,21 +75,6 @@ const items = [
         </router-link>
       </nav>
     </div>
-
-    <!-- Desktop Floating Notification Button -->
-    <div class="hidden md:flex fixed top-6 right-8 z-50">
-      <button
-        @click="isNotifOpen = true"
-        class="relative w-11 h-11 flex items-center justify-center rounded-full bg-white border border-[#E2D8C7] text-[#4A3F35] shadow-sm hover:shadow hover:text-[#A8452A] transition-all cursor-pointer group"
-        aria-label="Pemberitahuan"
-      >
-        <span class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">notifications</span>
-        <span v-if="unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-[#A8452A] ring-2 ring-white"></span>
-      </button>
-    </div>
-
-    <!-- Notification Modal -->
-    <NotificationModal :is-open="isNotifOpen" @close="isNotifOpen = false" />
 
     <div class="p-3 bg-[#fff8f4]">
       <div class="p-3 rounded-xl bg-white border border-[#E5E0D8] shadow-2xs mb-2">

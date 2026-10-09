@@ -177,12 +177,13 @@ function generatePlotlySchema(
     'Padi': '#D99B26',
     'Jagung': '#E07A5F',
     'Kacang Tanah': '#7E5A3C',
-    'Tomat': '#C84C32'
+    'Tomat': '#DC2626'
   }
+  const fallbackColors = ['#E63946', '#0D9488', '#8B3A62', '#D99B26', '#E07A5F', '#7E5A3C', '#DC2626', '#2F4A2C']
 
   const allKeys = Object.keys(trends[0] || {}).filter(k => k !== 'month' && k !== 'volume_ton')
   const isMultiple = !activeCommodities || activeCommodities.length === 0 || activeCommodities.includes('Semua') || activeCommodities.includes('Semua Komoditas') || activeCommodities.length > 1
-  const keysToDisplay = isMultiple ? ['Rata-rata Komoditas'] : activeCommodities
+  const keysToDisplay = isMultiple ? allKeys : (activeCommodities || [allKeys[0]])
 
   const bgColor = isDarkMode ? '#1E293B' : 'transparent'
   const textColor = isDarkMode ? '#E2E8F0' : '#231a10'
@@ -192,65 +193,44 @@ function generatePlotlySchema(
 
   if (viewMode === 'subplots') {
     if (isMultiple) {
-      // Calculate average price across all commodities for each historical and projected month
-      const yHist = histTrends.map(t => {
-        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
-        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
-      })
-      const yProj = projTrends.map(t => {
-        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
-        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
-      })
-
-      const mainColor = '#E63946'
-
-      data.push({
-        x: histMonths,
-        y: yHist,
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Rata-rata Harga (Historis)',
-        line: { color: mainColor, width: 3 },
-        marker: { size: 6, color: mainColor },
-        xaxis: 'x',
-        yaxis: 'y',
-        hovertemplate: '%{x} (Panen): Rp %{y:,.0f}/kg<extra></extra>'
-      })
-
-      if (projCount > 0) {
-        const yUpper = yProj.map((v, i) => i === 0 ? v : Math.round(v * 1.05))
-        const yLower = yProj.map((v, i) => i === 0 ? v : Math.round(v * 0.95))
+      allKeys.forEach((key, idx) => {
+        const color = keyColors[key] || fallbackColors[idx % fallbackColors.length]
+        const yHist = histTrends.map(t => Number(t[key]) || 0)
+        const yProj = projTrends.map(t => Number(t[key]) || 0)
 
         data.push({
-          x: [...projMonths, ...projMonths.slice().reverse()],
-          y: [...yUpper, ...yLower.slice().reverse()],
-          fill: 'toself',
-          fillcolor: 'rgba(230, 57, 70, 0.15)',
-          line: { color: 'transparent' },
-          showlegend: false,
-          xaxis: 'x',
-          yaxis: 'y',
-          hoverinfo: 'skip'
-        })
-
-        data.push({
-          x: projMonths,
-          y: yProj,
+          x: histMonths,
+          y: yHist,
           type: 'scatter',
           mode: 'lines+markers',
-          name: 'Proyeksi Rata-rata Harga (Akhir Tahun)',
-          line: { color: mainColor, width: 3, dash: 'dash' },
-          marker: { size: 7, symbol: 'diamond', color: mainColor },
+          name: `${key} (Historis)`,
+          line: { color, width: 2.5 },
+          marker: { size: 5, color },
           xaxis: 'x',
           yaxis: 'y',
-          hovertemplate: '%{x} (Proyeksi Panen): Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: `<b>%{x} (Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
         })
-      }
+
+        if (projCount > 0) {
+          data.push({
+            x: projMonths,
+            y: yProj,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: `${key} (Proyeksi)`,
+            line: { color, width: 2.5, dash: 'dash' },
+            marker: { size: 6, symbol: 'diamond', color },
+            xaxis: 'x',
+            yaxis: 'y',
+            hovertemplate: `<b>%{x} (Proyeksi Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
+          })
+        }
+      })
     } else {
-      const key = keysToDisplay[0]
+      const key = keysToDisplay[0] || allKeys[0] || 'Cabai Merah'
       const mainColor = keyColors[key] || '#E63946'
-      const yHist = histTrends.map(t => t[key] ?? 0)
-      const yProj = projTrends.map(t => t[key] ?? 0)
+      const yHist = histTrends.map(t => Number(t[key]) || 0)
+      const yProj = projTrends.map(t => Number(t[key]) || 0)
 
       data.push({
         x: histMonths,
@@ -262,7 +242,7 @@ function generatePlotlySchema(
         marker: { size: 6, color: mainColor },
         xaxis: 'x',
         yaxis: 'y',
-        hovertemplate: '%{x} (Panen): Rp %{y:,.0f}/kg<extra></extra>'
+        hovertemplate: `<b>%{x} (Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
       })
 
       if (projCount > 0) {
@@ -291,7 +271,7 @@ function generatePlotlySchema(
           marker: { size: 7, symbol: 'diamond', color: mainColor },
           xaxis: 'x',
           yaxis: 'y',
-          hovertemplate: '%{x} (Proyeksi Panen): Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: `<b>%{x} (Proyeksi Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
         })
       }
     }
@@ -316,7 +296,7 @@ function generatePlotlySchema(
       marker: { size: 6, color: '#0D9488' },
       xaxis: 'x2',
       yaxis: 'y2',
-      hovertemplate: '%{x} (Hasil Panen): %{y} Ton<extra></extra>'
+      hovertemplate: '<b>%{x} (Hasil Panen)</b><br>Volume: %{y} Ton<extra></extra>'
     })
 
     if (projCount > 0) {
@@ -330,7 +310,7 @@ function generatePlotlySchema(
         marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
         xaxis: 'x2',
         yaxis: 'y2',
-        hovertemplate: '%{x} (Proyeksi Hasil Panen): %{y} Ton<extra></extra>'
+        hovertemplate: '<b>%{x} (Proyeksi Hasil Panen)</b><br>Volume: %{y} Ton<extra></extra>'
       })
     }
 
@@ -375,7 +355,7 @@ function generatePlotlySchema(
         margin: { l: 65, r: 40, t: 30, b: 40 },
         hovermode: 'x unified',
         showlegend: true,
-        legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } },
+        legend: { orientation: 'h', x: 0, y: 1.18, font: { size: 10 } },
         xaxis: { showgrid: true, gridcolor: gridColor, title: { text: 'Siklus Panen Komoditas', font: { size: 11 } } },
         yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
         xaxis2: { showgrid: true, gridcolor: gridColor, matches: 'x' },
@@ -386,45 +366,40 @@ function generatePlotlySchema(
     }
   } else {
     if (isMultiple) {
-      const yHist = histTrends.map(t => {
-        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
-        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
-      })
-      const yProj = projTrends.map(t => {
-        const vals = allKeys.map(k => Number(t[k]) || 0).filter(v => v > 0)
-        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0
-      })
+      allKeys.forEach((key, idx) => {
+        const color = keyColors[key] || fallbackColors[idx % fallbackColors.length]
+        const yHist = histTrends.map(t => Number(t[key]) || 0)
+        const yProj = projTrends.map(t => Number(t[key]) || 0)
 
-      const mainColor = '#E63946'
-
-      data.push({
-        x: histMonths,
-        y: yHist,
-        type: 'scatter',
-        mode: 'lines+markers',
-        name: 'Rata-rata Harga (Historis)',
-        line: { color: mainColor, width: 3 },
-        marker: { size: 6, color: mainColor },
-        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
-      })
-
-      if (projCount > 0) {
         data.push({
-          x: projMonths,
-          y: yProj,
+          x: histMonths,
+          y: yHist,
           type: 'scatter',
           mode: 'lines+markers',
-          name: 'Proyeksi Rata-rata Harga',
-          line: { color: mainColor, width: 3, dash: 'dash' },
-          marker: { size: 7, symbol: 'diamond', color: mainColor },
-          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+          name: `${key} (Harga)`,
+          line: { color, width: 2.5 },
+          marker: { size: 5, color },
+          hovertemplate: '<b>%{x}</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
         })
-      }
+
+        if (projCount > 0) {
+          data.push({
+            x: projMonths,
+            y: yProj,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: `${key} (Proyeksi)`,
+            line: { color, width: 2.5, dash: 'dash' },
+            marker: { size: 6, symbol: 'diamond', color },
+            hovertemplate: '<b>%{x} (Proyeksi)</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
+          })
+        }
+      })
     } else {
-      const key = keysToDisplay[0]
+      const key = keysToDisplay[0] || allKeys[0] || 'Cabai Merah'
       const mainColor = keyColors[key] || '#E63946'
-      const yHist = histTrends.map(t => t[key] ?? 0)
-      const yProj = projTrends.map(t => t[key] ?? 0)
+      const yHist = histTrends.map(t => Number(t[key]) || 0)
+      const yProj = projTrends.map(t => Number(t[key]) || 0)
 
       data.push({
         x: histMonths,
@@ -434,7 +409,7 @@ function generatePlotlySchema(
         name: `${key} (Harga)`,
         line: { color: mainColor, width: 3 },
         marker: { size: 6, color: mainColor },
-        hovertemplate: '%{x}: Rp %{y:,.0f}/kg<extra></extra>'
+        hovertemplate: '<b>%{x}</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
       })
 
       if (projCount > 0) {
@@ -446,7 +421,7 @@ function generatePlotlySchema(
           name: `${key} (Proyeksi)`,
           line: { color: mainColor, width: 3, dash: 'dash' },
           marker: { size: 7, symbol: 'diamond', color: mainColor },
-          hovertemplate: '%{x} (Proyeksi): Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: '<b>%{x} (Proyeksi)</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
         })
       }
     }
@@ -470,7 +445,7 @@ function generatePlotlySchema(
       yaxis: 'y2',
       line: { color: '#0D9488', width: 3 },
       marker: { size: 6, color: '#0D9488' },
-      hovertemplate: '%{x}: %{y} Ton<extra></extra>'
+      hovertemplate: '<b>%{x}</b><br>Volume: %{y} Ton<extra></extra>'
     })
 
     if (projCount > 0) {
@@ -483,7 +458,7 @@ function generatePlotlySchema(
         yaxis: 'y2',
         line: { color: '#0D9488', width: 3, dash: 'dash' },
         marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
-        hovertemplate: '%{x} (Proyeksi): %{y} Ton<extra></extra>'
+        hovertemplate: '<b>%{x} (Proyeksi)</b><br>Volume: %{y} Ton<extra></extra>'
       })
     }
 
@@ -497,7 +472,7 @@ function generatePlotlySchema(
         margin: { l: 65, r: 65, t: 30, b: 40 },
         hovermode: 'x unified',
         showlegend: true,
-        legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } },
+        legend: { orientation: 'h', x: 0, y: 1.18, font: { size: 10 } },
         xaxis: { showgrid: true, gridcolor: gridColor },
         yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
         yaxis2: { title: { text: 'Volume (Ton)', font: { size: 11, color: '#0D9488' } }, overlaying: 'y', side: 'right', showgrid: false, ticksuffix: ' Ton' }

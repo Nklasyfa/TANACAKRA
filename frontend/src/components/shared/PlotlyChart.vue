@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-full">
-    <div ref="chartContainer" class="w-full h-[340px] sm:h-[420px] lg:h-[460px]"></div>
+  <div class="w-full h-full min-h-[260px]">
+    <div ref="chartContainer" class="w-full h-full min-h-[260px]"></div>
   </div>
 </template>
 
@@ -27,22 +27,29 @@ const mobileLayout = (layout: any) => {
       font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
     }
   }
+  
+  // If pie/donut chart or already custom legend, keep or adjust gently
+  const isPie = props.schema?.data?.some((d: any) => d.type === 'pie')
+
   return {
     ...layout,
     autosize: true,
     margin: {
       ...(layout.margin || {}),
-      l: 38,
-      r: 30,
-      t: layout.title ? 42 : (layout.margin?.t ?? 25),
-      b: Math.max(78, layout.margin?.b ?? 78)
+      l: layout.margin?.l ?? 30,
+      r: layout.margin?.r ?? 30,
+      t: layout.title ? 42 : (layout.margin?.t ?? 20),
+      b: Math.max(50, layout.margin?.b ?? 50)
     },
-    legend: {
+    legend: isPie ? {
+      ...(layout.legend || {}),
+      font: { ...(layout.legend?.font || {}), size: 10 }
+    } : {
       ...(layout.legend || {}),
       orientation: 'h',
       x: 0.5,
       xanchor: 'center',
-      y: -0.35,
+      y: -0.25,
       font: { ...(layout.legend?.font || {}), size: 10 }
     },
     font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
