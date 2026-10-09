@@ -14,8 +14,6 @@ import AdminMasterDataView from '../views/admin/AdminMasterDataView.vue'
 import KabarTaniView from '../views/petani/KabarTaniView.vue'
 import WartaDetailView from '../views/petani/WartaDetailView.vue'
 import PrediksiPasarView from '../views/petani/PrediksiPasarView.vue'
-import InfografisUserView from '../views/petani/InfografisUserView.vue'
-import InfografisAdminView from '../views/admin/InfografisAdminView.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -111,18 +109,6 @@ const router = createRouter({
       path: '/admin/master-data',
       name: 'admin-master-data',
       component: AdminMasterDataView,
-      meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
-    },
-    {
-      path: '/infografis',
-      name: 'infografis-user',
-      component: InfografisUserView,
-      meta: { requiresAuth: true, roles: ['PETANI', 'ADMIN', 'PENYULUH'] }
-    },
-    {
-      path: '/admin/infografis',
-      name: 'infografis-admin',
-      component: InfografisAdminView,
       meta: { requiresAuth: true, roles: ['ADMIN', 'PENYULUH'] }
     },
     {
