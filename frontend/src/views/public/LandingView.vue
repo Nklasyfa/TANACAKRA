@@ -492,8 +492,8 @@ const scrollToSection = (id: string) => {
                 </div>
                 <div class="mt-3 sm:mt-4 pt-3 border-t border-[#E5E0D8] text-[11px] sm:text-xs text-[#4A4036] space-y-2 font-mono">
                   <div class="flex justify-between items-center">
-                    <span>Project Manager:</span>
-                    <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">Tia Fitrianingsih</strong>
+                    <span>SA, QA, PM:</span>
+                    <strong class="text-[#A8452A] bg-[#F8E5D5] px-2 py-0.5 rounded">Tia Fitrianingsih</strong>
                   </div>
                   <div class="flex justify-between items-center">
                     <span>Data Analyst:</span>
@@ -504,8 +504,12 @@ const scrollToSection = (id: string) => {
                     <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">Nakula Syafa Saputra</strong>
                   </div>
                   <div class="flex justify-between items-center pt-2 border-t border-dashed border-[#E5E0D8]">
-                    <span class="text-[#A8452A]">Mitra Pelatihan:</span>
-                    <strong class="text-[#A8452A] bg-[#F8E5D5] px-2 py-0.5 rounded">VINIX7</strong>
+                    <span class="text-[#243319]">Mitra Pelatihan:</span>
+                    <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">VINIX7</strong>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-[#243319]">Mitra Pertanian:</span>
+                    <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">CV Pendawa Kencana</strong>
                   </div>
                 </div>
               </div>
@@ -525,181 +529,256 @@ const scrollToSection = (id: string) => {
             </div>
           </div>
 
-          <!-- Cards Grid (4 columns) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
-            <!-- Card 1: Tia Fitrianingsih (PM) -->
-            <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#3A4A2E]/40">
-              <div class="p-4 sm:p-6">
-                <!-- Top Badge Header (No Photo) -->
-                <div class="flex items-center justify-between mb-4 sm:mb-5">
-                  <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#A8452A] text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
-                    TF
-                  </div>
-                  <span class="bg-[#A8452A]/10 text-[#A8452A] text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider border border-[#A8452A]/20">
-                    Project Manager
-                  </span>
-                </div>
-
-                <h4 class="text-lg sm:text-xl font-bold text-[#241F1B] group-hover:text-[#A8452A] transition-colors">
-                  Tia Fitrianingsih
-                </h4>
-                <p class="text-[11px] sm:text-xs font-bold text-[#243319] mt-0.5 sm:mt-1 flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  PM &amp; System Architect &middot; UNESA
-                </p>
-                <p class="text-xs text-[#4A4036] mt-2 sm:mt-3 leading-relaxed">
-                  Mengarahkan alur riset agronomis, merumuskan spesifikasi SRS sistem, mengkoordinasikan tahapan pengembangan, serta memastikan kebutuhan petani Cangkringan terpenuhi secara presisi.
-                </p>
-
-                <div class="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Agile PM</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">SRS Design</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Agronomy Tech</span>
-                </div>
-              </div>
-
-              <div class="px-4 sm:px-6 py-3 sm:py-4 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
-                <span class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
-                  Mahasiswa UNESA
-                </span>
-                <span class="text-[#243319] font-bold">Teknik Informatika</span>
-              </div>
+          <!-- Baris 1: 3 Anggota Tim Pengembang (Atas) -->
+          <div class="mb-8 sm:mb-12">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#243319]"></span>
+              <h4 class="font-bold text-sm sm:text-base text-[#241F1B] uppercase tracking-wider">Tim Pengembang Sistem (UNESA)</h4>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
 
-            <!-- Card 2: Shofie Ardhya Shafina (Data Analyst) -->
-            <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#3A4A2E]/40">
-              <div class="p-4 sm:p-6">
-                <!-- Top Badge Header (No Photo) -->
-                <div class="flex items-center justify-between mb-4 sm:mb-5">
-                  <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#243319] text-[#d5e9c3] flex items-center justify-center font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
-                    SAS
+              <!-- Card 1: Tia Fitrianingsih (PM, SA, QA) -->
+              <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#A8452A]/50">
+                <div class="p-4 sm:p-6">
+                  <div class="flex items-center gap-3.5 mb-4">
+                    <img
+                      src="/img/team-tia.png"
+                      alt="Tia Fitrianingsih"
+                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#A8452A] shadow-md group-hover:scale-105 transition-transform"
+                    />
+                    <div class="min-w-0">
+                      <span class="bg-[#A8452A]/10 text-[#A8452A] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#A8452A]/20 inline-block mb-1">
+                        SA &middot; QA &middot; PM
+                      </span>
+                      <h4 class="text-base sm:text-lg font-bold text-[#241F1B] group-hover:text-[#A8452A] transition-colors leading-snug">
+                        Tia Fitrianingsih
+                      </h4>
+                      <p class="text-[11px] font-bold text-[#243319] mt-0.5">
+                        UNESA &middot; Lead Team
+                      </p>
+                    </div>
                   </div>
-                  <span class="bg-[#243319]/10 text-[#243319] text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider border border-[#243319]/20">
-                    Data Analyst
+
+                  <p class="text-xs text-[#4A4036] leading-relaxed">
+                    Bertindak sebagai <strong>System Architect (SA)</strong>, <strong>Quality Assurance (QA)</strong>, dan <strong>Project Manager (PM)</strong>. Merancang arsitektur sistem Tanacakra, memverifikasi kepatuhan SRS agronomis, serta mengarahkan alur kerja pengujian sistem secara menyeluruh.
+                  </p>
+
+                  <div class="mt-4 flex flex-wrap gap-1.5">
+                    <span class="text-[10px] font-semibold bg-white text-[#A8452A] px-2 py-0.5 rounded border border-[#E5E0D8]">System Architect</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#A8452A] px-2 py-0.5 rounded border border-[#E5E0D8]">Quality Assurance</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#A8452A] px-2 py-0.5 rounded border border-[#E5E0D8]">Project Manager</span>
+                  </div>
+                </div>
+
+                <div class="px-4 sm:px-6 py-3 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
+                    Mahasiswa UNESA
                   </span>
-                </div>
-
-                <h4 class="text-lg sm:text-xl font-bold text-[#241F1B] group-hover:text-[#243319] transition-colors">
-                  Shofie Ardhya Shafina
-                </h4>
-                <p class="text-[11px] sm:text-xs font-bold text-[#243319] mt-0.5 sm:mt-1 flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Data Science &amp; ML &middot; UNESA
-                </p>
-                <p class="text-xs text-[#4A4036] mt-2 sm:mt-3 leading-relaxed">
-                  Bertanggung jawab mengolah dataset telemetri tanah lereng Merapi, membangun model inferensi Random Forest (NPK/pH), serta merancang algoritma proyeksi tren harga komoditas pasar.
-                </p>
-
-                <div class="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Scikit-Learn</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Random Forest</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Pandas/NumPy</span>
+                  <span class="text-[#243319] font-bold">Teknik Informatika</span>
                 </div>
               </div>
 
-              <div class="px-4 sm:px-6 py-3 sm:py-4 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
-                <span class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
-                  Mahasiswa UNESA
-                </span>
-                <span class="text-[#243319] font-bold">Data Science</span>
-              </div>
-            </div>
-
-            <!-- Card 3: Nakula Syafa Saputra (Programmer) -->
-            <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#3A4A2E]/40">
-              <div class="p-4 sm:p-6">
-                <!-- Top Badge Header (No Photo) -->
-                <div class="flex items-center justify-between mb-4 sm:mb-5">
-                  <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#3A4A2E] text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
-                    NSS
+              <!-- Card 2: Shofie Ardhya Shafina (Data Analyst) -->
+              <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#243319]/50">
+                <div class="p-4 sm:p-6">
+                  <div class="flex items-center gap-3.5 mb-4">
+                    <img
+                      src="/img/team-shoffie.png"
+                      alt="Shofie Ardhya Shafina"
+                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#243319] shadow-md group-hover:scale-105 transition-transform"
+                    />
+                    <div class="min-w-0">
+                      <span class="bg-[#243319]/10 text-[#243319] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#243319]/20 inline-block mb-1">
+                        Data Analyst
+                      </span>
+                      <h4 class="text-base sm:text-lg font-bold text-[#241F1B] group-hover:text-[#243319] transition-colors leading-snug">
+                        Shofie Ardhya Shafina
+                      </h4>
+                      <p class="text-[11px] font-bold text-[#243319] mt-0.5">
+                        UNESA &middot; Data Science
+                      </p>
+                    </div>
                   </div>
-                  <span class="bg-[#3A4A2E]/10 text-[#3A4A2E] text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider border border-[#3A4A2E]/20">
-                    Programmer
+
+                  <p class="text-xs text-[#4A4036] leading-relaxed">
+                    Bertanggung jawab mengolah dataset telemetri tanah lereng Merapi, membangun model inferensi Random Forest (NPK/pH), serta merancang algoritma proyeksi tren harga komoditas pasar.
+                  </p>
+
+                  <div class="mt-4 flex flex-wrap gap-1.5">
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Scikit-Learn</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Random Forest</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Pandas/NumPy</span>
+                  </div>
+                </div>
+
+                <div class="px-4 sm:px-6 py-3 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
+                    Mahasiswa UNESA
                   </span>
-                </div>
-
-                <h4 class="text-lg sm:text-xl font-bold text-[#241F1B] group-hover:text-[#243319] transition-colors">
-                  Nakula Syafa Saputra
-                </h4>
-                <p class="text-[11px] sm:text-xs font-bold text-[#243319] mt-0.5 sm:mt-1 flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  Lead Software Eng &middot; UNESA
-                </p>
-                <p class="text-xs text-[#4A4036] mt-2 sm:mt-3 leading-relaxed">
-                  Mengembangkan arsitektur frontend Vue 3 TypeScript, RESTful API backend Django, integrasi Supabase PostgreSQL Auth, serta sistem visualisasi grafik telemetri Plotly.js interaktif.
-                </p>
-
-                <div class="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Vue 3 TS</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Django REST</span>
-                  <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 sm:py-1 rounded border border-[#E5E0D8]">Plotly.js</span>
+                  <span class="text-[#243319] font-bold">Data Science</span>
                 </div>
               </div>
 
-              <div class="px-4 sm:px-6 py-3 sm:py-4 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
-                <span class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
-                  Mahasiswa UNESA
-                </span>
-                <span class="text-[#243319] font-bold">Software Eng</span>
-              </div>
-            </div>
-
-            <!-- Card 4: VINIX7 (Mitra Pelatihan & Inkubator) -->
-            <div class="bg-[#243319] text-white border border-[#243319] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300 group relative">
-              <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-[#d5e9c3]/10 rounded-full pointer-events-none"></div>
-
-              <div class="p-4 sm:p-6 relative z-10">
-                <!-- Top Badge Header (No Photo) -->
-                <div class="flex items-center justify-between mb-4 sm:mb-5">
-                  <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#d5e9c3] text-[#111f08] flex items-center justify-center font-bold text-base sm:text-lg shadow-md group-hover:scale-105 transition-transform">
-                    V7
+              <!-- Card 3: Nakula Syafa Saputra (Programmer) -->
+              <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#3A4A2E]/50">
+                <div class="p-4 sm:p-6">
+                  <div class="flex items-center gap-3.5 mb-4">
+                    <img
+                      src="/img/team-nakula.png"
+                      alt="Nakula Syafa Saputra"
+                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#3A4A2E] shadow-md group-hover:scale-105 transition-transform"
+                    />
+                    <div class="min-w-0">
+                      <span class="bg-[#3A4A2E]/10 text-[#3A4A2E] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#3A4A2E]/20 inline-block mb-1">
+                        Programmer
+                      </span>
+                      <h4 class="text-base sm:text-lg font-bold text-[#241F1B] group-hover:text-[#243319] transition-colors leading-snug">
+                        Nakula Syafa Saputra
+                      </h4>
+                      <p class="text-[11px] font-bold text-[#243319] mt-0.5">
+                        UNESA &middot; Software Eng
+                      </p>
+                    </div>
                   </div>
-                  <span class="bg-[#d5e9c3]/20 text-[#d5e9c3] text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider border border-[#d5e9c3]/30">
-                    Mitra Resmi
+
+                  <p class="text-xs text-[#4A4036] leading-relaxed">
+                    Mengembangkan arsitektur frontend Vue 3 TypeScript, RESTful API backend Django, integrasi Supabase PostgreSQL Auth, serta sistem visualisasi grafik telemetri Plotly.js interaktif.
+                  </p>
+
+                  <div class="mt-4 flex flex-wrap gap-1.5">
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Vue 3 TS</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Django REST</span>
+                    <span class="text-[10px] font-semibold bg-white text-[#243319] px-2 py-0.5 rounded border border-[#E5E0D8]">Plotly.js</span>
+                  </div>
+                </div>
+
+                <div class="px-4 sm:px-6 py-3 bg-white border-t border-[#E5E0D8]/70 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#7E7063]">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
+                    Mahasiswa UNESA
                   </span>
+                  <span class="text-[#243319] font-bold">Software Eng</span>
                 </div>
+              </div>
 
-                <h4 class="text-lg sm:text-xl font-bold text-white group-hover:text-[#d5e9c3] transition-colors flex items-center justify-between">
-                  <span>VINIX7</span>
-                  <span class="material-symbols-outlined text-[18px] sm:text-[20px] text-[#d5e9c3]">workspace_premium</span>
-                </h4>
-                <p class="text-[11px] sm:text-xs font-bold text-[#d5e9c3] mt-0.5 sm:mt-1 flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-[#d5e9c3] animate-pulse"></span>
-                  Training Partner &amp; Inkubator
-                </p>
-                <p class="text-xs text-white/80 mt-2 sm:mt-3 leading-relaxed">
-                  PT Vinix Seven Aurum (VINIX7) adalah lembaga pelatihan &amp; inkubasi teknologi digital. Fokus pada akselerasi talenta Software Engineering, Data Science, serta pendampingan arsitektur sistem berbasis project-based learning.
-                </p>
+            </div>
+          </div>
 
-                <!-- Address Box -->
-                <div class="mt-3 sm:mt-4 p-2.5 sm:p-3 rounded-xl bg-white/10 border border-white/15 flex items-start gap-2 text-xs text-white/90">
-                  <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-[#d5e9c3] shrink-0 mt-0.5">location_on</span>
-                  <div class="leading-snug">
-                    <strong class="block text-white text-[10px] sm:text-[11px] uppercase tracking-wider">Alamat Kantor:</strong>
-                    <span class="text-[11px] sm:text-xs">Jl. Watugede No. 58, Sleman, D.I. Yogyakarta</span>
+          <!-- Baris 2: 2 Mitra Kolaborasi (Bawah) -->
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#A8452A]"></span>
+              <h4 class="font-bold text-sm sm:text-base text-[#241F1B] uppercase tracking-wider">Mitra Resmi Pelatihan &amp; Pertanian Terpadu</h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+
+              <!-- Mitra 1: VINIX7 (Mitra Pelatihan & Inkubator) -->
+              <div class="bg-[#243319] text-white border border-[#243319] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300 group relative">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-[#d5e9c3]/10 rounded-full pointer-events-none"></div>
+
+                <div class="p-4 sm:p-6 relative z-10">
+                  <div class="flex items-center gap-3.5 mb-4">
+                    <img
+                      src="/img/team-vinix7.png"
+                      alt="VINIX7"
+                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#d5e9c3] shadow-md group-hover:scale-105 transition-transform bg-white"
+                    />
+                    <div class="min-w-0">
+                      <span class="bg-[#d5e9c3]/20 text-[#d5e9c3] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#d5e9c3]/30 inline-block mb-1">
+                        Mitra Pelatihan Resmi
+                      </span>
+                      <h4 class="text-lg sm:text-xl font-bold text-white group-hover:text-[#d5e9c3] transition-colors leading-snug">
+                        VINIX7
+                      </h4>
+                      <p class="text-[11px] font-bold text-[#d5e9c3] mt-0.5">
+                        PT Vinix Seven Aurum &middot; Sleman, DIY
+                      </p>
+                    </div>
+                  </div>
+
+                  <p class="text-xs text-white/80 leading-relaxed">
+                    Lembaga pelatihan &amp; inkubasi teknologi digital terkemuka. Berperan aktif dalam akselerasi talenta Software Engineering, Data Science, serta pendampingan arsitektur sistem berbasis project-based learning.
+                  </p>
+
+                  <div class="mt-3.5 p-2.5 sm:p-3 rounded-xl bg-white/10 border border-white/15 flex items-start gap-2 text-xs text-white/90">
+                    <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-[#d5e9c3] shrink-0 mt-0.5">location_on</span>
+                    <div class="leading-snug">
+                      <strong class="block text-white text-[10px] uppercase tracking-wider">Alamat Kantor:</strong>
+                      <span class="text-[11px] text-white/90">Jl. Watugede No. 58, Sleman, D.I. Yogyakarta</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-3.5 flex flex-wrap gap-1.5">
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">Training Partner</span>
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">Incubator</span>
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">Mentorship</span>
                   </div>
                 </div>
 
-                <div class="mt-3 sm:mt-4 flex flex-wrap gap-1.5">
-                  <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 sm:py-1 rounded border border-white/20">Training Partner</span>
-                  <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 sm:py-1 rounded border border-white/20">Incubator</span>
-                  <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 sm:py-1 rounded border border-white/20">Mentorship</span>
+                <div class="px-4 sm:px-6 py-3 bg-[#1b2613] border-t border-white/15 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#d5e9c3] relative z-10">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px]">verified</span>
+                    Mitra Pelatihan Digital
+                  </span>
+                  <span class="bg-white/15 px-2 py-0.5 rounded border border-white/20 font-bold text-white">VINIX7</span>
                 </div>
               </div>
 
-              <div class="px-4 sm:px-6 py-3 sm:py-4 bg-[#1b2613] border-t border-white/15 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#d5e9c3] relative z-10">
-                <span class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[14px]">verified</span>
-                  Mitra Pelatihan
-                </span>
-                <span class="bg-white/15 px-2 py-0.5 rounded border border-white/20 font-bold text-white">VINIX7</span>
-              </div>
-            </div>
+              <!-- Mitra 2: CV Pendawa Kencana Multifarm -->
+              <div class="bg-gradient-to-br from-[#2D3F20] to-[#1E2B15] text-white border border-[#2D3F20] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-xl transition-all duration-300 group relative">
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-[#D5E9C3]/10 rounded-full pointer-events-none"></div>
 
+                <div class="p-4 sm:p-6 relative z-10">
+                  <div class="flex items-center gap-3.5 mb-4">
+                    <img
+                      src="/img/mitra-pendawa.jpg"
+                      alt="CV Pendawa Kencana Multifarm"
+                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#D5E9C3] shadow-md group-hover:scale-105 transition-transform bg-white"
+                    />
+                    <div class="min-w-0">
+                      <span class="bg-[#D5E9C3]/20 text-[#D5E9C3] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#D5E9C3]/30 inline-block mb-1">
+                        Mitra Pertanian Terpadu
+                      </span>
+                      <h4 class="text-base sm:text-lg font-bold text-white group-hover:text-[#D5E9C3] transition-colors leading-snug">
+                        CV Pendawa Kencana Multifarm
+                      </h4>
+                      <p class="text-[11px] font-bold text-[#D5E9C3] mt-0.5">
+                        Integrated Farming &middot; Cangkringan, Sleman
+                      </p>
+                    </div>
+                  </div>
+
+                  <p class="text-xs text-white/80 leading-relaxed">
+                    Pusat pelatihan pertanian &amp; peternakan terpadu (*Integrated Farming*) di lereng Gunung Merapi sejak 1999. Mengintegrasikan pertanian organik, bioteknologi pupuk mikrobakteri, dan peternakan ramah lingkungan.
+                  </p>
+
+                  <div class="mt-3.5 p-2.5 sm:p-3 rounded-xl bg-white/10 border border-white/15 flex items-start gap-2 text-xs text-white/90">
+                    <span class="material-symbols-outlined text-[16px] sm:text-[18px] text-[#D5E9C3] shrink-0 mt-0.5">location_on</span>
+                    <div class="leading-snug">
+                      <strong class="block text-white text-[10px] uppercase tracking-wider">Lokasi Kawasan:</strong>
+                      <span class="text-[11px] text-white/90">Pagerjurang, Kepuharjo, Cangkringan, Sleman, DIY</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-3.5 flex flex-wrap gap-1.5">
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">Integrated Farming</span>
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">Pertanian Organik</span>
+                    <span class="text-[10px] font-semibold bg-white/10 text-white px-2 py-0.5 rounded border border-white/20">P4S Swadaya</span>
+                  </div>
+                </div>
+
+                <div class="px-4 sm:px-6 py-3 bg-[#172210] border-t border-white/15 flex items-center justify-between text-[10px] sm:text-[11px] font-semibold text-[#D5E9C3] relative z-10">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[14px]">agriculture</span>
+                    Mitra Lapang Cangkringan
+                  </span>
+                  <span class="bg-white/15 px-2 py-0.5 rounded border border-white/20 font-bold text-white">Pendawa Kencana</span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 

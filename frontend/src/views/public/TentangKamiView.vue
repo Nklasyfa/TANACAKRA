@@ -150,40 +150,53 @@ const stackList = [
         </div>
       </section>
 
-      <!-- Tim Pengembang & Mitra VINIX7 -->
-      <section class="bg-white rounded-2xl border border-[#DED7CA] shadow-sm p-5 md:p-7">
-        <div class="mb-4">
-          <h2 class="font-display font-semibold text-lg md:text-xl text-abu-vulkanik">Tim Pengembang &amp; Mitra Pelatihan</h2>
-          <p class="text-[11px] md:text-xs text-tanah-subur mt-1">Kolaborasi mahasiswa UNESA &amp; mitra pelatihan VINIX7.</p>
+      <!-- Tim Pengembang & Mitra -->
+      <section class="bg-white rounded-2xl border border-[#DED7CA] shadow-sm p-5 md:p-7 space-y-6">
+        <div>
+          <h2 class="font-display font-semibold text-lg md:text-xl text-abu-vulkanik">Tim Pengembang Sistem (UNESA)</h2>
+          <p class="text-[11px] md:text-xs text-tanah-subur mt-1">3 Mahasiswa Pengembang Tanacakra Universitas Negeri Surabaya.</p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+
+        <!-- 3 Anggota Atas -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <div class="w-8 h-8 rounded-lg bg-genteng text-white flex items-center justify-center font-bold text-xs mb-2">TF</div>
+              <img src="/img/team-tia.png" alt="Tia Fitrianingsih" class="w-16 h-16 rounded-xl object-cover border-2 border-genteng shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Tia Fitrianingsih</h3>
-              <p class="text-[11px] text-genteng font-semibold">Project Manager (PM)</p>
+              <p class="text-[11px] text-genteng font-semibold">SA &middot; QA &middot; PM</p>
             </div>
-            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; System Architect &amp; Riset SRS</p>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; System Architect, Quality Assurance &amp; Project Manager</p>
           </div>
+
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <div class="w-8 h-8 rounded-lg bg-[#243319] text-[#d5e9c3] flex items-center justify-center font-bold text-xs mb-2">SAS</div>
+              <img src="/img/team-shoffie.png" alt="Shofie Ardhya Shafina" class="w-16 h-16 rounded-xl object-cover border-2 border-[#243319] shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Shofie Ardhya Shafina</h3>
               <p class="text-[11px] text-[#243319] font-semibold">Data Analyst</p>
             </div>
             <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Scikit-learn ML &amp; Proyeksi Pasar</p>
           </div>
+
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <div class="w-8 h-8 rounded-lg bg-terasering text-white flex items-center justify-center font-bold text-xs mb-2">NSS</div>
+              <img src="/img/team-nakula.png" alt="Nakula Syafa Saputra" class="w-16 h-16 rounded-xl object-cover border-2 border-terasering shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Nakula Syafa Saputra</h3>
               <p class="text-[11px] text-terasering font-semibold">Programmer</p>
             </div>
             <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Fullstack Vue 3 &amp; Django REST</p>
           </div>
+        </div>
+
+        <div class="pt-4 border-t border-[#DED7CA]">
+          <h2 class="font-display font-semibold text-lg md:text-xl text-abu-vulkanik">Mitra Resmi Pelatihan &amp; Pertanian Terpadu</h2>
+          <p class="text-[11px] md:text-xs text-tanah-subur mt-1">2 Mitra kolaborasi pendukung inkubasi teknologi &amp; agribisnis lapang.</p>
+        </div>
+
+        <!-- 2 Mitra Bawah -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="bg-[#243319] text-white rounded-xl p-4 flex flex-col justify-between">
             <div>
-              <div class="w-8 h-8 rounded-lg bg-[#d5e9c3] text-[#111f08] flex items-center justify-center font-bold text-xs mb-2">V7</div>
+              <img src="/img/team-vinix7.png" alt="VINIX7" class="w-14 h-14 rounded-xl object-cover border-2 border-[#d5e9c3] shadow-sm mb-3 bg-white" />
               <h3 class="text-sm font-bold text-white">VINIX7</h3>
               <p class="text-[11px] text-[#d5e9c3] font-semibold">Mitra Pelatihan &amp; Inkubator</p>
               <p class="text-[10px] text-white/80 mt-1">PT Vinix Seven Aurum (Pelatihan &amp; Mentorship Digital)</p>
@@ -191,6 +204,19 @@ const stackList = [
             <div class="mt-2 text-[10px] text-[#d5e9c3] flex items-center gap-1 border-t border-white/15 pt-2">
               <span class="material-symbols-outlined text-[12px]">location_on</span>
               <span>Jl. Watugede No. 58, Sleman, DIY</span>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-[#2D3F20] to-[#1E2B15] text-white rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <img src="/img/mitra-pendawa.jpg" alt="CV Pendawa Kencana Multifarm" class="w-14 h-14 rounded-xl object-cover border-2 border-[#D5E9C3] shadow-sm mb-3 bg-white" />
+              <h3 class="text-sm font-bold text-white">CV Pendawa Kencana Multifarm</h3>
+              <p class="text-[11px] text-[#D5E9C3] font-semibold">Mitra Pertanian Terpadu (Integrated Farming)</p>
+              <p class="text-[10px] text-white/80 mt-1">Pusat pelatihan pertanian organik, peternakan terpadu, &amp; bioteknologi sejak 1999</p>
+            </div>
+            <div class="mt-2 text-[10px] text-[#D5E9C3] flex items-center gap-1 border-t border-white/15 pt-2">
+              <span class="material-symbols-outlined text-[12px]">location_on</span>
+              <span>Pagerjurang, Kepuharjo, Cangkringan, Sleman, DIY</span>
             </div>
           </div>
         </div>

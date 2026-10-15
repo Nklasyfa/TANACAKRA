@@ -486,7 +486,10 @@ watch(
           <p class="text-[11px] text-[#243319] mt-0.5 font-medium">Manajemen Lahan • {{ lahanList.length }} petak terdaftar</p>
         </div>
         <div class="flex items-center gap-1">
-          <button @click="openSample()" class="w-9 h-9 flex items-center justify-center hover:bg-[#EFECE6] rounded-full transition-colors" title="Catat Sample ML">
+          <router-link to="/input-lahan" class="w-9 h-9 flex items-center justify-center bg-[#243319] text-white rounded-full transition-colors shadow-xs" title="Catat Lahan Baru">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+          </router-link>
+          <button @click="openSample()" class="w-9 h-9 flex items-center justify-center hover:bg-[#EFECE6] rounded-full transition-colors text-[#A8452A]" title="Catat Sample ML">
             <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
           </button>
           <button @click="fetchLahanData" class="p-2 hover:bg-[#EFECE6] transition-colors rounded-full">
@@ -510,9 +513,13 @@ watch(
             <p class="text-[13px] text-[#645d58] mt-1">Inventarisasi {{ lahanList.length }} petak lahan lereng Merapi dan tata kelola pipeline data tanah.</p>
           </div>
           <div class="flex items-center gap-2.5 shrink-0">
-            <button @click="handleExportCsv" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-[#D5E9C3] rounded-lg shadow-sm transition-colors cursor-pointer">
+            <router-link to="/input-lahan" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">add_circle</span>
+              <span>Catat Lahan Baru</span>
+            </router-link>
+            <button @click="handleExportCsv" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-white hover:bg-[#FDEBDB] text-[#243319] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px]">download</span>
-              <span>Ekspor CSV Lahan</span>
+              <span>Ekspor CSV</span>
             </button>
             <button @click="openSample()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
@@ -520,11 +527,11 @@ watch(
             </button>
             <button @click="fetchLahanData" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px] text-[#645d58]">refresh</span>
-              <span>Refresh Data</span>
+              <span>Refresh</span>
             </button>
             <button @click="openMap" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px] text-[#645d58]">map</span>
-              <span>Peta Lahan</span>
+              <span>Peta</span>
             </button>
           </div>
         </header>

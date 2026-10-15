@@ -26,6 +26,30 @@ const todayLabel = computed(() => {
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} — Hari Ini`
 })
 
+// Tab view: 'logs' | 'users'
+const activeTab = ref<'logs' | 'users'>('logs')
+
+// Calculate activity per user
+const userActivitySummary = computed(() => {
+  return registeredUsers.value.map(user => {
+    const userLogs = auditLogs.value.filter(l => {
+      const uName = (user.username || '').toLowerCase()
+      const uEmail = (user.email || '').toLowerCase()
+      const lUser = (l.userName || '').toLowerCase()
+      const lRole = (l.userRole || '').toLowerCase()
+      return lUser.includes(uName) || lRole.includes(uEmail) || (uName.includes('admin') && lRole.includes('admin'))
+    })
+    const lastLog = userLogs[0] || null
+    return {
+      ...user,
+      totalActivity: userLogs.length,
+      lastActive: lastLog ? (lastLog.time || lastLog.timestamp) : 'Belum ada aktivitas hari ini',
+      lastAction: lastLog ? lastLog.title : 'Menunggu aksi lapang',
+      status: userLogs.length > 0 ? 'Aktif' : 'Terdaftar (Pasif)'
+    }
+  })
+})
+
 const resetFilters = () => {
   searchQuery.value = ''
   selectedCategory.value = 'all'
@@ -330,6 +354,31 @@ const avgLatency = computed(() => {
         </div>
       </div>
 
+      <!-- Tab Switcher: Log Aktivitas vs Akun Terdaftar & Aktivitas Pengguna -->
+      <div class="flex items-center gap-2 border-b border-[#E5E0D8] pb-1">
+        <button
+          type="button"
+          @click="activeTab = 'logs'"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer"
+          :class="activeTab === 'logs' ? 'bg-[#243319] text-[#D5E9C3] shadow-xs' : 'bg-transparent text-[#7E7063] hover:text-[#231a10] hover:bg-[#F2EBDC]'"
+        >
+          <span class="material-symbols-outlined text-[18px]">history</span>
+          <span>Semua Log Aktivitas ({{ auditLogs.length }})</span>
+        </button>
+        <button
+          type="button"
+          @click="activeTab = 'users'"
+          class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer"
+          :class="activeTab === 'users' ? 'bg-[#243319] text-[#D5E9C3] shadow-xs' : 'bg-transparent text-[#7E7063] hover:text-[#231a10] hover:bg-[#F2EBDC]'"
+        >
+          <span class="material-symbols-outlined text-[18px]">group</span>
+          <span>Akun Terdaftar &amp; Aktivitas User ({{ registeredUsers.length }})</span>
+        </button>
+      </div>
+
+      <!-- VIEW 1: TAB LOG AKTIVITAS -->
+      <template v-if="activeTab === 'logs'">
+
       <!-- Baris Kontrol Filter Terpadu -->
       <div class="bg-white p-4 rounded-xl border border-[#E5E0D8] shadow-2xs flex flex-col gap-4">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -554,6 +603,108 @@ const avgLatency = computed(() => {
           </div>
         </div>
       </div>
+      </template>
+
+      <!-- VIEW 2: TAB AKUN TERDAFTAR & AKTIVITAS USER -->
+      <template v-else>
+        <div class="bg-white rounded-2xl border border-[#E5E0D8] p-5 shadow-sm flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E0D8] pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#243319] text-[22px]">manage_accounts</span>
+                <h2 class="font-bold text-lg text-[#231a10]">Daftar Akun Terdaftar &amp; Rekap Aktivitas Pengguna</h2>
+              </div>
+              <p class="text-xs text-[#7E7063] mt-0.5">
+                Memantau seluruh pengguna terdaftar di konsol admin beserta rekam jejak aktivitas, frekuensi interaksi sistem, dan aksi terakhirnya.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full bg-[#EBF2E5] text-[#243319] text-xs font-bold border border-[#243319]/20">
+                {{ userActivitySummary.length }} Akun Terdata
+              </span>
+            </div>
+          </div>
+
+          <!-- User Cards / Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-[#F9F7F4] border-b border-[#E5E0D8] text-[11px] font-bold text-[#7E7063] uppercase tracking-wider">
+                  <th class="py-3 px-4">Nama Pengguna &amp; Akun</th>
+                  <th class="py-3 px-4">Peran (Role)</th>
+                  <th class="py-3 px-4">Total Aktivitas</th>
+                  <th class="py-3 px-4">Aktivitas Terakhir</th>
+                  <th class="py-3 px-4">Waktu Terakhir</th>
+                  <th class="py-3 px-4 text-center">Status</th>
+                  <th class="py-3 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E0D8]/60">
+                <tr v-for="user in userActivitySummary" :key="'usr-' + user.id" class="hover:bg-[#FFFBF7] transition-colors">
+                  <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2.5">
+                      <div
+                        class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
+                        :class="user.role === 'ADMIN' ? 'bg-[#243319] text-[#D5E9C3]' : user.role === 'PENYULUH' ? 'bg-[#A8452A] text-white' : 'bg-[#E5E0D8] text-[#241F1B]'"
+                      >
+                        {{ (user.username || 'U').substring(0, 2).toUpperCase() }}
+                      </div>
+                      <div class="min-w-0">
+                        <strong class="block text-sm text-[#231a10] truncate">{{ user.username }}</strong>
+                        <span class="text-[11px] text-[#7E7063] font-mono truncate">{{ user.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span
+                      class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1 border"
+                      :class="user.role === 'ADMIN' ? 'bg-[#243319]/10 text-[#243319] border-[#243319]/25' : user.role === 'PENYULUH' ? 'bg-[#A8452A]/10 text-[#A8452A] border-[#A8452A]/25' : 'bg-stone-100 text-stone-700 border-stone-200'"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full" :class="user.role === 'ADMIN' ? 'bg-[#243319]' : user.role === 'PENYULUH' ? 'bg-[#A8452A]' : 'bg-stone-500'"></span>
+                      {{ user.role }}
+                    </span>
+                  </td>
+
+                  <td class="py-3.5 px-4">
+                    <span class="font-bold text-[#231a10] font-mono">{{ user.totalActivity }}</span>
+                    <span class="text-[11px] text-[#7E7063]"> log aksi</span>
+                  </td>
+
+                  <td class="py-3.5 px-4 max-w-xs">
+                    <span class="text-[12px] font-medium text-[#231a10] line-clamp-1" :title="user.lastAction">{{ user.lastAction }}</span>
+                  </td>
+
+                  <td class="py-3.5 px-4 whitespace-nowrap text-[#7E7063] font-mono text-[11px]">
+                    {{ user.lastActive }}
+                  </td>
+
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    <span
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                      :class="user.totalActivity > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full" :class="user.totalActivity > 0 ? 'bg-emerald-600' : 'bg-stone-400'"></span>
+                      {{ user.status }}
+                    </span>
+                  </td>
+
+                  <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      @click="selectedUser = user.username; activeTab = 'logs'"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#EBF2E5] hover:bg-[#D5E9C3] text-[#243319] text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      <span class="material-symbols-outlined text-[15px]">filter_alt</span>
+                      <span>Lihat Log</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </template>
 
     </main>
     </div>

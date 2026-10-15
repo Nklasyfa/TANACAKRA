@@ -881,7 +881,16 @@ export const AdminService = {
   },
   async getUsers(): Promise<User[]> {
     const defaultUsers: User[] = [
-      { id: 3, username: 'Super Admin', email: 'admin@cangkringan.desa.id', role: 'ADMIN' }
+      { id: 1, username: 'Super Admin Cangkringan', email: 'admin@cangkringan.desa.id', role: 'ADMIN' },
+      { id: 2, username: 'Tia Fitrianingsih (SA/PM)', email: '25051204001@mhs.unesa.ac.id', role: 'ADMIN' },
+      { id: 3, username: 'Shofie Ardhya S (Data Analyst)', email: '25051204279@mhs.unesa.ac.id', role: 'PETANI' },
+      { id: 4, username: 'Nakula Syafa S (Programmer)', email: '25051204002@mhs.unesa.ac.id', role: 'ADMIN' },
+      { id: 5, username: 'Pak Mardianto (Poktan Wukirsari)', email: 'mardianto.tani@cangkringan.desa.id', role: 'PETANI' },
+      { id: 6, username: 'Bu Sri Rahayu (Poktan Argomulyo)', email: 'sri.rahayu@cangkringan.desa.id', role: 'PETANI' },
+      { id: 7, username: 'Pak Wiyono (Poktan Umbulharjo)', email: 'wiyono.tani@cangkringan.desa.id', role: 'PETANI' },
+      { id: 8, username: 'Bapak Sugiono (Penyuluh Lapang BPP)', email: 'sugiono.penyuluh@sleman.go.id', role: 'PENYULUH' },
+      { id: 9, username: 'Poktan Kepuharjo Merapi', email: 'poktan.kepuharjo@gmail.com', role: 'PETANI' },
+      { id: 10, username: 'Poktan Glagaharjo Makmur', email: 'poktan.glagaharjo@gmail.com', role: 'PETANI' }
     ]
     try {
       const res = await api.get('/users')

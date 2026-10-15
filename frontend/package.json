@@ -19,7 +19,8 @@
     "plotly.js-dist-min": "^4.1.0",
     "vue": "^3.5.41",
     "vue-router": "^4.6.4",
-    "vue3-leaflet": "^1.0.50"
+    "vue3-leaflet": "^1.0.50",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/container-queries": "^0.1.1",
