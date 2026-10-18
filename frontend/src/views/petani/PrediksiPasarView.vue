@@ -686,9 +686,9 @@ const createSchedule = () => {
                   v-model="selectedCommodity"
                   class="w-full bg-[#FFF8F4] text-[#241F1B] text-[12px] font-bold pl-3 pr-8 py-2 rounded-xl cursor-pointer border border-[#E2D8C7] hover:bg-[#F2DFCF]/50 transition-colors focus:outline-none appearance-none shadow-2xs"
                 >
-                  <option :value="ALL_COMMODITIES">🌽 Semua Komoditas</option>
+                  <option :value="ALL_COMMODITIES">Semua Komoditas</option>
                   <option v-for="c in commodities" :key="c" :value="c">
-                    {{ c === 'Cabai Merah' ? '🌶️' : c === 'Jagung' ? '🌽' : c === 'Padi' ? '🌾' : c === 'Bawang Merah' ? '🧅' : c === 'Tomat' ? '🍅' : c === 'Salak Pondoh' ? '🌴' : '🫘' }} {{ c }}
+                    {{ c }}
                   </option>
                 </select>
                 <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6B5B4A] text-[18px] pointer-events-none">expand_more</span>
