@@ -61,7 +61,7 @@ const searchLocationOnMap = async () => {
         map.flyTo([lat, lng], 15)
         mapMarker.setLatLng([lat, lng])
       }
-      searchStatusMsg.value = `📍 Peta berpindah ke lokasi: ${data[0].display_name.split(',')[0]}`
+      searchStatusMsg.value = `Peta berpindah ke lokasi: ${data[0].display_name.split(',')[0]}`
     } else {
       const fallbackQuery = encodeURIComponent(`${queryText}, Sleman, Yogyakarta`)
       const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${fallbackQuery}`)
@@ -75,13 +75,13 @@ const searchLocationOnMap = async () => {
           map.flyTo([lat, lng], 15)
           mapMarker.setLatLng([lat, lng])
         }
-        searchStatusMsg.value = `📍 Peta berpindah ke: ${fallbackData[0].display_name.split(',')[0]}`
+        searchStatusMsg.value = `Peta berpindah ke: ${fallbackData[0].display_name.split(',')[0]}`
       } else {
-        searchStatusMsg.value = '⚠️ Nama lokasi tidak ditemukan di pencarian peta. Silakan geser pin secara manual.'
+        searchStatusMsg.value = 'Nama lokasi tidak ditemukan di pencarian peta. Silakan geser pin secara manual.'
       }
     }
   } catch (err) {
-    searchStatusMsg.value = '⚠️ Gagal mencari lokasi. Silakan geser pin pada peta secara manual.'
+    searchStatusMsg.value = 'Gagal mencari lokasi. Silakan geser pin pada peta secara manual.'
   } finally {
     isSearchingMap.value = false
   }
@@ -543,7 +543,7 @@ const resetForm = () => {
                     @click="quickSelectDesa(desa)"
                     class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#EBF2E5] text-[#243319] hover:bg-[#243319] hover:text-white border border-[#d5e9c3] transition cursor-pointer"
                   >
-                    📍 {{ desa }}
+                    {{ desa }}
                   </button>
                 </div>
 

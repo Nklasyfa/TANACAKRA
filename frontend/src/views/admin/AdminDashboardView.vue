@@ -883,9 +883,9 @@ onMounted(() => {
                 v-model="selectedCommodity"
                 class="w-full appearance-none bg-[#F9F7F4] border border-[#E5E0D8] text-[#231a10] text-xs font-bold rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-1 focus:ring-[#243319] cursor-pointer shadow-2xs"
               >
-                <option value="Semua">🌽 Semua Komoditas</option>
+                <option value="Semua">Semua Komoditas</option>
                 <option v-for="c in allCommodities" :key="c" :value="c">
-                  {{ c === 'Cabai Merah' ? '🌶️' : c === 'Jagung' ? '🌽' : c === 'Padi' ? '🌾' : c === 'Bawang Merah' ? '🧅' : c === 'Tomat' ? '🍅' : c === 'Salak Pondoh' ? '🌴' : '🫘' }} {{ c }}
+                  {{ c }}
                 </option>
               </select>
               <span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-[#7E7063] pointer-events-none">expand_more</span>
