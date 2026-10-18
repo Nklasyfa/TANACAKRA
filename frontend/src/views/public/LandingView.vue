@@ -5,6 +5,12 @@ import { getStoredSession, resolveSession } from '@/services/session'
 import { KabarTaniService, type KabarTaniItem } from '@/services/kabarTani'
 import { LahanService, AdminService } from '@/services/api'
 
+import photoTia from '@/assets/about us/foto anggota/tia.jpeg'
+import photoShofie from '@/assets/about us/foto anggota/shofie.jpeg'
+import photoNakula from '@/assets/about us/foto anggota/nakula.jpg'
+import photoVinix from '@/assets/about us/foto anggota/vinix.jpg'
+import photoPandawa from '@/assets/about us/foto anggota/pandawa.jpg'
+
 const router = useRouter()
 
 const scrolled = ref(false)
@@ -508,7 +514,7 @@ const scrollToSection = (id: string) => {
                     <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">VINIX7</strong>
                   </div>
                   <div class="flex justify-between items-center">
-                    <span class="text-[#243319]">Mitra Pertanian:</span>
+                    <span class="text-[#243319]">Mitra Pengabdian:</span>
                     <strong class="text-[#243319] bg-[#EBF2E5] px-2 py-0.5 rounded">CV Pendawa Kencana</strong>
                   </div>
                 </div>
@@ -542,7 +548,7 @@ const scrollToSection = (id: string) => {
                 <div class="p-4 sm:p-6">
                   <div class="flex items-center gap-3.5 mb-4">
                     <img
-                      src="/img/team-tia.png"
+                      :src="photoTia"
                       alt="Tia Fitrianingsih"
                       class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#A8452A] shadow-md group-hover:scale-105 transition-transform"
                     />
@@ -584,7 +590,7 @@ const scrollToSection = (id: string) => {
                 <div class="p-4 sm:p-6">
                   <div class="flex items-center gap-3.5 mb-4">
                     <img
-                      src="/img/team-shoffie.png"
+                      :src="photoShofie"
                       alt="Shofie Ardhya Shafina"
                       class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#243319] shadow-md group-hover:scale-105 transition-transform"
                     />
@@ -626,7 +632,7 @@ const scrollToSection = (id: string) => {
                 <div class="p-4 sm:p-6">
                   <div class="flex items-center gap-3.5 mb-4">
                     <img
-                      src="/img/team-nakula.png"
+                      :src="photoNakula"
                       alt="Nakula Syafa Saputra"
                       class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#3A4A2E] shadow-md group-hover:scale-105 transition-transform"
                     />
@@ -681,7 +687,7 @@ const scrollToSection = (id: string) => {
                 <div class="p-4 sm:p-6 relative z-10">
                   <div class="flex items-center gap-3.5 mb-4">
                     <img
-                      src="/img/team-vinix7.png"
+                      :src="photoVinix"
                       alt="VINIX7"
                       class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#d5e9c3] shadow-md group-hover:scale-105 transition-transform bg-white"
                     />
@@ -733,13 +739,13 @@ const scrollToSection = (id: string) => {
                 <div class="p-4 sm:p-6 relative z-10">
                   <div class="flex items-center gap-3.5 mb-4">
                     <img
-                      src="/img/mitra-pendawa.jpg"
+                      :src="photoPandawa"
                       alt="CV Pendawa Kencana Multifarm"
                       class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-[#D5E9C3] shadow-md group-hover:scale-105 transition-transform bg-white"
                     />
                     <div class="min-w-0">
                       <span class="bg-[#D5E9C3]/20 text-[#D5E9C3] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#D5E9C3]/30 inline-block mb-1">
-                        Mitra Pertanian Terpadu
+                        Mitra Pengabdian
                       </span>
                       <h4 class="text-base sm:text-lg font-bold text-white group-hover:text-[#D5E9C3] transition-colors leading-snug">
                         CV Pendawa Kencana Multifarm

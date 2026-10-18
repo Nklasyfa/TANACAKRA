@@ -48,6 +48,9 @@ export interface LandInputPayload {
   fosfor: number
   kalium: number
   komoditas?: string
+  area_ha?: number | string
+  area_sqm?: number
+  [key: string]: any
 }
 
 export function downloadCsv(filename: string, rows: Record<string, any>[]) {
@@ -710,16 +713,64 @@ export const LahanService = {
         try { userObj = JSON.parse(userStr) } catch {}
       }
 
+      const commodity = parameters.komoditas || 'Cabai Merah'
+      const areaHa = parameters.area_ha 
+        ? Number(parameters.area_ha) 
+        : (parameters.area_sqm ? Number((parameters.area_sqm / 10000).toFixed(2)) : 1.0)
+      
+      const COMMODITY_BASE: Record<string, { base: number; min: number; max: number }> = {
+        'Padi': { base: 5.8, min: 4.5, max: 7.5 },
+        'Jagung': { base: 7.2, min: 5.5, max: 9.5 },
+        'Cabai Merah': { base: 8.5, min: 6.0, max: 12.0 },
+        'Bawang Merah': { base: 9.8, min: 7.5, max: 13.5 },
+        'Tomat': { base: 18.5, min: 14.0, max: 25.0 },
+        'Salak Pondoh': { base: 16.0, min: 12.0, max: 22.0 },
+        'Kacang Tanah': { base: 2.8, min: 1.8, max: 3.8 }
+      }
+
+      const cfg = COMMODITY_BASE[commodity] || COMMODITY_BASE['Cabai Merah']
+      const ph = parameters.pH || 6.5
+      const moisture = parameters.kelembapan || 60
+      const healthMultiplier = (1.0 - Math.abs(ph - 6.5) * 0.05) * (1.0 - Math.abs(moisture - 60) * 0.003)
+      const calculatedYield = Math.max(cfg.min, Math.min(cfg.max, +(cfg.base * healthMultiplier).toFixed(1)))
+      const yieldMin = +(Math.max(cfg.min, calculatedYield * 0.88)).toFixed(1)
+      const yieldMax = +(Math.min(cfg.max * 1.1, calculatedYield * 1.12)).toFixed(1)
+      
+      const totalProductionTon = +(calculatedYield * areaHa).toFixed(3)
+      const totalProductionKg = Math.round(calculatedYield * areaHa * 1000)
+      const minKg = Math.round(yieldMin * areaHa * 1000)
+      const maxKg = Math.round(yieldMax * areaHa * 1000)
+      const areaSqm = Math.round(areaHa * 10000)
+
+      let panenPetakStr = ''
+      let ringkasanLuas = ''
+      if (areaHa < 1.0) {
+        panenPetakStr = `${minKg.toLocaleString('id-ID')} - ${maxKg.toLocaleString('id-ID')} kg (est. ~${totalProductionKg.toLocaleString('id-ID')} kg)`
+        ringkasanLuas = `${areaSqm.toLocaleString('id-ID')} m² (${areaHa} Ha)`
+      } else {
+        const minTon = +(yieldMin * areaHa).toFixed(2)
+        const maxTon = +(yieldMax * areaHa).toFixed(2)
+        panenPetakStr = `${minTon} - ${maxTon} ton (est. ~${totalProductionTon} ton)`
+        ringkasanLuas = `${areaHa} Ha (${areaSqm.toLocaleString('id-ID')} m²)`
+      }
+
       const newEntry = {
         id: Date.now(),
         user: userObj,
-        input_parameters: { ...parameters, farm_id: finalFarmId },
+        input_parameters: { ...parameters, farm_id: finalFarmId, area_ha: areaHa, area_sqm: areaSqm, komoditas: commodity },
         created_at: new Date().toISOString(),
         output: {
           prediction_result: {
-            estimasi_hasil_panen_ton_ha: '16.8',
+            komoditas: commodity,
+            estimasi_hasil_panen_ton_ha: calculatedYield,
+            range_hasil_panen_ton_ha: `${yieldMin} - ${yieldMax}`,
+            estimasi_total_panen_ton: totalProductionTon,
+            estimasi_total_panen_kg: totalProductionKg,
+            panen_petak_str: panenPetakStr,
+            area_ha: areaHa,
+            area_sqm: areaSqm,
             status_kesehatan: parameters.pH < 6.0 ? 'Perlu Pembenahan pH' : 'Sangat Baik',
-            catatan_lokasi: `Lokasi lahan ${finalFarmId} Cangkringan.`,
+            catatan_lokasi: `Prediksi panen ${commodity} pada lahan ${ringkasanLuas}: potensi ${panenPetakStr} (produktivitas standar ${yieldMin}–${yieldMax} ton/ha).`,
             rekomendasi_tindakan: [
               parameters.pH < 6.0 
                 ? 'Taburkan Kapur Pertanian (Dolomit) yang mengandung Kalsium (Ca) & Magnesium (Mg) untuk menaikkan pH tanah.' 

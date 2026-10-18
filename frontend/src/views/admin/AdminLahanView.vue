@@ -984,7 +984,12 @@ watch(
                 </div>
               </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-[11px] px-2.5 py-1 bg-[#243319] text-white rounded-full font-bold">Panen: {{ sampleResult.estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha</span>
+                <span class="text-[11px] px-2.5 py-1 bg-[#243319] text-white rounded-full font-bold">
+                  Panen: {{ sampleResult.range_hasil_panen_ton_ha ? (sampleResult.range_hasil_panen_ton_ha + ' ton/ha') : ((sampleResult.estimasi_hasil_panen_ton_ha || '6.5') + ' ton/ha') }}
+                </span>
+                <span v-if="sampleResult.estimasi_total_panen_ton" class="text-[11px] px-2.5 py-1 bg-[#A8452A] text-white rounded-full font-bold">
+                  Total: ~{{ sampleResult.estimasi_total_panen_ton }} Ton
+                </span>
                 <span class="text-[11px] px-2.5 py-1 bg-[#EEF2E6] text-[#3A4A2E] rounded-full font-semibold">Status: {{ sampleResult.status_kesehatan }}</span>
               </div>
             </div>

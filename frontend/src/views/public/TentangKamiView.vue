@@ -6,6 +6,12 @@ import BottomNav from '@/components/petani/BottomNav.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import { useRouter } from 'vue-router'
 
+import photoTia from '@/assets/about us/foto anggota/tia.jpeg'
+import photoShofie from '@/assets/about us/foto anggota/shofie.jpeg'
+import photoNakula from '@/assets/about us/foto anggota/nakula.jpg'
+import photoVinix from '@/assets/about us/foto anggota/vinix.jpg'
+import photoPandawa from '@/assets/about us/foto anggota/pandawa.jpg'
+
 const router = useRouter()
 const role = ref<'PETANI' | 'ADMIN'>('PETANI')
 
@@ -161,7 +167,7 @@ const stackList = [
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <img src="/img/team-tia.png" alt="Tia Fitrianingsih" class="w-16 h-16 rounded-xl object-cover border-2 border-genteng shadow-sm mb-3" />
+              <img :src="photoTia" alt="Tia Fitrianingsih" class="w-16 h-16 rounded-xl object-cover border-2 border-genteng shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Tia Fitrianingsih</h3>
               <p class="text-[11px] text-genteng font-semibold">SA &middot; QA &middot; PM</p>
             </div>
@@ -170,7 +176,7 @@ const stackList = [
 
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <img src="/img/team-shoffie.png" alt="Shofie Ardhya Shafina" class="w-16 h-16 rounded-xl object-cover border-2 border-[#243319] shadow-sm mb-3" />
+              <img :src="photoShofie" alt="Shofie Ardhya Shafina" class="w-16 h-16 rounded-xl object-cover border-2 border-[#243319] shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Shofie Ardhya Shafina</h3>
               <p class="text-[11px] text-[#243319] font-semibold">Data Analyst</p>
             </div>
@@ -179,7 +185,7 @@ const stackList = [
 
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
-              <img src="/img/team-nakula.png" alt="Nakula Syafa Saputra" class="w-16 h-16 rounded-xl object-cover border-2 border-terasering shadow-sm mb-3" />
+              <img :src="photoNakula" alt="Nakula Syafa Saputra" class="w-16 h-16 rounded-xl object-cover border-2 border-terasering shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Nakula Syafa Saputra</h3>
               <p class="text-[11px] text-terasering font-semibold">Programmer</p>
             </div>
@@ -196,7 +202,7 @@ const stackList = [
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="bg-[#243319] text-white rounded-xl p-4 flex flex-col justify-between">
             <div>
-              <img src="/img/team-vinix7.png" alt="VINIX7" class="w-14 h-14 rounded-xl object-cover border-2 border-[#d5e9c3] shadow-sm mb-3 bg-white" />
+              <img :src="photoVinix" alt="VINIX7" class="w-14 h-14 rounded-xl object-cover border-2 border-[#d5e9c3] shadow-sm mb-3 bg-white" />
               <h3 class="text-sm font-bold text-white">VINIX7</h3>
               <p class="text-[11px] text-[#d5e9c3] font-semibold">Mitra Pelatihan &amp; Inkubator</p>
               <p class="text-[10px] text-white/80 mt-1">PT Vinix Seven Aurum (Pelatihan &amp; Mentorship Digital)</p>
@@ -209,9 +215,9 @@ const stackList = [
 
           <div class="bg-gradient-to-br from-[#2D3F20] to-[#1E2B15] text-white rounded-xl p-4 flex flex-col justify-between">
             <div>
-              <img src="/img/mitra-pendawa.jpg" alt="CV Pendawa Kencana Multifarm" class="w-14 h-14 rounded-xl object-cover border-2 border-[#D5E9C3] shadow-sm mb-3 bg-white" />
+              <img :src="photoPandawa" alt="CV Pendawa Kencana Multifarm" class="w-14 h-14 rounded-xl object-cover border-2 border-[#D5E9C3] shadow-sm mb-3 bg-white" />
               <h3 class="text-sm font-bold text-white">CV Pendawa Kencana Multifarm</h3>
-              <p class="text-[11px] text-[#D5E9C3] font-semibold">Mitra Pertanian Terpadu (Integrated Farming)</p>
+              <p class="text-[11px] text-[#D5E9C3] font-semibold">Mitra Pengabdian</p>
               <p class="text-[10px] text-white/80 mt-1">Pusat pelatihan pertanian organik, peternakan terpadu, &amp; bioteknologi sejak 1999</p>
             </div>
             <div class="mt-2 text-[10px] text-[#D5E9C3] flex items-center gap-1 border-t border-white/15 pt-2">

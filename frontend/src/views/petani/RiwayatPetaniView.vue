@@ -342,9 +342,20 @@ const saveEdit = async () => {
                           <span class="leading-relaxed">{{ rec }}</span>
                         </li>
                       </ul>
-                      <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
-                        <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                        Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
+                      <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
+                          <span class="material-symbols-outlined text-[13px]">agriculture</span>
+                          Panen: {{ predictionOf(item).range_hasil_panen_ton_ha ? (predictionOf(item).range_hasil_panen_ton_ha + ' ton/ha') : ((predictionOf(item).estimasi_hasil_panen_ton_ha || '6.5') + ' ton/ha') }}
+                        </span>
+                        <span v-if="predictionOf(item).panen_petak_str" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-[#D5E9C3] text-[11px] font-bold">
+                          Petak: {{ predictionOf(item).panen_petak_str }}
+                        </span>
+                        <span v-else-if="predictionOf(item).estimasi_total_panen_kg && (item.input_parameters?.area_ha < 1.0 || (item.input_parameters?.area_sqm && item.input_parameters?.area_sqm < 10000))" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-[#D5E9C3] text-[11px] font-bold">
+                          Total: ~{{ Number(predictionOf(item).estimasi_total_panen_kg).toLocaleString('id-ID') }} kg
+                        </span>
+                        <span v-else-if="predictionOf(item).estimasi_total_panen_ton" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-white text-[11px] font-bold">
+                          Total: ~{{ predictionOf(item).estimasi_total_panen_ton }} Ton
+                        </span>
                       </div>
                     </template>
                     <template v-else>
@@ -444,9 +455,20 @@ const saveEdit = async () => {
                   <span class="leading-relaxed">{{ rec }}</span>
                 </li>
               </ul>
-              <div class="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
-                <span class="material-symbols-outlined text-[13px]">agriculture</span>
-                Estimasi panen: {{ predictionOf(item).estimasi_hasil_panen_ton_ha || '15.5' }} ton/ha/musim
+              <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#A8452A]/10 text-[#A8452A] text-[11px] font-bold">
+                  <span class="material-symbols-outlined text-[13px]">agriculture</span>
+                  Panen: {{ predictionOf(item).range_hasil_panen_ton_ha ? (predictionOf(item).range_hasil_panen_ton_ha + ' ton/ha') : ((predictionOf(item).estimasi_hasil_panen_ton_ha || '6.5') + ' ton/ha') }}
+                </span>
+                <span v-if="predictionOf(item).panen_petak_str" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-[#D5E9C3] text-[11px] font-bold">
+                  Petak: {{ predictionOf(item).panen_petak_str }}
+                </span>
+                <span v-else-if="predictionOf(item).estimasi_total_panen_kg && (item.input_parameters?.area_ha < 1.0 || (item.input_parameters?.area_sqm && item.input_parameters?.area_sqm < 10000))" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-[#D5E9C3] text-[11px] font-bold">
+                  Total: ~{{ Number(predictionOf(item).estimasi_total_panen_kg).toLocaleString('id-ID') }} kg
+                </span>
+                <span v-else-if="predictionOf(item).estimasi_total_panen_ton" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#243319] text-white text-[11px] font-bold">
+                  Total: ~{{ predictionOf(item).estimasi_total_panen_ton }} Ton
+                </span>
               </div>
             </div>
             <div v-else class="rounded-lg border border-[#E2D8C7] bg-white p-2.5">

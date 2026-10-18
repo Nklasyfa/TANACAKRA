@@ -432,9 +432,14 @@ const resetForm = () => {
               <!-- Input Luas Lahan & Komoditas Ditanam -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="space-y-1.5">
-                  <label for="field_area" class="text-xs text-[#241F1B] block font-bold">
-                    Luas lahan (m²) <span class="text-[#A8452A]">*</span>
-                  </label>
+                  <div class="flex items-center justify-between">
+                    <label for="field_area" class="text-xs text-[#241F1B] block font-bold">
+                      Luas lahan (m²) <span class="text-[#A8452A]">*</span>
+                    </label>
+                    <span class="text-[11px] text-[#A8452A] font-semibold">
+                      = {{ ((fieldArea || 0) / 10000).toFixed(2) }} Hektar
+                    </span>
+                  </div>
                   <div class="relative flex items-center">
                     <input
                       id="field_area"
@@ -444,6 +449,27 @@ const resetForm = () => {
                       class="w-full h-11 pl-3.5 pr-12 bg-[#F9F7F4] text-[#241F1B] text-sm font-semibold rounded-xl border border-[#E5E0D8] focus:outline-none focus:ring-2 focus:ring-[#A8452A] transition"
                     />
                     <span class="absolute right-3.5 text-[#7E7063] text-xs font-bold pointer-events-none">m²</span>
+                  </div>
+                  <!-- Quick Preset Luas Lahan Petani -->
+                  <div class="flex flex-wrap items-center gap-1 pt-1">
+                    <span class="text-[10px] text-[#7E7063] font-semibold">Pilih Cepat:</span>
+                    <button
+                      v-for="p in [
+                        { label: '200 m²', val: 200 },
+                        { label: '500 m²', val: 500 },
+                        { label: '1.000 m² (0.1 Ha)', val: 1000 },
+                        { label: '2.500 m² (¼ Ha)', val: 2500 },
+                        { label: '5.000 m² (½ Ha)', val: 5000 },
+                        { label: '1 Ha (10.000 m²)', val: 10000 }
+                      ]"
+                      :key="p.val"
+                      type="button"
+                      @click="fieldArea = p.val"
+                      class="px-2 py-0.5 rounded text-[10px] font-bold transition border"
+                      :class="fieldArea === p.val ? 'bg-[#243319] text-white border-[#243319]' : 'bg-[#EBF2E5] text-[#243319] border-[#d5e9c3] hover:bg-[#d5e9c3]'"
+                    >
+                      {{ p.label }}
+                    </button>
                   </div>
                 </div>
 
@@ -903,14 +929,25 @@ const resetForm = () => {
 
             <!-- Rekomendasi Kilat Teaser Card -->
             <div v-if="mlResult" class="bg-[#F9F7F4] text-left rounded-2xl p-5 border border-[#E5E0D8] space-y-3">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between flex-wrap gap-2">
                 <div class="flex items-center gap-2">
                   <span class="material-symbols-outlined text-[#A8452A] text-[20px]">psychology</span>
-                  <span class="text-xs font-bold text-[#243319]">Hasil Model Prediksi AI</span>
+                  <span class="text-xs font-bold text-[#243319]">Hasil Model Prediksi AI &middot; {{ mlResult.komoditas || selectedCommodity }}</span>
                 </div>
-                <span class="text-xs px-2.5 py-0.5 bg-[#A8452A]/10 text-[#A8452A] rounded-full font-bold">
-                  {{ mlResult.estimasi_hasil_panen_ton_ha || '16.8' }} ton/ha
-                </span>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs px-2.5 py-0.5 bg-[#A8452A]/10 text-[#A8452A] rounded-full font-bold">
+                    Standar: {{ mlResult.range_hasil_panen_ton_ha ? `${mlResult.range_hasil_panen_ton_ha} ton/ha` : `${mlResult.estimasi_hasil_panen_ton_ha || '8.5'} ton/ha` }}
+                  </span>
+                  <span v-if="mlResult.panen_petak_str" class="text-xs px-2.5 py-0.5 bg-[#243319] text-[#D5E9C3] rounded-full font-bold">
+                    Estimasi Petak: {{ mlResult.panen_petak_str }}
+                  </span>
+                  <span v-else-if="mlResult.estimasi_total_panen_kg && (fieldArea < 10000)" class="text-xs px-2.5 py-0.5 bg-[#243319] text-[#D5E9C3] rounded-full font-bold">
+                    Total: ~{{ Number(mlResult.estimasi_total_panen_kg).toLocaleString('id-ID') }} kg (Lahan {{ fieldArea }} m²)
+                  </span>
+                  <span v-else-if="mlResult.estimasi_total_panen_ton" class="text-xs px-2.5 py-0.5 bg-[#243319] text-[#D5E9C3] rounded-full font-bold">
+                    Total: ~{{ mlResult.estimasi_total_panen_ton }} Ton (Lahan {{ (fieldArea / 10000).toFixed(2) }} Ha)
+                  </span>
+                </div>
               </div>
               <ul class="space-y-2">
                 <li v-for="(rec, idx) in (mlResult.rekomendasi_tindakan || [])" :key="idx" class="flex items-start gap-2 text-xs text-[#241F1B] font-semibold bg-white p-3 rounded-xl border border-[#E5E0D8]">
