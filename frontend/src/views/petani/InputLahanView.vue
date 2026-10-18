@@ -955,6 +955,65 @@ const resetForm = () => {
                   <span>{{ rec }}</span>
                 </li>
               </ul>
+
+              <!-- Kalkulator Dosis Pupuk Petak Presisi -->
+              <div v-if="mlResult.kalkulator_pupuk_petak" class="bg-white p-3.5 rounded-xl border border-[#E5E0D8] space-y-2">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-[#243319]">
+                  <span class="material-symbols-outlined text-[16px] text-[#A8452A]">science</span>
+                  <span>Kalkulasi Takaran Pupuk untuk Petak Ini ({{ fieldArea }} m²)</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                  <div class="bg-[#F9F7F4] p-2 rounded-lg border border-[#E5E0D8]">
+                    <span class="block text-[10px] text-[#7E7063] font-bold">Kapur Dolomit</span>
+                    <span class="text-xs font-bold text-[#A8452A]">{{ mlResult.kalkulator_pupuk_petak.dolomit_kg }} kg</span>
+                  </div>
+                  <div class="bg-[#F9F7F4] p-2 rounded-lg border border-[#E5E0D8]">
+                    <span class="block text-[10px] text-[#7E7063] font-bold">Urea (N)</span>
+                    <span class="text-xs font-bold text-[#243319]">{{ mlResult.kalkulator_pupuk_petak.urea_kg }} kg</span>
+                  </div>
+                  <div class="bg-[#F9F7F4] p-2 rounded-lg border border-[#E5E0D8]">
+                    <span class="block text-[10px] text-[#7E7063] font-bold">SP-36 (P)</span>
+                    <span class="text-xs font-bold text-[#243319]">{{ mlResult.kalkulator_pupuk_petak.sp36_kg }} kg</span>
+                  </div>
+                  <div class="bg-[#F9F7F4] p-2 rounded-lg border border-[#E5E0D8]">
+                    <span class="block text-[10px] text-[#7E7063] font-bold">KCl (K)</span>
+                    <span class="text-xs font-bold text-[#243319]">{{ mlResult.kalkulator_pupuk_petak.kcl_kg }} kg</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Rekomendasi Komoditas Alternatif Berbasis Data Science -->
+              <div v-if="mlResult.rekomendasi_komoditas_alternatif && mlResult.rekomendasi_komoditas_alternatif.length" class="bg-white p-3.5 rounded-xl border border-[#E5E0D8] space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-[#243319]">
+                    <span class="material-symbols-outlined text-[16px] text-[#243319]">eco</span>
+                    <span>Kesesuaian Komoditas Berdasarkan Kondisi Tanah</span>
+                  </div>
+                  <span class="text-[10px] font-semibold text-[#7E7063]">Top 3 Kesesuaian</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div
+                    v-for="c in mlResult.rekomendasi_komoditas_alternatif"
+                    :key="c.komoditas"
+                    class="p-2.5 rounded-lg border flex flex-col justify-between"
+                    :class="c.komoditas === (mlResult.komoditas || selectedCommodity) ? 'bg-[#EBF2E5] border-[#243319]/40' : 'bg-[#F9F7F4] border-[#E5E0D8]'"
+                  >
+                    <div>
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-[#241F1B]">{{ c.komoditas }}</span>
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white text-[#243319] border border-[#E5E0D8]">
+                          {{ c.skor_kesesuaian }}%
+                        </span>
+                      </div>
+                      <p class="text-[10px] text-[#7E7063] leading-snug">{{ c.catatan }}</p>
+                    </div>
+                    <span class="text-[9px] font-bold mt-1 text-[#243319] uppercase tracking-wide">
+                      {{ c.status }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <p class="text-[11px] text-[#7E7063] italic">{{ mlResult.catatan_lokasi }}</p>
             </div>
 
