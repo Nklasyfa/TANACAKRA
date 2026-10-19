@@ -426,6 +426,28 @@ function getFallbackFeed(): KabarTaniFeedResponse {
     },
     items: [
       {
+        id: "prediksi-tanam-tomat-1",
+        category: "prediksi",
+        title: "Prospek Tanam Tomat Bulan Ini: Agroklimat Merapi Sangat Mendukung",
+        summary: "Suhu harian 22–26°C dan curah hujan berkala 3 mm/hari di lereng Merapi menjadikan bulan ini momentum ideal menanam tomat sayur varietas Servo. Model AI memproyeksikan efisiensi biaya irigasi hingga 30% serta harga panen stabil di atas Rp 14.000/kg.",
+        metrics: { "Kesesuaian": "94% (Sangat Baik)", "Estimasi Panen": "75 HST", "Harga Proyeksi": "Rp 14.500/kg" },
+        severity: "info",
+        timestamp: "2026-09-24T08:15:00Z",
+        source: "AI Agro-Intelijen Tanacakra",
+        cta_url: "/lahan"
+      },
+      {
+        id: "prediksi-bawang-merah-1",
+        category: "prediksi",
+        title: "Pola Rotasi Bawang Merah Tajuk Pasca Panen Cabai di Cangkringan",
+        summary: "Berdasarkan sensor hara tanah (NPK), rotasi tanam bawang merah di Blok C direkomendasikan untuk menyeimbangkan nitrogen tanah dan memutus siklus spora jamur. Permintaan pasar lelang Sleman diproyeksikan melonjak saat panen raya 65 hari lagi.",
+        metrics: { "Varietas": "Bawang Tajuk", "Siklus Tanam": "65 HST", "Potensi Margin": "+32%" },
+        severity: "info",
+        timestamp: "2026-09-24T07:50:00Z",
+        source: "Engine Rekomendasi Tanam AI",
+        cta_url: "/lahan"
+      },
+      {
         id: "pasar-cabai-1",
         category: "pasar",
         title: "Harga cabai naik 8% dibanding minggu lalu",
@@ -439,13 +461,35 @@ function getFallbackFeed(): KabarTaniFeedResponse {
       {
         id: "pasar-tomat-1",
         category: "pasar",
-        title: "Harga tomat stabil di pasar Sleman",
-        summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan.",
+        title: "Harga tomat stabil di pasar Sleman dengan serapan tinggi",
+        summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan Yogyakarta.",
         metrics: { "Harga": "Rp14.500/kg", "Perubahan": "0%" },
         severity: "info",
         timestamp: "2026-09-24T07:09:00Z",
         source: "Pasar Induk Sleman",
         cta_url: "/warta/pasar-tomat-1"
+      },
+      {
+        id: "prediksi-jagung-1",
+        category: "prediksi",
+        title: "Tren Permintaan Jagung Pipil Kering untuk Pakan Ternak Meningkat",
+        summary: "Tingginya permintaan konsentrat sapi perah lereng Merapi mendorong kontrak serap jagung pipil kering pada level Rp 7.200 - Rp 7.500/kg. Petani dianjurkan mengoptimalkan penjemuran dengan standar kadar air 14%.",
+        metrics: { "Harga Serap": "Rp 7.400/kg", "Kadar Air": "14%", "Permintaan": "+11.8%" },
+        severity: "info",
+        timestamp: "2026-09-23T11:20:00Z",
+        source: "Koperasi Tani & Ternak Sleman",
+        cta_url: "/prediksi-pasar"
+      },
+      {
+        id: "pasar-salak-1",
+        category: "pasar",
+        title: "Salak Pondoh Super Cangkringan Tembus Standar Ekspor dan Swalayan",
+        summary: "Kadar gula 13.8° Brix pada panen salak pondoh pekan ini memenuhi kualifikasi premium. Harga tingkat petani bertahan di angka Rp 17.500/kg.",
+        metrics: { "Harga Petani": "Rp 17.500/kg", "Brix": "13.8°", "Mutu": "Grade A" },
+        severity: "info",
+        timestamp: "2026-09-23T09:00:00Z",
+        source: "Asosiasi Petani Salak Sleman",
+        cta_url: "/prediksi-pasar"
       },
       {
         id: "lahan-blok-b-1",
@@ -462,8 +506,8 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         id: "cuaca-1",
         category: "cuaca",
         title: "Cuaca 3 hari ke depan: hujan ringan, waktu baik untuk menanam",
-        summary: "Curah hujan stabil 2 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan.",
-        metrics: { "Curah Hujan": "2 mm", "Kelembapan": "78%" },
+        summary: "Curah hujan stabil 2–4 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan lereng.",
+        metrics: { "Curah Hujan": "2–4 mm", "Kelembapan": "78%" },
         severity: "info",
         timestamp: "2026-09-20T06:00:00Z",
         source: "BMKG Stasiun Cangkringan",
@@ -484,7 +528,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         id: "hama-thrips-1",
         category: "hama",
         title: "Waspada Serangan Thrips & Ulat Grayak pada Jagung dan Tomat",
-        summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering. Hama ini bisa menyebar sangat cepat akibat fluktuasi kelembapan di wilayah lereng Merapi.",
+        summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering.",
         metrics: { "Risiko": "Tinggi", "Hama": "Thrips & Ulat Grayak" },
         severity: "danger",
         timestamp: "2026-09-20T10:38:00Z",
@@ -492,6 +536,6 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         cta_url: "/warta/hama-thrips-1"
       }
     ],
-    categories: { pasar: 2, lahan: 1, cuaca: 1, hama: 1, prediksi: 1 }
+    categories: { pasar: 3, lahan: 1, cuaca: 1, hama: 1, prediksi: 4 }
   }
 }
