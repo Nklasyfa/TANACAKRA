@@ -17,6 +17,7 @@ def generate_ai_warta(prompt: str) -> dict:
     
     system_prompt = """
 Anda adalah asisten pakar agronomi TANACAKRA. Tugas Anda adalah membuat draf artikel berita pertanian (warta) singkat namun informatif berdasarkan prompt user.
+SANGAT PENTING: Anda WAJIB menyesuaikan judul, ringkasan, dan metrik dengan komoditas/topik spesifik yang diminta oleh user di dalam prompt (misalnya: jika user meminta Tomat, buat warta tentang Tomat; jika Jagung buat tentang Jagung; dsb). Jangan menukar komoditas secara sembarangan.
 Fokus pada komoditas utama (Cabai, Padi, Jagung, Bawang Merah, Salak, Tomat) dan kondisi lereng Merapi Cangkringan (tanah vulkanik, cuaca presisi, hama).
 
 Output Anda harus HARUS valid JSON dengan format persis seperti ini (jangan tambahkan markdown ```json):
