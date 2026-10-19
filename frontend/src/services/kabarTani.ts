@@ -197,157 +197,91 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
   const prompt = topicPrompt.toLowerCase()
 
   // Komoditas detection
-  const isTomat = prompt.includes('tomat')
-  const isBawang = prompt.includes('bawang')
-  const isJagung = prompt.includes('jagung')
-  const isPadi = prompt.includes('padi') || prompt.includes('beras')
-  const isSalak = prompt.includes('salak')
-  const isCabai = prompt.includes('cabai') || prompt.includes('cabe') || prompt.includes('rawit')
+  const detectedCommodities: string[] = []
+  if (prompt.includes('tomat')) detectedCommodities.push('Tomat')
+  if (prompt.includes('bawang')) detectedCommodities.push('Bawang Merah')
+  if (prompt.includes('jagung')) detectedCommodities.push('Jagung')
+  if (prompt.includes('padi') || prompt.includes('beras')) detectedCommodities.push('Padi')
+  if (prompt.includes('salak')) detectedCommodities.push('Salak Pondoh')
+  if (prompt.includes('cabai') || prompt.includes('cabe') || prompt.includes('rawit')) detectedCommodities.push('Cabai Rawit')
 
-  // Topic detection
-  const isHama = prompt.includes('hama') || prompt.includes('penyakit') || prompt.includes('kutu') || prompt.includes('ulat') || prompt.includes('wereng') || prompt.includes('busuk')
-  const isCuaca = prompt.includes('cuaca') || prompt.includes('merapi') || prompt.includes('hujan') || prompt.includes('la nina') || prompt.includes('kemarau')
-  const isHargaPasar = prompt.includes('harga') || prompt.includes('pasar') || prompt.includes('lelang') || prompt.includes('prediksi') || prompt.includes('tren') || prompt.includes('bulan depan')
+  // Topic & Intent detection
+  const isHama = prompt.includes('hama') || prompt.includes('penyakit') || prompt.includes('kutu') || prompt.includes('ulat') || prompt.includes('wereng') || prompt.includes('busuk') || prompt.includes('thrips')
+  const isCuaca = prompt.includes('cuaca') || prompt.includes('merapi') || prompt.includes('hujan') || prompt.includes('la nina') || prompt.includes('kemarau') || prompt.includes('suhu') || prompt.includes('iklim')
+  const isTanam = prompt.includes('tanam') || prompt.includes('cocok') || prompt.includes('budidaya') || prompt.includes('rekomendasi') || prompt.includes('musim')
+  const isHarga = prompt.includes('harga') || prompt.includes('pasar') || prompt.includes('lelang') || prompt.includes('jual') || prompt.includes('untung')
+  const isFuture = prompt.includes('bulan depan') || prompt.includes('buldep') || prompt.includes('mendatang') || prompt.includes('prediksi') || prompt.includes('proyeksi') || prompt.includes('depan')
 
-  // 1. Spesisik Tomat
-  if (isTomat) {
-    if (isHama) {
+  // --- KASUS 1: Rekomendasi Tanam / Budidaya (Bulan Depan / Sekarang) ---
+  if (isTanam || (isFuture && !isHarga && !isHama)) {
+    const timeFrame = isFuture ? 'Bulan Depan' : 'Musim Ini'
+    
+    // Jika ada komoditas spesifik yang ditanyakan untuk ditanam
+    if (detectedCommodities.length === 1) {
+      const comm = detectedCommodities[0]
       return {
-        category: 'hama',
-        title: 'Mitigasi Hawar Daun & Ulat Buah pada Budidaya Tomat Cangkringan',
-        summary: 'Peningkatan kelembapan malam hari di lereng Merapi memicu spora hawar daun (Phytophthora infestans) dan ulat buah Helicoverpa armigera pada pertanaman tomat. Disarankan aplikasi fungisida tembaga terukur serta pemangkasan daun bawah penopang buah.',
+        category: 'prediksi',
+        title: `Panduan Kalender Tanam ${comm} ${timeFrame} di Cangkringan`,
+        summary: `Berdasarkan permodelan iklim mikro lereng Merapi dan siklus presipitasi, menanam ${comm} pada ${timeFrame.toLowerCase()} sangat prospektif. Suhu harian 21-26°C dengan kelembapan 75-82% mendukung pembentukan biomassa secara optimal. Pastikan persiapan bedengan ditinggikan 30 cm untuk mencegah genangan air saat hujan vulkanik serta tambahkan pupuk kandang matang 1.5 ton/ha.`,
         metrics: {
-          'Komoditas': 'Tomat Sayur & Buah',
-          'Faktor Pemicu': 'RH >85% & Embun Tebal',
-          'Tingkat Risiko': 'Moderat (Siaga 3)',
-          'Tindakan': 'Pemangkasan & Sanitasi Daun'
+          'Komoditas': comm,
+          'Waktu Tanam': timeFrame,
+          'Kesesuaian Lahan': 'Sangat Baik (93%)',
+          'Estimasi Panen': comm === 'Jagung' ? '85-95 HST' : comm === 'Bawang Merah' ? '65-70 HST' : '75-85 HST'
         },
-        severity: 'warning',
-        source: 'Sistem Deteksi Dini AI Tanacakra',
-        cta_url: '/kabar-tani?filter=hama'
+        severity: 'info',
+        source: 'Sistem Agro-Klimat & AI Tanacakra',
+        cta_url: '/lahan'
       }
     }
-    // Default or Harga/Pasar Tomat
+
+    // Rekomendasi umum multi-komoditas tanam
     return {
-      category: 'pasar',
-      title: 'Prospek Pasar & Prediksi Harga Tomat Sleman Bulan Depan',
-      summary: 'Analisis prediktif deret waktu AI Tanacakra mengindikasikan stabilisasi harga tomat sayur di kisaran Rp 12.500 - Rp 15.000 / kg pada awal bulan depan. Peningkatan permintaan industri olahan dan pasokan stabil dari kawasan lereng Merapi menjadi pendorong stabilitas margin laba petani.',
+      category: 'prediksi',
+      title: `Rekomendasi Komoditas Strategis Ditanam ${timeFrame} di Sleman`,
+      summary: `Hasil simulasi cuaca BMKG dan model kesuburan tanah Tanacakra menunjukkan ${timeFrame.toLowerCase()} adalah waktu terbaik menanam Bawang Merah varietas Tajuk dan Tomat Sayur Servo. Pola curah hujan berkala (2-4 mm/hari) meminimalkan kebutuhan irigasi pompa, sementara prediksi harga pasar lelang grosir diproyeksikan menguat +12% saat fase panen nanti. Salak Pondoh juga memasuki fase pemupukan lanjutan untuk memacu bunga.`,
       metrics: {
-        'Komoditas': 'Tomat Segar',
-        'Estimasi Harga': 'Rp 14.500 / kg',
-        'Tren Permintaan': '+9.2% (Meningkat)',
-        'Model AI': 'RandomForest R²=0.89'
+        'Pilihan Utama': 'Bawang Merah & Tomat',
+        'Pilihan Alternatif': 'Jagung Pipil Manis',
+        'Faktor Pendukung': 'Curah Hujan & pH 6.4',
+        'Proyeksi Margin': '+24% s/d +35%'
       },
       severity: 'info',
-      source: 'Pasar Induk Sleman & AI Tanacakra',
-      cta_url: '/prediksi-pasar'
+      source: 'Pusat Analisis Agronomi Tanacakra',
+      cta_url: '/lahan'
     }
   }
 
-  // 2. Spesifik Bawang Merah
-  if (isBawang) {
-    return {
-      category: isHama ? 'hama' : 'pasar',
-      title: isHama ? 'Antisipasi Ulat Grayak & Bercak Ungu (Alternaria) Bawang Merah' : 'Dinamika Pasokan & Harga Bawang Merah Cangkringan',
-      summary: isHama 
-        ? 'Deteksi lapangan mendeteksi populasi Spodoptera exigua pada fase pembentukan umbi bawang merah. Diperlukan rotasi insektisida hayati dan sanitasi gulma sekitar pematang.'
-        : 'Analisis pasar komoditas mencatat harga lelang bawang merah stabil di kisaran Rp 34.000 - Rp 38.000 / kg didukung kualitas umbi padat hasil abu vulkanik lereng Merapi.',
-      metrics: {
-        'Komoditas': 'Bawang Merah',
-        'Harga Rata-rata': 'Rp 36.500 / kg',
-        'Kualitas Umbi': 'Grade A (Super)',
-        'Status': 'Rekomendasi Panen Terukur'
-      },
-      severity: isHama ? 'warning' : 'info',
-      source: 'Agro-Market Intelligence Tanacakra',
-      cta_url: '/prediksi-pasar'
-    }
-  }
-
-  // 3. Spesifik Jagung
-  if (isJagung) {
-    return {
-      category: isHama ? 'hama' : 'pasar',
-      title: isHama ? 'Kewaspadaan Serangan Ulat Grayak Jagung (FAW) Lereng Merapi' : 'Outlook Panen Jagung Pipil & Fluktuasi Permintaan Pakan Ternak',
-      summary: isHama
-        ? 'Fall Armyworm (Spodoptera frugiperda) teridentifikasi pada pucuk tanaman jagung umur 20-35 HST. Petani diimbau memasang perangkap feromon dan monitoring berkala.'
-        : 'Proyeksi permintaan jagung pipil kering melonjak +11% dari sentra peternakan Sleman dan Boyolali dengan kisaran harga serap Rp 6.800 - Rp 7.500 / kg.',
-      metrics: {
-        'Komoditas': 'Jagung Pipil',
-        'Estimasi Serap': 'Rp 7.200 / kg',
-        'Kadar Air Optimal': '14 - 15%',
-        'Model Prediksi': 'XGBoost Regressor'
-      },
-      severity: isHama ? 'warning' : 'info',
-      source: 'Data Pasar & AI Tanacakra',
-      cta_url: '/prediksi-pasar'
-    }
-  }
-
-  // 4. Spesifik Padi
-  if (isPadi) {
-    return {
-      category: isHama ? 'hama' : (isCuaca ? 'cuaca' : 'lahan'),
-      title: 'Optimalisasi Pola Air & Siklus Tanam Padi Sawah Cangkringan',
-      summary: 'Ketersediaan debit air dari hulu Kali Boyong dan Kali Kuning stabil untuk mendukung fase bunting padi varietas Ciherang dan Inpari. Disarankan pemupukan berimbang NPK dan silika vulkanik.',
-      metrics: {
-        'Komoditas': 'Padi Sawah',
-        'Debit Irigasi': 'Optimal (45 L/detik)',
-        'Fase Tanam': 'Generatif / Bunting',
-        'Prediksi Hasil': '6.4 Ton GKP / Ha'
-      },
-      severity: 'info',
-      source: 'Balai Penyuluhan Pertanian & AI Tanacakra',
-      cta_url: '/kabar-tani'
-    }
-  }
-
-  // 5. Spesifik Salak Pondoh
-  if (isSalak) {
-    return {
-      category: 'pasar',
-      title: 'Perkembangan Lelang Buah Salak Pondoh Sleman & Rantai Ekspor',
-      summary: 'Permintaan salak pondoh organik lereng Merapi mengalami penguatan di pasar swalayan dan gerai ekspor Yogyakarta. Harga tingkat petani bertahan di Rp 16.000 - Rp 19.000 / kg.',
-      metrics: {
-        'Komoditas': 'Salak Pondoh',
-        'Harga Petani': 'Rp 17.500 / kg',
-        'Kadar Gula (Brix)': '13.5° (Manis Optimal)',
-        'Status Pasar': 'Permintaan Tinggi'
-      },
-      severity: 'info',
-      source: 'Koperasi Tani Sleman & AI Tanacakra',
-      cta_url: '/prediksi-pasar'
-    }
-  }
-
-  // 6. Generic Topics (Hama, Cuaca, Cabai / Harga umum)
+  // --- KASUS 2: Peringatan Hama & Penyakit ---
   if (isHama) {
+    const targetComm = detectedCommodities.length > 0 ? detectedCommodities.join(' & ') : 'Tomat, Cabai, dan Jagung'
     return {
       category: 'hama',
-      title: 'Peringatan Dini Agronomi: Potensi Serangan Hama di Lahan Cangkringan',
-      summary: 'Berdasarkan data analitik historis pertanian lereng Merapi, kelembapan tinggi memicu perkembangbiakan vektor hama. Para petani diimbau untuk segera menerapkan sanitasi gulma dan bio-pestisida secara berkala.',
+      title: `Peringatan Dini Serangan Hama pada ${targetComm} di Cangkringan`,
+      summary: `Fluktuasi kelembapan udara (RH >82%) disertai embun pagi tebal memicu percepatan siklus hidup Thrips parvispinus dan spora hawar daun (Phytophthora) pada pertanaman ${targetComm}. Disarankan petani rutin mengeringkan parit bedengan, memasang yellow sticky trap minimal 40 titik/ha, dan menyemprot bio-pestisida berbahan aktif Beauveria bassiana pada sore hari.`,
       metrics: {
-        'Tingkat Risiko': 'Tinggi (Siaga 2)',
-        'Komoditas Rentan': 'Cabai, Tomat, Jagung',
-        'Hama Utama': 'Thrips, Ulat Grayak',
-        'Rekomendasi': 'Sanitasi & Bio-Pestisida'
+        'Komoditas Rentan': targetComm,
+        'Tingkat Bahaya': 'Siaga 2 (Waspada)',
+        'Vektor Utama': 'Thrips & Spora Jamur',
+        'Rekomendasi': 'Bio-Pestisida & Sanitasi'
       },
       severity: 'warning',
-      source: 'Data Analitik & Rekomendasi AI Tanacakra',
+      source: 'Laboratorium Pengendali Hayati Merapi',
       cta_url: '/kabar-tani?filter=hama'
     }
   }
 
+  // --- KASUS 3: Cuaca & Anomali Vulkanik ---
   if (isCuaca) {
     return {
       category: 'cuaca',
-      title: 'Prakiraan Presipitasi & Asam Vulkanik: Antisipasi Cuaca Lereng Merapi',
-      summary: 'Stasiun telemetri Kaliurang mencatat potensi hujan vulkanik skala sedang (3.5 mm/jam) dalam 48 jam mendatang. Hasil simulasi hidrologi menyarankan perbaikan saluran drainase bedengan.',
+      title: 'Dinamika Cuaca Lereng Merapi: Antisipasi Presipitasi & Asam Vulkanik',
+      summary: 'Stasiun telemetri Kaliurang memprediksi peningkatan presipitasi hujan sedang (3-5 mm/jam) dalam beberapa pekan mendatang. Abu vulkanik halus berpotensi menurunkan pH air permukaan ke 5.2. Petani disarankan menabur dolomit halus 25 kg/ha di sekitar perakaran tanaman muda guna menetralisir keasaman tanah.',
       metrics: {
-        'Curah Hujan': '3.5 mm/jam',
-        'pH Air Hujan': '5.2 (Asam)',
-        'Mitigasi': 'Tambah Dolomit 25kg/ha',
-        'Status': 'Perlu Tindakan'
+        'Prakiraan Cuaca': 'Hujan Ringan - Sedang',
+        'pH Air Hujan': '5.2 (Asam Lemah)',
+        'Mitigasi Lahan': 'Tabur Dolomit Kapur',
+        'Tindakan': 'Drainase Parit Bedengan'
       },
       severity: 'danger',
       source: 'Stasiun BMKG & Telemetri Kaliurang',
@@ -355,31 +289,121 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
     }
   }
 
-  if (isHargaPasar || isCabai) {
-    return {
-      category: 'pasar',
-      title: 'Dinamika Lelang Pasar Sleman: Harga Cabai Rawit Tembus Rp 68.000 / kg',
-      summary: 'Analisis prediktif Scikit-learn mengidentifikasi lonjakan permintaan cabai rawit sebesar +14.5% di pasar grosir Yogyakarta. Musim lelang pekan ini menjadi momentum terbaik untuk panen petik parsial di Blok B.',
-      metrics: {
-        'Harga Lelang': 'Rp 68.000 / kg',
-        'Proyeksi ROI': '+165%',
-        'Permintaan': 'Sangat Tinggi',
-        'Model AI': 'RandomForest R²=0.91'
-      },
-      severity: 'info',
-      source: 'Pasar Induk Sleman & AI Tanacakra',
-      cta_url: '/prediksi-pasar'
+  // --- KASUS 4: Harga Pasar & Proyeksi Finansial Komoditas Spesifik ---
+  if (detectedCommodities.length > 0) {
+    const comm = detectedCommodities[0]
+
+    if (comm === 'Tomat') {
+      return {
+        category: 'pasar',
+        title: `Prospek Pasar & Prediksi Harga Tomat Sleman ${isFuture ? 'Bulan Depan' : 'Pekan Ini'}`,
+        summary: `Analisis prediktif AI Tanacakra mencatat pasokan tomat dari sentra hortikultura lereng selatan tetap stabil dengan estimasi harga lelang bertahan di kisaran Rp 13.500 - Rp 15.500 / kg. Permintaan industri pengolahan saus dan pasar induk Yogyakarta diperkirakan naik +8.5%, memberikan peluang margin yang sehat bagi petani petik bertahap.`,
+        metrics: {
+          'Komoditas': 'Tomat Sayur',
+          'Harga Rata-rata': 'Rp 14.500 / kg',
+          'Prospek Pasar': 'Stabil Menguat (+8.5%)',
+          'Saran Panen': 'Petik Pagi 80% Kematangan'
+        },
+        severity: 'info',
+        source: 'Pasar Induk Sleman & AI Tanacakra',
+        cta_url: '/prediksi-pasar'
+      }
+    }
+
+    if (comm === 'Bawang Merah') {
+      return {
+        category: 'pasar',
+        title: `Dinamika Lelang & Prediksi Harga Bawang Merah ${isFuture ? 'Bulan Depan' : 'Terkini'}`,
+        summary: `Harga lelang bawang merah kualitas super di pasar grosir Prambanan dan Sleman diprediksi berada di rentang Rp 35.000 - Rp 39.000 / kg. Tingkat penyusutan umbi yang rendah berkat kandungan hara vulkanik membuat komoditas ini sangat diminati pedagang antarkota.`,
+        metrics: {
+          'Komoditas': 'Bawang Merah Super',
+          'Estimasi Harga': 'Rp 37.000 / kg',
+          'Permintaan': 'Tinggi (+12.4%)',
+          'Kadar Air Umbi': 'Grade A (Kering Simpan)'
+        },
+        severity: 'info',
+        source: 'Agro-Market Intelligence Tanacakra',
+        cta_url: '/prediksi-pasar'
+      }
+    }
+
+    if (comm === 'Jagung') {
+      return {
+        category: 'pasar',
+        title: `Outlook Pasar Jagung Pipil & Permintaan Pakan Ternak Sleman`,
+        summary: `Tingginya permintaan konsentrat pakan dari peternakan sapi perah Cangkringan dan Boyolali mendorong harga serap jagung pipil kering ke Rp 7.200 - Rp 7.600 / kg. Petani disarankan memaksimalkan lantai jemur agar kadar air mencapai standar 14%.`,
+        metrics: {
+          'Komoditas': 'Jagung Pipil Kering',
+          'Harga Serap': 'Rp 7.400 / kg',
+          'Kadar Air': '14% (Standar Pabrik)',
+          'Tren Permintaan': 'Sangat Kuat'
+        },
+        severity: 'info',
+        source: 'Koperasi Peternak & AI Tanacakra',
+        cta_url: '/prediksi-pasar'
+      }
+    }
+
+    if (comm === 'Padi') {
+      return {
+        category: 'lahan',
+        title: `Manajemen Air Irigasi & Proyeksi Panen Padi Ciherang Cangkringan`,
+        summary: `Debit saluran irigasi teknis lereng Merapi berada dalam kondisi stabil 45 L/detik. Hasil evaluasi NDVI citra satelit memperlihatkan petak sawah Blok A dan B memasuki fase primordia dengan proyeksi hasil panen 6.5 ton GKP per hektar.`,
+        metrics: {
+          'Komoditas': 'Padi Ciherang / Inpari',
+          'Proyeksi Panen': '6.5 Ton GKP / Ha',
+          'Kondisi Irigasi': 'Optimal (Lancar)',
+          'Fase Tanam': 'Generatif / Bunting'
+        },
+        severity: 'info',
+        source: 'Dinas Pertanian & AI Tanacakra',
+        cta_url: '/lahan'
+      }
+    }
+
+    if (comm === 'Salak Pondoh') {
+      return {
+        category: 'pasar',
+        title: `Perkembangan Harga Salak Pondoh Organik Sleman Menembus Pasar Ekspor`,
+        summary: `Salak Pondoh khas lereng Merapi terus mencatat harga lelang stabil Rp 16.500 - Rp 19.000 / kg di tingkat kelompok tani. Uji mutu menunjukkan kadar kemanisan (Brix) mencapai 13.8° yang memenuhi syarat kualifikasi pasar ritel modern.`,
+        metrics: {
+          'Komoditas': 'Salak Pondoh Super',
+          'Harga Petani': 'Rp 17.800 / kg',
+          'Tingkat Kemanisan': '13.8° Brix',
+          'Status': 'Permintaan Ekspor Terbuka'
+        },
+        severity: 'info',
+        source: 'Asosiasi Petani Salak Sleman',
+        cta_url: '/prediksi-pasar'
+      }
+    }
+
+    if (comm === 'Cabai Rawit') {
+      return {
+        category: 'pasar',
+        title: `Dinamika Lelang Pasar Sleman: Harga Cabai Rawit Tembus Rp 68.000 / kg`,
+        summary: `Analisis prediktif Scikit-learn mengidentifikasi lonjakan permintaan cabai rawit sebesar +14.5% di pasar grosir Yogyakarta. Musim lelang pekan ini menjadi momentum terbaik untuk panen petik bertahap bagi petani.`,
+        metrics: {
+          'Komoditas': 'Cabai Rawit Merah',
+          'Harga Lelang': 'Rp 68.000 / kg',
+          'Proyeksi ROI': '+165%',
+          'Permintaan': 'Sangat Tinggi'
+        },
+        severity: 'info',
+        source: 'Pasar Induk Sleman & AI Tanacakra',
+        cta_url: '/prediksi-pasar'
+      }
     }
   }
 
-  // Default Fallback
+  // --- KASUS 5: Default Fallback Cerdas (Rekomendasi Pola Tanam & Iklim) ---
   return {
     category: 'prediksi',
-    title: 'Rekomendasi Optimalisasi Pola Tanam Musim Gadu Cangkringan',
-    summary: 'Berdasarkan integrasi data pH tanah (6.2 - 6.8) dan ketersediaan NPK di 108 petak lahan, model AI Tanacakra merekomendasikan rotasi komoditas Salak Pondoh dan Bawang Merah untuk menjaga ketersediaan hara organik.',
+    title: 'Rekomendasi Pola Tanam & Rotasi Lahan Berdasarkan Sensor Tanah Merapi',
+    summary: 'Integrasi data pH tanah (6.2 - 6.8) dan ketersediaan NPK di petak lahan Cangkringan merekomendasikan rotasi komoditas Salak Pondoh dan Bawang Merah. Rotasi ini terbukti memutus siklus hama tanah serta mengoptimalkan penyerapan hara vulkanik tanpa pupuk kimia berlebih.',
     metrics: {
       'Kesesuaian Hara': 'Sangat Tinggi (96%)',
-      'Rotasi Komoditas': 'Salak & Bawang',
+      'Rekomendasi Rotasi': 'Salak & Bawang Merah',
       'Estimasi Tonase': '4.8 Ton / Ha',
       'Status': 'Rekomendasi Utama'
     },
@@ -402,6 +426,28 @@ function getFallbackFeed(): KabarTaniFeedResponse {
     },
     items: [
       {
+        id: "prediksi-tanam-tomat-1",
+        category: "prediksi",
+        title: "Prospek Tanam Tomat Bulan Ini: Agroklimat Merapi Sangat Mendukung",
+        summary: "Suhu harian 22–26°C dan curah hujan berkala 3 mm/hari di lereng Merapi menjadikan bulan ini momentum ideal menanam tomat sayur varietas Servo. Model AI memproyeksikan efisiensi biaya irigasi hingga 30% serta harga panen stabil di atas Rp 14.000/kg.",
+        metrics: { "Kesesuaian": "94% (Sangat Baik)", "Estimasi Panen": "75 HST", "Harga Proyeksi": "Rp 14.500/kg" },
+        severity: "info",
+        timestamp: "2026-09-24T08:15:00Z",
+        source: "AI Agro-Intelijen Tanacakra",
+        cta_url: "/lahan"
+      },
+      {
+        id: "prediksi-bawang-merah-1",
+        category: "prediksi",
+        title: "Pola Rotasi Bawang Merah Tajuk Pasca Panen Cabai di Cangkringan",
+        summary: "Berdasarkan sensor hara tanah (NPK), rotasi tanam bawang merah di Blok C direkomendasikan untuk menyeimbangkan nitrogen tanah dan memutus siklus spora jamur. Permintaan pasar lelang Sleman diproyeksikan melonjak saat panen raya 65 hari lagi.",
+        metrics: { "Varietas": "Bawang Tajuk", "Siklus Tanam": "65 HST", "Potensi Margin": "+32%" },
+        severity: "info",
+        timestamp: "2026-09-24T07:50:00Z",
+        source: "Engine Rekomendasi Tanam AI",
+        cta_url: "/lahan"
+      },
+      {
         id: "pasar-cabai-1",
         category: "pasar",
         title: "Harga cabai naik 8% dibanding minggu lalu",
@@ -415,13 +461,35 @@ function getFallbackFeed(): KabarTaniFeedResponse {
       {
         id: "pasar-tomat-1",
         category: "pasar",
-        title: "Harga tomat stabil di pasar Sleman",
-        summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan.",
+        title: "Harga tomat stabil di pasar Sleman dengan serapan tinggi",
+        summary: "Komoditas tomat bertahan di kisaran Rp14.500/kg dengan volume pasokan stabil dari sentra hortikultura lereng selatan Yogyakarta.",
         metrics: { "Harga": "Rp14.500/kg", "Perubahan": "0%" },
         severity: "info",
         timestamp: "2026-09-24T07:09:00Z",
         source: "Pasar Induk Sleman",
         cta_url: "/warta/pasar-tomat-1"
+      },
+      {
+        id: "prediksi-jagung-1",
+        category: "prediksi",
+        title: "Tren Permintaan Jagung Pipil Kering untuk Pakan Ternak Meningkat",
+        summary: "Tingginya permintaan konsentrat sapi perah lereng Merapi mendorong kontrak serap jagung pipil kering pada level Rp 7.200 - Rp 7.500/kg. Petani dianjurkan mengoptimalkan penjemuran dengan standar kadar air 14%.",
+        metrics: { "Harga Serap": "Rp 7.400/kg", "Kadar Air": "14%", "Permintaan": "+11.8%" },
+        severity: "info",
+        timestamp: "2026-09-23T11:20:00Z",
+        source: "Koperasi Tani & Ternak Sleman",
+        cta_url: "/prediksi-pasar"
+      },
+      {
+        id: "pasar-salak-1",
+        category: "pasar",
+        title: "Salak Pondoh Super Cangkringan Tembus Standar Ekspor dan Swalayan",
+        summary: "Kadar gula 13.8° Brix pada panen salak pondoh pekan ini memenuhi kualifikasi premium. Harga tingkat petani bertahan di angka Rp 17.500/kg.",
+        metrics: { "Harga Petani": "Rp 17.500/kg", "Brix": "13.8°", "Mutu": "Grade A" },
+        severity: "info",
+        timestamp: "2026-09-23T09:00:00Z",
+        source: "Asosiasi Petani Salak Sleman",
+        cta_url: "/prediksi-pasar"
       },
       {
         id: "lahan-blok-b-1",
@@ -438,8 +506,8 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         id: "cuaca-1",
         category: "cuaca",
         title: "Cuaca 3 hari ke depan: hujan ringan, waktu baik untuk menanam",
-        summary: "Curah hujan stabil 2 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan.",
-        metrics: { "Curah Hujan": "2 mm", "Kelembapan": "78%" },
+        summary: "Curah hujan stabil 2–4 mm dengan kelembapan 78% mendukung penyerapan nutrisi tanah tanpa risiko erosi permukaan lereng.",
+        metrics: { "Curah Hujan": "2–4 mm", "Kelembapan": "78%" },
         severity: "info",
         timestamp: "2026-09-20T06:00:00Z",
         source: "BMKG Stasiun Cangkringan",
@@ -460,7 +528,7 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         id: "hama-thrips-1",
         category: "hama",
         title: "Waspada Serangan Thrips & Ulat Grayak pada Jagung dan Tomat",
-        summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering. Hama ini bisa menyebar sangat cepat akibat fluktuasi kelembapan di wilayah lereng Merapi.",
+        summary: "Analisis data historis menunjukkan lonjakan populasi hama Thrips berisiko tinggi pada tanaman Jagung, serta serangan Ulat Grayak pada Tomat dan Salak Pondoh. Petani dianjurkan segera melakukan sanitasi lahan, memangkas daun bawah yang terinfeksi, dan menyemprotkan pestisida nabati berbasis nimba pada pagi hari sebelum embun kering.",
         metrics: { "Risiko": "Tinggi", "Hama": "Thrips & Ulat Grayak" },
         severity: "danger",
         timestamp: "2026-09-20T10:38:00Z",
@@ -468,6 +536,6 @@ function getFallbackFeed(): KabarTaniFeedResponse {
         cta_url: "/warta/hama-thrips-1"
       }
     ],
-    categories: { pasar: 2, lahan: 1, cuaca: 1, hama: 1, prediksi: 1 }
+    categories: { pasar: 3, lahan: 1, cuaca: 1, hama: 1, prediksi: 4 }
   }
 }
