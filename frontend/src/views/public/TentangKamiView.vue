@@ -171,16 +171,16 @@ const stackList = [
               <h3 class="text-sm font-bold text-abu-vulkanik">Tia Fitrianingsih</h3>
               <p class="text-[11px] text-genteng font-semibold">SA &middot; QA &middot; PM</p>
             </div>
-            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; System Architect, Quality Assurance &amp; Project Manager</p>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA (Teknik Informatika) &middot; System Architect, QA &amp; PM</p>
           </div>
 
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
             <div>
               <img :src="photoShofie" alt="Shofie Ardhya Shafina" class="w-16 h-16 rounded-xl object-cover border-2 border-[#243319] shadow-sm mb-3" />
               <h3 class="text-sm font-bold text-abu-vulkanik">Shofie Ardhya Shafina</h3>
-              <p class="text-[11px] text-[#243319] font-semibold">Data Analyst</p>
+              <p class="text-[11px] text-[#243319] font-semibold">Data Science</p>
             </div>
-            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Scikit-learn ML &amp; Proyeksi Pasar</p>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA (Teknik Informatika) &middot; Data Science &amp; Machine Learning</p>
           </div>
 
           <div class="bg-abu-letusan rounded-xl border border-tanah-subur/15 p-4 flex flex-col justify-between">
@@ -189,7 +189,7 @@ const stackList = [
               <h3 class="text-sm font-bold text-abu-vulkanik">Nakula Syafa Saputra</h3>
               <p class="text-[11px] text-terasering font-semibold">Programmer</p>
             </div>
-            <p class="text-[10px] text-tanah-subur mt-2">UNESA &middot; Fullstack Vue 3 &amp; Django REST</p>
+            <p class="text-[10px] text-tanah-subur mt-2">UNESA (Teknik Informatika) &middot; Fullstack Vue 3 &amp; Django REST</p>
           </div>
         </div>
 

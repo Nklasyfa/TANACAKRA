@@ -560,7 +560,7 @@ const scrollToSection = (id: string) => {
                         Tia Fitrianingsih
                       </h4>
                       <p class="text-[11px] font-bold text-[#243319] mt-0.5">
-                        UNESA &middot; Lead Team
+                        UNESA &middot; SA, QA &amp; PM
                       </p>
                     </div>
                   </div>
@@ -585,7 +585,7 @@ const scrollToSection = (id: string) => {
                 </div>
               </div>
 
-              <!-- Card 2: Shofie Ardhya Shafina (Data Analyst) -->
+              <!-- Card 2: Shofie Ardhya Shafina (Data Science) -->
               <div class="bg-[#F9F7F4] border border-[#E5E0D8] rounded-2xl overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover:border-[#243319]/50">
                 <div class="p-4 sm:p-6">
                   <div class="flex items-center gap-3.5 mb-4">
@@ -596,7 +596,7 @@ const scrollToSection = (id: string) => {
                     />
                     <div class="min-w-0">
                       <span class="bg-[#243319]/10 text-[#243319] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-[#243319]/20 inline-block mb-1">
-                        Data Analyst
+                        Data Science
                       </span>
                       <h4 class="text-base sm:text-lg font-bold text-[#241F1B] group-hover:text-[#243319] transition-colors leading-snug">
                         Shofie Ardhya Shafina
@@ -623,7 +623,7 @@ const scrollToSection = (id: string) => {
                     <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
                     Mahasiswa UNESA
                   </span>
-                  <span class="text-[#243319] font-bold">Data Science</span>
+                  <span class="text-[#243319] font-bold">Teknik Informatika</span>
                 </div>
               </div>
 
@@ -644,7 +644,7 @@ const scrollToSection = (id: string) => {
                         Nakula Syafa Saputra
                       </h4>
                       <p class="text-[11px] font-bold text-[#243319] mt-0.5">
-                        UNESA &middot; Software Eng
+                        UNESA &middot; Programmer
                       </p>
                     </div>
                   </div>
@@ -665,7 +665,7 @@ const scrollToSection = (id: string) => {
                     <span class="material-symbols-outlined text-[14px] text-[#243319]">school</span>
                     Mahasiswa UNESA
                   </span>
-                  <span class="text-[#243319] font-bold">Software Eng</span>
+                  <span class="text-[#243319] font-bold">Teknik Informatika</span>
                 </div>
               </div>
 
