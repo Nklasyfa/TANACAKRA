@@ -186,8 +186,8 @@ export async function generateAiWartaArticleAsync(topicPrompt: string): Promise<
         cta_url: response.data.cta_url || '/kabar-tani'
       }
     }
-  } catch (e) {
-    console.error("AI Generation failed, falling back to static", e)
+  } catch {
+    // Offline mode or API unreachable: silently fallback to static generator
   }
   // Fallback to static if API fails
   return generateAiWartaArticle(topicPrompt)

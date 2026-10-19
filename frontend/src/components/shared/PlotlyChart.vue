@@ -56,13 +56,40 @@ const mobileLayout = (layout: any) => {
   }
 }
 
+const getPlotlyInstance = async () => {
+  if (plotlyModule) return plotlyModule
+  if (typeof window !== 'undefined' && (window as any).Plotly) {
+    plotlyModule = (window as any).Plotly
+    return plotlyModule
+  }
+  try {
+    const mod = await import('plotly.js-dist-min')
+    plotlyModule = mod.default || mod
+    return plotlyModule
+  } catch (err) {
+    console.warn('Local dynamic import of Plotly failed, loading from CDN...', err)
+    // Fallback load CDN script
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.plot.ly/plotly-2.35.2.min.js'
+      script.onload = () => {
+        plotlyModule = (window as any).Plotly
+        resolve()
+      }
+      script.onerror = reject
+      document.head.appendChild(script)
+    })
+    return plotlyModule
+  }
+}
+
 const renderChart = async () => {
   if (!chartContainer.value || !props.schema) return
 
   try {
-    if (!plotlyModule) {
-      plotlyModule = await import('plotly.js-dist-min')
-    }
+    const Plotly = await getPlotlyInstance()
+    if (!Plotly || !chartContainer.value) return
+
     const layout = mobileLayout(props.schema.layout || {})
     const config = {
       responsive: true,
@@ -70,7 +97,7 @@ const renderChart = async () => {
       autosizable: true
     }
 
-    await plotlyModule.react(chartContainer.value, props.schema.data || [], layout, config)
+    await Plotly.react(chartContainer.value, props.schema.data || [], layout, config)
   } catch (err) {
     console.error('Failed to render Plotly chart:', err)
   }
