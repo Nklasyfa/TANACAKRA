@@ -312,8 +312,8 @@ const handleResetPassword = async () => {
         </div>
 
         <div class="flex items-center justify-between mt-[14px] mb-[18px]">
-          <label class="flex items-center gap-[8px] cursor-pointer select-none">
-            <input v-model="rememberMeLogin" type="checkbox" class="w-4 h-4 rounded text-[#A8452A] focus:ring-[#A8452A] border-[#E2D8C7] accent-[#A8452A]" />
+          <label for="remember-me" class="flex items-center gap-[8px] cursor-pointer select-none">
+            <input v-model="rememberMeLogin" id="remember-me" name="remember" type="checkbox" class="w-4 h-4 rounded text-[#A8452A] focus:ring-[#A8452A] border-[#E2D8C7] accent-[#A8452A]" />
             <span class="text-[13px] text-[#4A3F35]">Ingat saya</span>
           </label>
           <button type="button" @click="showResetModal = true" class="text-[13px] text-[#A8452A] hover:underline font-medium">Lupa kata sandi?</button>
@@ -345,6 +345,8 @@ const handleResetPassword = async () => {
         <input
           v-model="regUsername"
           id="reg-username"
+          name="name"
+          autocomplete="name"
           placeholder="Contoh: Suparman"
           required
           class="w-full h-[44px] px-[14px] bg-white border border-[#E2D8C7] rounded-[10px] text-[14px] text-[#241F1B] placeholder-[#A99A87] focus:outline-none focus:border-[#A8452A] transition-colors"
@@ -354,6 +356,8 @@ const handleResetPassword = async () => {
         <input
           v-model="regEmail"
           id="reg-email"
+          name="email"
+          autocomplete="email"
           placeholder="nama@petani.id"
           required
           type="email"
@@ -364,6 +368,8 @@ const handleResetPassword = async () => {
         <input
           v-model="regPhone"
           id="reg-phone"
+          name="tel"
+          autocomplete="tel"
           placeholder="081234567890"
           type="tel"
           class="w-full h-[44px] px-[14px] bg-white border border-[#E2D8C7] rounded-[10px] text-[14px] text-[#241F1B] placeholder-[#A99A87] focus:outline-none focus:border-[#A8452A] transition-colors"
@@ -375,6 +381,8 @@ const handleResetPassword = async () => {
             v-model="regPassword"
             :type="showRegPassword ? 'text' : 'password'"
             id="reg-password"
+            name="new-password"
+            autocomplete="new-password"
             placeholder="Minimal 8 karakter"
             required
             class="w-full h-[44px] pl-[14px] pr-[42px] bg-white border border-[#E2D8C7] rounded-[10px] text-[14px] text-[#241F1B] placeholder-[#A99A87] focus:outline-none focus:border-[#A8452A] transition-colors"
@@ -419,9 +427,13 @@ const handleResetPassword = async () => {
         </div>
 
         <form v-else @submit.prevent="handleResetPassword" class="space-y-3">
+          <label for="reset-email" class="block text-xs font-semibold text-[#6B5B4A]">Email Terdaftar</label>
           <input
             v-model="resetEmail"
+            id="reset-email"
+            name="email"
             type="email"
+            autocomplete="email"
             placeholder="nama@petani.id"
             required
             class="w-full h-11 px-3 bg-[#F9F7F4] text-[#241F1B] text-sm font-medium rounded-xl border border-[#E2D8C7] focus:outline-none focus:ring-2 focus:ring-[#A8452A]"
