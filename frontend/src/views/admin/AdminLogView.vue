@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 import { AdminService, downloadCsv } from '@/services/api'
 import { AuditLogger, type RichLogItem } from '@/services/audit'
 
@@ -213,17 +214,18 @@ const avgLatency = computed(() => {
   <div class="min-h-screen bg-[#FFF8F4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 w-full z-30 pt-safe bg-[#FFF8F4]/90 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between">
+    <header class="md:hidden sticky top-0 z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between shadow-sm">
       <div class="flex items-center gap-2">
-        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
         <div>
-          <span class="font-display font-bold text-[15px] text-[#243319]">Tanacakra Log</span>
-          <p class="text-[10px] text-[#7E7063]">Audit Trail Cangkringan</p>
+          <h1 class="text-sm font-bold text-[#243319] leading-tight">Tanacakra</h1>
+          <span class="text-[10px] uppercase font-bold text-[#7E7063]">Super Admin</span>
         </div>
       </div>
-      <button class="p-1.5 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#243319] hover:bg-[#d5e9c3] transition-colors" title="Pemberitahuan" @click="showNotificationDropdown = !showNotificationDropdown">
-        <span class="material-symbols-outlined text-[18px]">notifications</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <UserDropdown />
+      </div>
     </header>
 
     <!-- Notification Dropdown (Mobile) -->

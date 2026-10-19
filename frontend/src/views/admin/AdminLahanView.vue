@@ -11,6 +11,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
+import UserDropdown from '@/components/common/UserDropdown.vue'
 
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
@@ -476,26 +477,17 @@ watch(
   <div class="min-h-screen bg-[#fff8f4] text-[#231a10] font-sans antialiased flex flex-col md:flex-row pb-[88px] md:pb-0">
 
     <!-- Mobile Header -->
-    <header class="md:hidden sticky top-0 w-full z-30 pt-safe bg-[#fff8f4]/95 backdrop-blur-md border-b border-[#E8E3DA] px-4 py-3">
-      <div class="flex items-center justify-between">
+    <header class="md:hidden sticky top-0 z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#E5E0D8] px-4 py-3 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-2">
+        <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-7 w-auto" />
         <div>
-          <div class="flex items-center gap-1.5">
-            <img src="@/assets/tanacakra-icon.svg" alt="Logo" class="h-6 w-auto" />
-            <img src="@/assets/tanacakra-wordmark.svg" alt="Tanacakra" class="h-4 w-auto" />
-          </div>
-          <p class="text-[11px] text-[#243319] mt-0.5 font-medium">Manajemen Lahan • {{ lahanList.length }} petak terdaftar</p>
+          <h1 class="text-sm font-bold text-[#243319] leading-tight">Tanacakra</h1>
+          <span class="text-[10px] uppercase font-bold text-[#7E7063]">Super Admin</span>
         </div>
-        <div class="flex items-center gap-1">
-          <router-link to="/input-lahan" class="w-9 h-9 flex items-center justify-center bg-[#243319] text-white rounded-full transition-colors shadow-xs" title="Catat Lahan Baru">
-            <span class="material-symbols-outlined text-[18px]">add</span>
-          </router-link>
-          <button @click="openSample()" class="w-9 h-9 flex items-center justify-center hover:bg-[#EFECE6] rounded-full transition-colors text-[#A8452A]" title="Catat Sample ML">
-            <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
-          </button>
-          <button @click="fetchLahanData" class="p-2 hover:bg-[#EFECE6] transition-colors rounded-full">
-            <span class="material-symbols-outlined text-[20px]">refresh</span>
-          </button>
-        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <UserDropdown />
       </div>
     </header>
 
