@@ -207,7 +207,26 @@ export function generateAiWartaArticle(topicPrompt: string): Omit<KabarTaniItem,
   // Topic detection
   const isHama = prompt.includes('hama') || prompt.includes('penyakit') || prompt.includes('kutu') || prompt.includes('ulat') || prompt.includes('wereng') || prompt.includes('busuk')
   const isCuaca = prompt.includes('cuaca') || prompt.includes('merapi') || prompt.includes('hujan') || prompt.includes('la nina') || prompt.includes('kemarau')
-  const isHargaPasar = prompt.includes('harga') || prompt.includes('pasar') || prompt.includes('lelang') || prompt.includes('prediksi') || prompt.includes('tren') || prompt.includes('bulan depan')
+  const isHargaPasar = prompt.includes('harga') || prompt.includes('pasar') || prompt.includes('lelang') || prompt.includes('tren') || prompt.includes('bulan depan')
+  const isTanamSekarang = prompt.includes('tanam') || prompt.includes('cocok') || prompt.includes('sekarang') || prompt.includes('musim') || prompt.includes('rekomendasi komoditas')
+
+  // 0. Rekomendasi Tanam Sekarang (Multi-Komoditas Agronomi Merapi)
+  if (isTanamSekarang && !isTomat && !isBawang && !isJagung && !isPadi && !isSalak && !isCabai) {
+    return {
+      category: 'prediksi',
+      title: 'Rekomendasi Komoditas Terbaik Ditanam Saat Ini di Cangkringan',
+      summary: 'Berdasarkan analisis kondisi agroklimat mikro lereng Merapi (curah hujan moderat 2-4 mm/hari, suhu 22-26°C, dan pH tanah 6.2 - 6.8), komoditas paling direkomendasikan untuk ditanam saat ini adalah Bawang Merah varietas Tajuk, Tomat Sayur Servo, dan Jagung Manis. Ketiga komoditas ini memiliki ketahanan tinggi terhadap kelembapan tanah vulkanik serta proyeksi serap pasar yang sangat tinggi dalam 60-90 hari ke depan.',
+      metrics: {
+        'Komoditas Utama': 'Bawang Merah & Tomat',
+        'Komoditas Pendamping': 'Jagung Manis & Cabai',
+        'Kesesuaian Lahan': 'Tinggi (94%)',
+        'Estimasi Panen': '65 - 85 Hari'
+      },
+      severity: 'info',
+      source: 'Pusat Rekomendasi Agronomi & AI Tanacakra',
+      cta_url: '/lahan'
+    }
+  }
 
   // 1. Spesisik Tomat
   if (isTomat) {
