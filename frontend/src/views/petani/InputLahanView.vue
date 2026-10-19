@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
+import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
+import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, nextTick } from 'vue'
@@ -14,6 +16,7 @@ import UserDropdown from '@/components/common/UserDropdown.vue'
 
 const router = useRouter()
 const route = useRoute()
+const role = ref<'PETANI' | 'ADMIN'>('PETANI')
 
 // Step state: 1 | 2 | 3 | 'loading' | 'success'
 const currentStep = ref<1 | 2 | 3 | 'loading' | 'success'>(1)
@@ -121,6 +124,16 @@ const fetchFarms = async () => {
 }
 
 onMounted(() => {
+  try {
+    const raw = localStorage.getItem('tanacakra_user')
+    if (raw) {
+      const u = JSON.parse(raw)
+      role.value = u.role === 'ADMIN' ? 'ADMIN' : 'PETANI'
+    }
+  } catch {
+    role.value = 'PETANI'
+  }
+
   if (route.query.tanam) {
     fieldName.value = `Blok Tanam - ${route.query.tanam}`
   }
@@ -310,7 +323,9 @@ const resetForm = () => {
       </div>
     </header>
 
-    <PetaniSidebar />
+    <!-- Desktop Sidebar -->
+    <AdminSidebar v-if="role === 'ADMIN'" />
+    <PetaniSidebar v-else />
 
     <div class="hidden md:flex fixed top-6 right-8 z-50">
       <UserDropdown />
@@ -1026,11 +1041,11 @@ const resetForm = () => {
             <div class="space-y-2.5 pt-2">
               <button
                 type="button"
-                @click="router.push('/petani')"
+                @click="router.push(role === 'ADMIN' ? '/admin' : '/petani')"
                 class="w-full h-[50px] bg-[#243319] hover:bg-[#3A4A2E] text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
               >
                 <span class="material-symbols-outlined text-[20px]">dashboard</span>
-                <span>Buka Panel Dasbor</span>
+                <span>{{ role === 'ADMIN' ? 'Kembali ke Panel Admin' : 'Buka Panel Dasbor' }}</span>
               </button>
               <button
                 type="button"
@@ -1047,6 +1062,8 @@ const resetForm = () => {
       </div>
     </main>
 
-    <BottomNav />
+    <!-- Mobile Bottom Nav -->
+    <AdminBottomNav v-if="role === 'ADMIN'" />
+    <BottomNav v-else />
   </div>
 </template>
