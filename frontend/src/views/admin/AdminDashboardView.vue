@@ -14,7 +14,6 @@ import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import CuacaKorelasiModal from '@/components/petani/CuacaKorelasiModal.vue'
-import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -303,33 +302,9 @@ const todayLabel = new Date().toLocaleDateString('id-ID', {
 const activityLogs = ref<any[]>([])
 
 // ==========================================
-// MODAL STATE: Cuaca & PDF Laporan
+// MODAL STATE: Cuaca
 // ==========================================
 const isCuacaModalOpen = ref(false)
-const isPdfModalOpen = ref(false)
-const selectedPdfLahan = ref<any>(null)
-
-const openDashboardPdf = (lahan?: any) => {
-  if (lahan) {
-    selectedPdfLahan.value = lahan
-  } else if (lahanList.value && lahanList.value.length > 0) {
-    selectedPdfLahan.value = lahanList.value[0]
-  } else {
-    selectedPdfLahan.value = {
-      id: 1,
-      input_parameters: {
-        farm_id: 'CGK001',
-        desa: 'Wukirsari',
-        area_ha: 1.2,
-        soil_ph: 6.5,
-        soil_type: 'Regosol Vulkanik',
-        elevation_m: 620,
-        komoditas: 'Cabai Merah'
-      }
-    }
-  }
-  isPdfModalOpen.value = true
-}
 
 // ==========================================
 // PAGINATION STATE: Aktivitas (Foto 2) & Pengguna
@@ -677,10 +652,6 @@ onMounted(() => {
           <button @click="isCuacaModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#243319] hover:bg-[#3D562B] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-[16px] text-[#d5e9c3]">cloud</span>
             <span>Fitur Cuaca &amp; Iklim</span>
-          </button>
-          <button @click="openDashboardPdf()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-            <span>Cetak Rekomendasi PDF</span>
           </button>
           <div class="flex items-center gap-2 font-mono text-[12px] text-[#645d58] bg-white px-3.5 py-2 rounded-xl border border-[#E5E0D8] shadow-sm">
             <span class="material-symbols-outlined text-[16px] text-[#243319]">schedule</span>
@@ -1051,13 +1022,9 @@ onMounted(() => {
               <span class="font-bold text-emerald-400">Optimum (78%)</span>
             </div>
             <div class="flex items-center gap-2 pt-1">
-              <button @click="isCuacaModalOpen = true" class="flex-1 py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#d5e9c3] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+              <button @click="isCuacaModalOpen = true" class="w-full py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#d5e9c3] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                 <span class="material-symbols-outlined text-[15px]">thermostat</span>
-                <span>Analisis Cuaca</span>
-              </button>
-              <button @click="openDashboardPdf()" class="flex-1 py-2 px-2.5 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm">
-                <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
-                <span>Cetak Lembar PDF</span>
+                <span>Analisis Cuaca &amp; Hasil Panen</span>
               </button>
             </div>
           </div>
@@ -1528,13 +1495,6 @@ onMounted(() => {
     <CuacaKorelasiModal
       :is-open="isCuacaModalOpen"
       @close="isCuacaModalOpen = false"
-    />
-
-    <!-- PDF Laporan & Rekomendasi Modal -->
-    <LahanPdfModal
-      :is-open="isPdfModalOpen"
-      :lahan="selectedPdfLahan"
-      @close="isPdfModalOpen = false"
     />
 
   </div>
