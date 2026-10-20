@@ -38,10 +38,10 @@ const initSlots = () => {
   }
 }
 
-// Watch props.isOpen
-watch(() => props.isOpen, (open) => {
-  if (open) initSlots()
-})
+// Watch props.isOpen & props.allLahan
+watch([() => props.isOpen, () => props.allLahan], ([open, lands]) => {
+  if (open && lands && lands.length > 0) initSlots()
+}, { immediate: true })
 
 const comparedLands = computed(() => {
   const list = [selectedSlot1.value, selectedSlot2.value]
@@ -151,7 +151,16 @@ const highestYieldLand = computed(() => {
 
         <!-- Scrollable Comparison Matrix -->
         <div class="overflow-y-auto p-4 sm:p-6 flex-1">
-          <div class="grid grid-cols-1 gap-4 sm:gap-6" :class="comparedLands.length === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'">
+          <div v-if="comparedLands.length === 0" class="py-16 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-full bg-[#F3ECE0] flex items-center justify-center text-[#7E4200] mb-3">
+              <span class="material-symbols-outlined text-3xl">landscape</span>
+            </div>
+            <h4 class="font-bold text-sm text-[#231a10]">Belum Ada Data Lahan untuk Dibandingkan</h4>
+            <p class="text-xs text-[#645d58] max-w-sm mt-1">
+              Tambahkan minimal 2 petak lahan melalui menu Input Lahan agar fitur perbandingan presisi dapat menampilkan evaluasi hara side-by-side.
+            </p>
+          </div>
+          <div v-else class="grid grid-cols-1 gap-4 sm:gap-6" :class="comparedLands.length === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'">
             <!-- Columns for each compared land -->
             <div
               v-for="(land, index) in comparedLands"
