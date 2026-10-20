@@ -80,9 +80,19 @@ const handlePrint = () => {
       >
         <!-- Modal Toolbar (Hidden during print) -->
         <div class="px-6 py-3.5 bg-[#243319] text-[#FFF8F4] flex items-center justify-between border-b border-[#3A4A2E] print:hidden">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px] text-[#D5E9C3]">picture_as_pdf</span>
-            <span class="font-bold text-sm">Laporan Hasil Analisis & Rekomendasi Lahan (PDF)</span>
+          <div class="flex items-center gap-3">
+            <button
+              @click="emit('close')"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#D5E9C3] hover:text-white text-xs font-bold transition-colors cursor-pointer"
+              title="Kembali ke tampilan sebelumnya"
+            >
+              <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+              <span>Kembali</span>
+            </button>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px] text-[#D5E9C3]">picture_as_pdf</span>
+              <span class="font-bold text-sm">Lembar Rekomendasi Lahan (BPP Cangkringan)</span>
+            </div>
           </div>
           <div class="flex items-center gap-2.5">
             <button
@@ -95,7 +105,7 @@ const handlePrint = () => {
             <button
               @click="emit('close')"
               class="text-[#C2D7B2] hover:text-white p-1 rounded-md transition cursor-pointer"
-              title="Tutup"
+              title="Tutup Modal"
             >
               <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -323,25 +333,58 @@ const handlePrint = () => {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm 15mm 15mm 15mm;
+    margin: 8mm 12mm 12mm 12mm;
   }
-  body {
-    background: white !important;
-  }
-  body * {
-    visibility: hidden;
-  }
-  #printable-lahan-report, #printable-lahan-report * {
-    visibility: visible;
-  }
-  #printable-lahan-report {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
+  html, body {
+    margin: 0 !important;
     padding: 0 !important;
-    background: white !important;
+    background: #ffffff !important;
+    color: #231a10 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Sembunyikan aplikasi utama di #app saat mencetak */
+  #app {
+    display: none !important;
+  }
+
+  /* Pastikan modal cetak tampil penuh dan tidak terpotong */
+  .fixed.inset-0 {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Toolbar dan tombol tidak dicetak */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Kontainer lembar rekomendasi */
+  #printable-lahan-report {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 10px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  #printable-lahan-report * {
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 </style>

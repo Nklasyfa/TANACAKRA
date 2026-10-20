@@ -14,7 +14,6 @@ import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import CuacaKorelasiModal from '@/components/petani/CuacaKorelasiModal.vue'
-import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -71,19 +70,24 @@ const selectedCommodityKpis = computed(() => {
     }
     const def = commodityDefaults[selectedCommodity.value] || { currentPrice: 25000, projPrice: 28000, currentVol: 75, projVol: 88 }
     const pDiff = def.projPrice - def.currentPrice
-    const vDiff = def.projVol - def.currentVol
+    const vDiff = +(def.projVol - def.currentVol).toFixed(1)
+    const absVDiff = parseFloat(Math.abs(vDiff).toFixed(1))
+    const pSign = pDiff > 0 ? '+' : pDiff < 0 ? '-' : ''
+    const vSign = vDiff > 0 ? '+' : vDiff < 0 ? '-' : ''
     return {
       currentPrice: def.currentPrice,
       priceChangePct: '+4.8%',
       isPriceUp: true,
       projPrice: def.projPrice,
-      projPriceDiff: `${pDiff >= 0 ? '+' : ''}Rp ${Math.abs(pDiff).toLocaleString('id-ID')}`,
+      projPriceDiff: `${pSign}Rp ${Math.abs(pDiff).toLocaleString('id-ID')}`,
+      isProjPriceUp: pDiff >= 0,
       priceRange: `Rp ${Math.round(def.projPrice * 0.94).toLocaleString('id-ID')} - Rp ${Math.round(def.projPrice * 1.06).toLocaleString('id-ID')}`,
       currentVol: def.currentVol,
       volChangePct: '+5.2%',
       isVolUp: true,
       projVol: def.projVol,
-      projVolDiff: `+${vDiff} Ton`
+      projVolDiff: `${vSign}${absVDiff} Ton`,
+      isProjVolUp: vDiff >= 0
     }
   }
 
@@ -100,15 +104,18 @@ const selectedCommodityKpis = computed(() => {
 
     const projPriceAvg = Math.round(allKeys.reduce((acc, k) => acc + (Number(trends[total - 1]?.[k]) || 0), 0) / (allKeys.length || 1))
     const priceDiffNum = projPriceAvg - currentPriceAvg
-    const projPriceDiff = `${priceDiffNum >= 0 ? '+' : ''}Rp ${Math.abs(priceDiffNum).toLocaleString('id-ID')}`
+    const pSign = priceDiffNum > 0 ? '+' : priceDiffNum < 0 ? '-' : ''
+    const projPriceDiff = `${pSign}Rp ${Math.abs(priceDiffNum).toLocaleString('id-ID')}`
     const priceRange = `Rp ${Math.round(projPriceAvg * 0.92).toLocaleString('id-ID')} - Rp ${Math.round(projPriceAvg * 1.08).toLocaleString('id-ID')}`
 
-    const currentVol = volTrends[histCount - 1]?.volume_ton || 380
-    const prevVol = volTrends[histCount - 2]?.volume_ton || currentVol
+    const currentVol = +(volTrends[histCount - 1]?.volume_ton || 380).toFixed(1)
+    const prevVol = +(volTrends[histCount - 2]?.volume_ton || currentVol).toFixed(1)
     const volChange = prevVol ? (((currentVol - prevVol) / prevVol) * 100).toFixed(1) : '0.0'
     const isVolUp = parseFloat(volChange) >= 0
-    const projVol = volTrends[total - 1]?.volume_ton || 440
-    const volDiffNum = projVol - currentVol
+    const projVol = +(volTrends[total - 1]?.volume_ton || 440).toFixed(1)
+    const volDiffNum = +(projVol - currentVol).toFixed(1)
+    const absVolDiff = parseFloat(Math.abs(volDiffNum).toFixed(1))
+    const vSign = volDiffNum > 0 ? '+' : volDiffNum < 0 ? '-' : ''
 
     return {
       currentPrice: currentPriceAvg,
@@ -116,12 +123,14 @@ const selectedCommodityKpis = computed(() => {
       isPriceUp,
       projPrice: projPriceAvg,
       projPriceDiff,
+      isProjPriceUp: priceDiffNum >= 0,
       priceRange,
       currentVol,
       volChangePct: `${isVolUp ? '+' : ''}${volChange}%`,
       isVolUp,
       projVol,
-      projVolDiff: `${volDiffNum >= 0 ? '+' : ''}${Math.abs(volDiffNum)} Ton`
+      projVolDiff: `${vSign}${absVolDiff} Ton`,
+      isProjVolUp: volDiffNum >= 0
     }
   } else {
     const key = selectedCommodity.value
@@ -132,7 +141,8 @@ const selectedCommodityKpis = computed(() => {
 
     const projPrice = Number(trends[total - 1]?.[key]) || Math.round(currentPrice * 1.08)
     const priceDiffNum = projPrice - currentPrice
-    const projPriceDiff = `${priceDiffNum >= 0 ? '+' : ''}Rp ${Math.abs(priceDiffNum).toLocaleString('id-ID')}`
+    const pSign = priceDiffNum > 0 ? '+' : priceDiffNum < 0 ? '-' : ''
+    const projPriceDiff = `${pSign}Rp ${Math.abs(priceDiffNum).toLocaleString('id-ID')}`
     const priceRange = `Rp ${Math.round(projPrice * 0.95).toLocaleString('id-ID')} - Rp ${Math.round(projPrice * 1.05).toLocaleString('id-ID')}`
 
     const commodityVolMap: Record<string, number> = {
@@ -144,12 +154,14 @@ const selectedCommodityKpis = computed(() => {
       'Kacang Tanah': 38,
       'Tomat': 45
     }
-    const currentVol = Math.round(Number(volTrends[histCount - 1]?.[key]) || commodityVolMap[key] || 75)
-    const prevVol = Math.round(Number(volTrends[histCount - 2]?.[key]) || currentVol)
+    const currentVol = +(Number(volTrends[histCount - 1]?.[key]) || commodityVolMap[key] || 75).toFixed(1)
+    const prevVol = +(Number(volTrends[histCount - 2]?.[key]) || currentVol).toFixed(1)
     const volChange = prevVol ? (((currentVol - prevVol) / prevVol) * 100).toFixed(1) : '0.0'
     const isVolUp = parseFloat(volChange) >= 0
-    const projVol = Math.round(Number(volTrends[total - 1]?.[key]) || Math.round(currentVol * 1.08))
-    const volDiffNum = projVol - currentVol
+    const projVol = +(Number(volTrends[total - 1]?.[key]) || +(currentVol * 1.08).toFixed(1)).toFixed(1)
+    const volDiffNum = +(projVol - currentVol).toFixed(1)
+    const absVolDiff = parseFloat(Math.abs(volDiffNum).toFixed(1))
+    const vSign = volDiffNum > 0 ? '+' : volDiffNum < 0 ? '-' : ''
 
     return {
       currentPrice,
@@ -157,12 +169,14 @@ const selectedCommodityKpis = computed(() => {
       isPriceUp,
       projPrice,
       projPriceDiff,
+      isProjPriceUp: priceDiffNum >= 0,
       priceRange,
       currentVol,
       volChangePct: `${isVolUp ? '+' : ''}${volChange}%`,
       isVolUp,
       projVol,
-      projVolDiff: `${volDiffNum >= 0 ? '+' : ''}${Math.abs(volDiffNum)} Ton`
+      projVolDiff: `${vSign}${absVolDiff} Ton`,
+      isProjVolUp: volDiffNum >= 0
     }
   }
 })
@@ -303,33 +317,9 @@ const todayLabel = new Date().toLocaleDateString('id-ID', {
 const activityLogs = ref<any[]>([])
 
 // ==========================================
-// MODAL STATE: Cuaca & PDF Laporan
+// MODAL STATE: Cuaca
 // ==========================================
 const isCuacaModalOpen = ref(false)
-const isPdfModalOpen = ref(false)
-const selectedPdfLahan = ref<any>(null)
-
-const openDashboardPdf = (lahan?: any) => {
-  if (lahan) {
-    selectedPdfLahan.value = lahan
-  } else if (lahanList.value && lahanList.value.length > 0) {
-    selectedPdfLahan.value = lahanList.value[0]
-  } else {
-    selectedPdfLahan.value = {
-      id: 1,
-      input_parameters: {
-        farm_id: 'CGK001',
-        desa: 'Wukirsari',
-        area_ha: 1.2,
-        soil_ph: 6.5,
-        soil_type: 'Regosol Vulkanik',
-        elevation_m: 620,
-        komoditas: 'Cabai Merah'
-      }
-    }
-  }
-  isPdfModalOpen.value = true
-}
 
 // ==========================================
 // PAGINATION STATE: Aktivitas (Foto 2) & Pengguna
@@ -678,10 +668,6 @@ onMounted(() => {
             <span class="material-symbols-outlined text-[16px] text-[#d5e9c3]">cloud</span>
             <span>Fitur Cuaca &amp; Iklim</span>
           </button>
-          <button @click="openDashboardPdf()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
-            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-            <span>Cetak Rekomendasi PDF</span>
-          </button>
           <div class="flex items-center gap-2 font-mono text-[12px] text-[#645d58] bg-white px-3.5 py-2 rounded-xl border border-[#E5E0D8] shadow-sm">
             <span class="material-symbols-outlined text-[16px] text-[#243319]">schedule</span>
             <span>{{ todayLabel }}</span>
@@ -927,8 +913,8 @@ onMounted(() => {
             <span class="material-symbols-outlined text-[18px] text-[#0D9488]">inventory_2</span>
           </div>
           <div class="mt-2 flex items-baseline justify-between">
-            <span class="text-2xl font-bold text-[#0D9488]">{{ selectedCommodityKpis.projVol }} Ton</span>
-            <span class="text-xs font-bold text-[#0D9488]">{{ selectedCommodityKpis.projVolDiff }}</span>
+            <span class="text-2xl font-bold" :class="selectedCommodityKpis.isProjVolUp ? 'text-[#0D9488]' : 'text-[#E63946]'">{{ selectedCommodityKpis.projVol }} Ton</span>
+            <span class="text-xs font-bold" :class="selectedCommodityKpis.isProjVolUp ? 'text-[#0D9488]' : 'text-[#E63946]'">{{ selectedCommodityKpis.projVolDiff }}</span>
           </div>
           <div class="text-[11px] text-[#7E7063] mt-2">Puncak siklus panen musim tanam II</div>
         </div>
@@ -1051,13 +1037,9 @@ onMounted(() => {
               <span class="font-bold text-emerald-400">Optimum (78%)</span>
             </div>
             <div class="flex items-center gap-2 pt-1">
-              <button @click="isCuacaModalOpen = true" class="flex-1 py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#d5e9c3] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+              <button @click="isCuacaModalOpen = true" class="w-full py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#d5e9c3] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
                 <span class="material-symbols-outlined text-[15px]">thermostat</span>
-                <span>Analisis Cuaca</span>
-              </button>
-              <button @click="openDashboardPdf()" class="flex-1 py-2 px-2.5 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm">
-                <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
-                <span>Cetak Lembar PDF</span>
+                <span>Analisis Cuaca &amp; Hasil Panen</span>
               </button>
             </div>
           </div>
@@ -1528,13 +1510,6 @@ onMounted(() => {
     <CuacaKorelasiModal
       :is-open="isCuacaModalOpen"
       @close="isCuacaModalOpen = false"
-    />
-
-    <!-- PDF Laporan & Rekomendasi Modal -->
-    <LahanPdfModal
-      :is-open="isPdfModalOpen"
-      :lahan="selectedPdfLahan"
-      @close="isPdfModalOpen = false"
     />
 
   </div>

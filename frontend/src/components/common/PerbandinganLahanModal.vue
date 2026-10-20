@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -14,6 +15,15 @@ const emit = defineEmits<{
 const selectedSlot1 = ref<any>(null)
 const selectedSlot2 = ref<any>(null)
 const selectedSlot3 = ref<any>(null)
+
+// State cetak PDF dari modal perbandingan
+const isPdfModalOpen = ref(false)
+const selectedPdfLahan = ref<any>(null)
+
+const printLandPdf = (land: any) => {
+  selectedPdfLahan.value = land
+  isPdfModalOpen.value = true
+}
 
 // Initialize slots when opened
 const initSlots = () => {
@@ -262,6 +272,17 @@ const highestYieldLand = computed(() => {
                     </div>
                   </div>
                 </div>
+                <!-- Tombol Cetak Rekomendasi PDF untuk Lahan ini -->
+                <div class="pt-2">
+                  <button
+                    type="button"
+                    @click="printLandPdf(land)"
+                    class="w-full py-2 px-3 rounded-lg bg-[#A8452A] hover:bg-[#8F3A22] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                    <span>Cetak Lembar Rekomendasi PDF</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -282,4 +303,11 @@ const highestYieldLand = computed(() => {
       </div>
     </div>
   </Teleport>
+
+  <!-- Modal Cetak PDF Lahan dari Perbandingan -->
+  <LahanPdfModal
+    :is-open="isPdfModalOpen"
+    :lahan="selectedPdfLahan"
+    @close="isPdfModalOpen = false"
+  />
 </template>
