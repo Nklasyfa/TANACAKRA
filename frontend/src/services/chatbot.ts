@@ -120,7 +120,7 @@ const AGRONOMIC_KNOWLEDGE: {
     suggestions: ['Cara membuat pestisida nabati tembakau', 'Dosis pupuk NPK cabai', 'Pencegahan patek musim hujan']
   },
   {
-    keywords: ['cuaca', 'hujan', 'angin', 'kemarau', 'bmkg', 'kabut', 'iklim'],
+    keywords: ['tabel musim', 'pola tanam mt1', 'data agroklimat cangkringan', 'bmkg cangkringan'],
     category: 'cuaca',
     response: `Karakteristik agroklimat wilayah Cangkringan (elevasi 450 - 900 mdpl):
 - **Suhu Harian**: 21°C - 26°C dengan kelembapan relatif tinggi (75% - 90%).
@@ -242,25 +242,43 @@ Karakter & Pedoman:
     max_tokens: 650
   }
 
-  // 1. Coba melalui Backend Django
-  if (navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
+  // 1. Coba melalui Same-origin /api/chat (Bekerja di Vercel Serverless Function & Vite Proxy)
+  if (navigator.onLine) {
     try {
-      const res = await api.post('/chatbot/ask', {
+      const res = await axios.post('/api/chat', {
         prompt: userPrompt,
         messages: formattedMessages.slice(1)
-      }, { timeout: 9000 })
+      }, { timeout: 15000 })
       if (res.data && res.data.reply) {
         return {
           text: res.data.reply.trim(),
           model: res.data.model || 'NVIDIA Llama 3.2'
         }
       }
-    } catch {
-      // Backend offline, lanjutkan ke proxy
+    } catch (e: any) {
+      console.warn('Endpoint /api/chat coba fallback:', e?.response?.data || e.message)
     }
   }
 
-  // 2. Coba melalui Vite / Vercel Proxy (/api-nvidia)
+  // 2. Coba melalui Backend Django port 8000
+  if (navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
+    try {
+      const res = await api.post('/chatbot/ask', {
+        prompt: userPrompt,
+        messages: formattedMessages.slice(1)
+      }, { timeout: 15000 })
+      if (res.data && res.data.reply) {
+        return {
+          text: res.data.reply.trim(),
+          model: res.data.model || 'NVIDIA Llama 3.2'
+        }
+      }
+    } catch (e: any) {
+      console.warn('Backend Django /chatbot/ask coba fallback:', e?.response?.data || e.message)
+    }
+  }
+
+  // 3. Coba melalui Vite dev server proxy (/api-nvidia)
   if (NVIDIA_API_KEY && navigator.onLine) {
     try {
       const res = await axios.post('/api-nvidia/v1/chat/completions', payload, {
@@ -268,7 +286,7 @@ Karakter & Pedoman:
           'Authorization': `Bearer ${NVIDIA_API_KEY}`,
           'Content-Type': 'application/json'
         },
-        timeout: 12000
+        timeout: 15000
       })
       const reply = res.data?.choices?.[0]?.message?.content
       if (reply) {
@@ -277,12 +295,11 @@ Karakter & Pedoman:
           model: 'NVIDIA Llama 3.2'
         }
       }
-    } catch {
-      // Proxy tidak tersedia, coba direct
+    } catch (e: any) {
+      console.warn('Vite proxy /api-nvidia coba fallback:', e?.response?.data || e.message)
     }
   }
 
-  // 3. Jika offline atau proxy/backend gagal, kembalikan null untuk memicu cadangan lokal
   return null
 }
 

@@ -27,7 +27,7 @@ else:
     if not SECRET_KEY:
         raise ImproperlyConfigured("SECRET_KEY wajib di-set di .env saat DEBUG=False")
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1', 'tanacakra.vercel.app', '.vercel.app'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -78,8 +78,12 @@ CORS_ALLOWED_ORIGINS = env.list(
         'http://localhost:5174',
         'http://127.0.0.1:5173',
         'http://127.0.0.1:5174',
+        'https://tanacakra.vercel.app',
     ]
 )
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
 
 REST_FRAMEWORK = {
