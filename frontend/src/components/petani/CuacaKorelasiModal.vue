@@ -9,28 +9,35 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const selectedCommodity = ref<'Padi' | 'Cabai Merah' | 'Jagung'>('Padi')
+export type SupportedCommodity = 'Padi' | 'Cabai Merah' | 'Jagung' | 'Salak Pondoh' | 'Tomat' | 'Bawang Merah'
+
+const selectedCommodity = ref<SupportedCommodity>('Padi')
 
 const monthlyData = [
-  { month: 'Jan', rain: 340, temp: 23.5, humidity: 86, yieldPadi: 6.8, yieldCabai: 4.2, yieldJagung: 5.1 },
-  { month: 'Feb', rain: 310, temp: 23.8, humidity: 85, yieldPadi: 7.1, yieldCabai: 4.5, yieldJagung: 5.4 },
-  { month: 'Mar', rain: 280, temp: 24.2, humidity: 83, yieldPadi: 7.4, yieldCabai: 5.8, yieldJagung: 6.0 },
-  { month: 'Apr', rain: 190, temp: 24.8, humidity: 80, yieldPadi: 6.9, yieldCabai: 7.2, yieldJagung: 6.4 },
-  { month: 'Mei', rain: 120, temp: 24.5, humidity: 76, yieldPadi: 5.8, yieldCabai: 8.5, yieldJagung: 6.8 },
-  { month: 'Jun', rain: 75,  temp: 23.9, humidity: 72, yieldPadi: 4.9, yieldCabai: 9.1, yieldJagung: 6.5 },
-  { month: 'Jul', rain: 45,  temp: 23.1, humidity: 68, yieldPadi: 4.2, yieldCabai: 9.6, yieldJagung: 5.9 },
-  { month: 'Agu', rain: 35,  temp: 23.4, humidity: 66, yieldPadi: 3.8, yieldCabai: 9.8, yieldJagung: 5.7 },
-  { month: 'Sep', rain: 60,  temp: 24.6, humidity: 70, yieldPadi: 4.5, yieldCabai: 9.2, yieldJagung: 6.2 },
-  { month: 'Okt', rain: 155, temp: 25.1, humidity: 77, yieldPadi: 5.6, yieldCabai: 7.8, yieldJagung: 6.6 },
-  { month: 'Nov', rain: 260, temp: 24.3, humidity: 82, yieldPadi: 6.5, yieldCabai: 6.1, yieldJagung: 5.9 },
-  { month: 'Des', rain: 325, temp: 23.7, humidity: 85, yieldPadi: 6.7, yieldCabai: 4.8, yieldJagung: 5.2 }
+  { month: 'Jan', rain: 340, temp: 23.5, humidity: 86, yieldPadi: 6.8, yieldCabai: 4.2, yieldJagung: 5.1, yieldSalak: 8.8, yieldTomat: 4.8, yieldBawang: 3.5 },
+  { month: 'Feb', rain: 310, temp: 23.8, humidity: 85, yieldPadi: 7.1, yieldCabai: 4.5, yieldJagung: 5.4, yieldSalak: 9.2, yieldTomat: 5.0, yieldBawang: 3.8 },
+  { month: 'Mar', rain: 280, temp: 24.2, humidity: 83, yieldPadi: 7.4, yieldCabai: 5.8, yieldJagung: 6.0, yieldSalak: 8.4, yieldTomat: 6.1, yieldBawang: 4.6 },
+  { month: 'Apr', rain: 190, temp: 24.8, humidity: 80, yieldPadi: 6.9, yieldCabai: 7.2, yieldJagung: 6.4, yieldSalak: 7.6, yieldTomat: 7.5, yieldBawang: 5.8 },
+  { month: 'Mei', rain: 120, temp: 24.5, humidity: 76, yieldPadi: 5.8, yieldCabai: 8.5, yieldJagung: 6.8, yieldSalak: 6.8, yieldTomat: 8.8, yieldBawang: 7.2 },
+  { month: 'Jun', rain: 75,  temp: 23.9, humidity: 72, yieldPadi: 4.9, yieldCabai: 9.1, yieldJagung: 6.5, yieldSalak: 6.2, yieldTomat: 9.2, yieldBawang: 8.4 },
+  { month: 'Jul', rain: 45,  temp: 23.1, humidity: 68, yieldPadi: 4.2, yieldCabai: 9.6, yieldJagung: 5.9, yieldSalak: 5.8, yieldTomat: 9.5, yieldBawang: 9.1 },
+  { month: 'Agu', rain: 35,  temp: 23.4, humidity: 66, yieldPadi: 3.8, yieldCabai: 9.8, yieldJagung: 5.7, yieldSalak: 5.5, yieldTomat: 9.7, yieldBawang: 9.5 },
+  { month: 'Sep', rain: 60,  temp: 24.6, humidity: 70, yieldPadi: 4.5, yieldCabai: 9.2, yieldJagung: 6.2, yieldSalak: 6.4, yieldTomat: 9.0, yieldBawang: 8.7 },
+  { month: 'Okt', rain: 155, temp: 25.1, humidity: 77, yieldPadi: 5.6, yieldCabai: 7.8, yieldJagung: 6.6, yieldSalak: 7.2, yieldTomat: 7.9, yieldBawang: 6.5 },
+  { month: 'Nov', rain: 260, temp: 24.3, humidity: 82, yieldPadi: 6.5, yieldCabai: 6.1, yieldJagung: 5.9, yieldSalak: 8.1, yieldTomat: 6.3, yieldBawang: 4.9 },
+  { month: 'Des', rain: 325, temp: 23.7, humidity: 85, yieldPadi: 6.7, yieldCabai: 4.8, yieldJagung: 5.2, yieldSalak: 8.9, yieldTomat: 5.1, yieldBawang: 3.9 }
 ]
 
 const currentYields = computed(() => {
   return monthlyData.map(d => {
-    if (selectedCommodity.value === 'Cabai Merah') return d.yieldCabai
-    if (selectedCommodity.value === 'Jagung') return d.yieldJagung
-    return d.yieldPadi
+    switch (selectedCommodity.value) {
+      case 'Cabai Merah': return d.yieldCabai
+      case 'Jagung': return d.yieldJagung
+      case 'Salak Pondoh': return d.yieldSalak
+      case 'Tomat': return d.yieldTomat
+      case 'Bawang Merah': return d.yieldBawang
+      default: return d.yieldPadi
+    }
   })
 })
 
@@ -52,6 +59,30 @@ const correlationStats = computed(() => {
       type: 'Korelasi Moderat',
       color: 'text-blue-700 bg-blue-50 border-blue-200',
       insight: 'Jagung membutuhkan suplai air moderat pada masa vegetatif, namun sensitif terhadap genangan berlebih di musim puncak hujan.'
+    }
+  }
+  if (selectedCommodity.value === 'Salak Pondoh') {
+    return {
+      r: +0.68,
+      type: 'Korelasi Positif Kuat',
+      color: 'text-teal-700 bg-teal-50 border-teal-200',
+      insight: 'Salak Pondoh khas lereng Merapi mencapai puncak panen raya pada Desember-Februari dengan curah hujan tinggi yang mendukung pengisian bobot tandan buah.'
+    }
+  }
+  if (selectedCommodity.value === 'Tomat') {
+    return {
+      r: -0.81,
+      type: 'Korelasi Negatif Sangat Kuat',
+      color: 'text-rose-700 bg-rose-50 border-rose-200',
+      insight: 'Tanaman tomat sangat rentan terhadap busuk daun (phytophthora) dan retak buah jika terpapar hujan lebat terus menerus. Produktivitas tertinggi diraih saat musim kemarau bersuhu sejuk.'
+    }
+  }
+  if (selectedCommodity.value === 'Bawang Merah') {
+    return {
+      r: -0.85,
+      type: 'Korelasi Negatif Sangat Kuat',
+      color: 'text-purple-700 bg-purple-50 border-purple-200',
+      insight: 'Bawang merah membutuhkan tanah vulkanik gembur tanpa genangan. Hujan deras berisiko membusukkan umbi dan memicu layu fusarium, sehingga musim kemarau adalah jendela tanam terbaik.'
     }
   }
   return {
@@ -96,12 +127,12 @@ const correlationStats = computed(() => {
         <div class="p-4 bg-[#F5EFE6] border-b border-[#E2D8C7] flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-[#645d58] uppercase">Pilih Komoditas:</span>
-            <div class="inline-flex rounded-lg border border-[#D5C7B2] bg-white p-0.5">
+            <div class="inline-flex flex-wrap gap-1 rounded-lg border border-[#D5C7B2] bg-white p-0.5">
               <button
-                v-for="c in (['Padi', 'Cabai Merah', 'Jagung'] as const)"
+                v-for="c in (['Padi', 'Cabai Merah', 'Jagung', 'Salak Pondoh', 'Tomat', 'Bawang Merah'] as const)"
                 :key="c"
                 @click="selectedCommodity = c"
-                class="px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer"
+                class="px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer"
                 :class="selectedCommodity === c ? 'bg-[#243319] text-white shadow-xs' : 'text-[#645d58] hover:text-[#231a10]'"
               >
                 {{ c }}

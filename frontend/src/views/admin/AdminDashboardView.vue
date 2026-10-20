@@ -61,13 +61,13 @@ const selectedCommodityKpis = computed(() => {
       }
     }
     const commodityDefaults: Record<string, { currentPrice: number; projPrice: number; currentVol: number; projVol: number }> = {
-      'Cabai Merah': { currentPrice: 72400, projPrice: 84200, currentVol: 85, projVol: 98 },
-      'Salak Pondoh': { currentPrice: 43500, projPrice: 59200, currentVol: 140, projVol: 165 },
-      'Padi': { currentPrice: 6750, projPrice: 7200, currentVol: 190, projVol: 215 },
-      'Jagung': { currentPrice: 6300, projPrice: 6800, currentVol: 110, projVol: 128 },
-      'Bawang Merah': { currentPrice: 40500, projPrice: 44800, currentVol: 65, projVol: 76 },
-      'Kacang Tanah': { currentPrice: 26900, projPrice: 29500, currentVol: 45, projVol: 52 },
-      'Tomat': { currentPrice: 15000, projPrice: 17500, currentVol: 55, projVol: 64 }
+      'Cabai Merah': { currentPrice: 56900, projPrice: 67100, currentVol: 85, projVol: 98 },
+      'Salak Pondoh': { currentPrice: 16100, projPrice: 18500, currentVol: 140, projVol: 165 },
+      'Padi': { currentPrice: 7600, projPrice: 7900, currentVol: 190, projVol: 215 },
+      'Jagung': { currentPrice: 7100, projPrice: 7500, currentVol: 110, projVol: 128 },
+      'Bawang Merah': { currentPrice: 38500, projPrice: 43800, currentVol: 65, projVol: 76 },
+      'Kacang Tanah': { currentPrice: 26500, projPrice: 28500, currentVol: 45, projVol: 52 },
+      'Tomat': { currentPrice: 16500, projPrice: 18500, currentVol: 55, projVol: 64 }
     }
     const def = commodityDefaults[selectedCommodity.value] || { currentPrice: 25000, projPrice: 28000, currentVol: 75, projVol: 88 }
     const pDiff = def.projPrice - def.currentPrice

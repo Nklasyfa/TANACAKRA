@@ -392,9 +392,18 @@ def dashboard_trends(request):
 
     if not trends:
         trends = [
-            {"month": "2024-01", "Cabai Merah": 49957, "Salak Pondoh": 50587, "Padi": 5800, "Jagung": 5200, "Bawang Merah": 32000, "Kacang Tanah": 24000},
-            {"month": "2024-02", "Cabai Merah": 73305, "Salak Pondoh": 74571, "Padi": 5900, "Jagung": 5300, "Bawang Merah": 31000, "Kacang Tanah": 24500},
-            {"month": "2024-03", "Cabai Merah": 19110, "Salak Pondoh": 22389, "Padi": 5100, "Jagung": 4900, "Bawang Merah": 33500, "Kacang Tanah": 22800},
+            {"month": "2024-01", "Cabai Merah": 49950, "Salak Pondoh": 13800, "Padi": 6850, "Jagung": 6200, "Bawang Merah": 32000, "Kacang Tanah": 24000, "Tomat": 14500},
+            {"month": "2024-02", "Cabai Merah": 56300, "Salak Pondoh": 14200, "Padi": 6900, "Jagung": 6300, "Bawang Merah": 31000, "Kacang Tanah": 24500, "Tomat": 15000},
+            {"month": "2024-03", "Cabai Merah": 39100, "Salak Pondoh": 15100, "Padi": 6750, "Jagung": 6150, "Bawang Merah": 33500, "Kacang Tanah": 22800, "Tomat": 15500},
+            {"month": "2024-04", "Cabai Merah": 42500, "Salak Pondoh": 15800, "Padi": 6800, "Jagung": 6400, "Bawang Merah": 34000, "Kacang Tanah": 23500, "Tomat": 16000},
+            {"month": "2024-05", "Cabai Merah": 48800, "Salak Pondoh": 16500, "Padi": 6950, "Jagung": 6500, "Bawang Merah": 35500, "Kacang Tanah": 24200, "Tomat": 16500},
+            {"month": "2024-06", "Cabai Merah": 55200, "Salak Pondoh": 17100, "Padi": 7000, "Jagung": 6450, "Bawang Merah": 33800, "Kacang Tanah": 23800, "Tomat": 14000},
+            {"month": "2024-07", "Cabai Merah": 45300, "Salak Pondoh": 17800, "Padi": 6850, "Jagung": 6350, "Bawang Merah": 32200, "Kacang Tanah": 23200, "Tomat": 14500},
+            {"month": "2024-08", "Cabai Merah": 41700, "Salak Pondoh": 18400, "Padi": 6800, "Jagung": 6500, "Bawang Merah": 34500, "Kacang Tanah": 24100, "Tomat": 15000},
+            {"month": "2024-09", "Cabai Merah": 48100, "Salak Pondoh": 18000, "Padi": 6900, "Jagung": 6400, "Bawang Merah": 35200, "Kacang Tanah": 23600, "Tomat": 15500},
+            {"month": "2024-10", "Cabai Merah": 54400, "Salak Pondoh": 16700, "Padi": 7000, "Jagung": 6550, "Bawang Merah": 36100, "Kacang Tanah": 24500, "Tomat": 16000},
+            {"month": "2024-11", "Cabai Merah": 61800, "Salak Pondoh": 15200, "Padi": 7100, "Jagung": 6650, "Bawang Merah": 36800, "Kacang Tanah": 24900, "Tomat": 16500},
+            {"month": "2024-12", "Cabai Merah": 65100, "Salak Pondoh": 14400, "Padi": 7200, "Jagung": 6700, "Bawang Merah": 37500, "Kacang Tanah": 25300, "Tomat": 14000},
         ]
         if not commodities:
             commodities = list(trends[0].keys())
