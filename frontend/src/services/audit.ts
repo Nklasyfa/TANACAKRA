@@ -11,6 +11,8 @@ export interface RichLogItem {
   avatarBg: string
   userName: string
   userRole: string
+  userEmail?: string
+  userId?: number | string
   title: string
   subtitle: string
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT'
@@ -45,10 +47,10 @@ function generateInitialLogs(): RichLogItem[] {
       timestamp: mkDate(5).toISOString(),
       latency: '38ms',
       category: 'input',
-      avatar: 'SM',
+      avatar: 'PM',
       avatarBg: 'bg-[#d5e9c3] text-[#111f08]',
-      userName: 'Petani Contoh',
-      userRole: 'Petani Cangkringan',
+      userName: 'Pak Mardianto',
+      userRole: 'Petani (mardianto.tani@cangkringan.desa.id)',
       title: 'Input data observasi tanah vulkanik petak B-04',
       subtitle: 'Kelembaban: 24.2% · pH: 6.4 · Suhu tanah: 21.8°C',
       method: 'POST',
@@ -67,7 +69,7 @@ function generateInitialLogs(): RichLogItem[] {
       avatar: 'NS',
       avatarBg: 'bg-[#f2dfcf] text-[#444840]',
       userName: 'Nakula Syafa',
-      userRole: 'Petani (nakulasaputra08@gmail.com)',
+      userRole: 'Admin (nakulasaputra08@gmail.com)',
       title: 'Eksekusi inferensi peramalan harga Pasar Giwangan',
       subtitle: 'Model: VolcAgro-Regr-v2.1 · Horizon: 7 hari kedepan',
       method: 'POST',
@@ -239,13 +241,18 @@ export const AuditLogger = {
     // Determine current logged in user if not provided
     let uName = entry.userName
     let uRole = entry.userRole
-    if (!uName || !uRole) {
+    let uEmail = (entry as any).userEmail || ''
+    let uId = (entry as any).userId || ''
+    if (!uName || !uRole || !uEmail) {
       try {
         const rawUser = localStorage.getItem('tanacakra_user')
         if (rawUser) {
           const u = JSON.parse(rawUser)
-          uName = uName || u.username || 'Pengguna Tanacakra'
-          uRole = uRole || (u.role === 'ADMIN' ? 'Super Admin' : 'Petani Terdaftar')
+          const isAdmin = u.role === 'ADMIN' || (u.username && u.username.toLowerCase().includes('admin'))
+          uName = uName || (isAdmin ? 'Super Admin' : (u.username || 'Pengguna Tanacakra'))
+          uRole = uRole || (isAdmin ? `Admin (${u.email || 'admin@cangkringan.desa.id'})` : `Petani (${u.email || ''})`)
+          uEmail = uEmail || u.email || (isAdmin ? 'admin@cangkringan.desa.id' : '')
+          uId = uId || u.id || ''
         }
       } catch {
         /* ignore */
@@ -253,10 +260,11 @@ export const AuditLogger = {
     }
 
     uName = uName || 'Super Admin'
-    uRole = uRole || 'Admin Tanacakra'
+    uRole = uRole || 'Admin (admin@cangkringan.desa.id)'
+    uEmail = uEmail || (uRole.includes('admin') ? 'admin@cangkringan.desa.id' : '')
 
     const avatar = uName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'SA'
-    const avatarBg = entry.statusCode === 401 ? 'bg-[#ba1a1a] text-white' : (uRole.includes('Admin') ? 'bg-[#243319] text-white' : 'bg-[#d5e9c3] text-[#111f08]')
+    const avatarBg = entry.statusCode === 401 ? 'bg-[#ba1a1a] text-white' : (uRole.toLowerCase().includes('admin') ? 'bg-[#243319] text-white' : 'bg-[#d5e9c3] text-[#111f08]')
 
     const newLog: RichLogItem = {
       id,
@@ -269,6 +277,8 @@ export const AuditLogger = {
       avatarBg,
       userName: uName,
       userRole: uRole,
+      userEmail: uEmail,
+      userId: uId || undefined,
       title: entry.title,
       subtitle: entry.subtitle,
       method: entry.method || 'POST',

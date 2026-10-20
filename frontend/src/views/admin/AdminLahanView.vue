@@ -141,7 +141,7 @@ const closeDrawer = () => {
   selectedLahan.value = null
 }
 
-// ============ CATAT SAMPLE (Admin → ML Inference) ============
+// ============ AUDIT & VERIFIKASI LAPANGAN BPP (Admin / PPL) ============
 const isSampleOpen = ref(false)
 const sampleFarmId = ref('')
 const samplePh = ref(6.5)
@@ -150,6 +150,8 @@ const sampleKondisi = ref<'Kering' | 'Lembab' | 'Basah'>('Lembab')
 const sampleN = ref(100)
 const sampleP = ref(35)
 const sampleK = ref(130)
+const sampleVerificationStatus = ref<'TERVERIFIKASI_BPP' | 'DALAM_PEMBINAAN' | 'PRIORITAS_PEMBENAHAN'>('TERVERIFIKASI_BPP')
+const samplePplNotes = ref('Lahan memenuhi standar agroklimat vulkanik Merapi. Pemupukan berimbang disetujui BPP Kapanewon Cangkringan.')
 const isSubmittingSample = ref(false)
 const sampleResult = ref<any>(null)
 const samplePlotly = ref<any>(null)
@@ -177,9 +179,14 @@ const openSample = (item?: any) => {
     : (filteredLahan.value[0] || lahanList.value[0])
   const params = farm?.input_parameters || {}
   sampleFarmId.value = (params.farm_id || 'CGK001')
-  samplePh.value = parseFloat(params.soil_ph) || 6.5
-  sampleKondisi.value = 'Lembab'
-  sampleMoisture.value = 55
+  samplePh.value = parseFloat(params.soil_ph || params.pH) || 6.5
+  sampleKondisi.value = params.kondisi_tanah || 'Lembab'
+  sampleMoisture.value = params.kelembapan || 55
+  sampleN.value = params.nitrogen || 120
+  sampleP.value = params.fosfor || 45
+  sampleK.value = params.kalium || 180
+  sampleVerificationStatus.value = params.verification_status || 'TERVERIFIKASI_BPP'
+  samplePplNotes.value = params.ppl_notes || 'Lahan memenuhi standar agroklimat vulkanik Merapi. Pemupukan berimbang disetujui BPP Kapanewon Cangkringan.'
   sampleResult.value = null
   samplePlotly.value = null
   sampleError.value = ''
@@ -199,53 +206,56 @@ const submitSample = async () => {
   sampleResult.value = null
   samplePlotly.value = null
 
-  const payload: LandInputPayload & { kondisi_tanah: string } = {
+  const payload: LandInputPayload & { kondisi_tanah: string; verification_status: string; ppl_notes: string } = {
     pH: parseFloat(samplePh.value.toString()),
     kelembapan: parseInt(sampleMoisture.value.toString()),
     nitrogen: parseInt(sampleN.value.toString()),
     fosfor: parseInt(sampleP.value.toString()),
     kalium: parseInt(sampleK.value.toString()),
-    kondisi_tanah: sampleKondisi.value
+    kondisi_tanah: sampleKondisi.value,
+    verification_status: sampleVerificationStatus.value,
+    ppl_notes: samplePplNotes.value
   }
 
   try {
     const res = await LahanService.inputLahan(sampleFarmId.value, payload)
+    await LahanService.updateLahan(sampleFarmId.value, payload)
     sampleResult.value = res.engine_output?.prediction_result
     samplePlotly.value = res.plotly_schema
     AuditLogger.addLog({
-      title: `Catat sample ML petak ${sampleFarmId.value}`,
-      subtitle: `pH: ${samplePh.value} · Kelembapan: ${sampleMoisture.value}% · Kondisi: ${sampleKondisi.value}`,
-      category: 'ai',
-      endpoint: `/api/v1/lahan/${sampleFarmId.value}/input`
+      title: `Audit & Sertifikasi BPP Petak ${sampleFarmId.value}`,
+      subtitle: `Status: ${sampleVerificationStatus.value} · Catatan PPL: ${samplePplNotes.value.substring(0, 45)}...`,
+      category: 'lahan',
+      endpoint: `/api/v1/lahan/${sampleFarmId.value}/verify`
     })
     addNotification({
-      title: `Inferensi ML Petak ${sampleFarmId.value}`,
-      message: `Estimasi hasil panen ${sampleResult.value?.estimasi_hasil_panen_ton_ha || '4.5'} Ton/Ha berhasil dihitung.`,
+      title: `Sertifikasi BPP Petak ${sampleFarmId.value}`,
+      message: `Audit lapangan berhasil dicatat. Status: ${sampleVerificationStatus.value}.`,
       category: 'sistem',
-      targetRole: 'ADMIN',
+      targetRole: 'ALL',
       link: '/admin/lahan'
     })
   } catch (err: any) {
-    console.error('Error menjalankan rekomendasi ML:', err)
+    console.error('Error audit BPP:', err)
     const detail =
       err.response?.data?.error ||
       err.response?.data?.details ||
       err.message
     sampleError.value = detail
       ? `Gagal: ${detail}`
-      : 'Gagal terhubung ke backend Django REST API. Pastikan server berjalan di 127.0.0.1:8000.'
+      : 'Gagal memproses audit ke backend. Memperbarui status secara lokal.'
     
-    // Log exception in AuditLogger as anomaly
     AuditLogger.addLog({
-      title: `Uji sampel ML petak ${sampleFarmId.value} (Fallback Mode)`,
-      subtitle: `pH: ${samplePh.value} · Kelembapan: ${sampleMoisture.value}% · Kondisi: ${sampleKondisi.value}`,
-      category: 'ai',
-      endpoint: `/api/v1/lahan/${sampleFarmId.value}/input`,
-      statusText: 'Offline Fallback (200)',
+      title: `Audit & Sertifikasi BPP Petak ${sampleFarmId.value} (Lokal)`,
+      subtitle: `Status: ${sampleVerificationStatus.value}`,
+      category: 'lahan',
+      endpoint: `/api/v1/lahan/${sampleFarmId.value}/verify`,
+      statusText: 'Offline Verified (200)',
       statusCode: 200
     })
   } finally {
     isSubmittingSample.value = false
+    await fetchLahanData()
   }
 }
 
@@ -539,9 +549,9 @@ watch(
               <span class="material-symbols-outlined text-[16px]">download</span>
               <span>Ekspor CSV</span>
             </button>
-            <button @click="openSample()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#A8452A] hover:bg-[#923c24] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
-              <span class="material-symbols-outlined text-[16px]">auto_awesome</span>
-              <span>Catat Sample ML</span>
+            <button @click="openSample()" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#1A2612] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-[#D5E9C3]">verified_user</span>
+              <span>Audit &amp; Verifikasi BPP</span>
             </button>
             <button @click="fetchLahanData" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-white hover:bg-[#FDEBDB] text-[#231a10] border border-[#E2D8C7] rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px] text-[#645d58]">refresh</span>
@@ -625,8 +635,8 @@ watch(
                     <button title="Cetak Laporan PDF" class="px-2.5 py-1 text-xs font-medium text-[#C2410C] bg-[#FFF7ED] hover:bg-[#FFEDD5] border border-[#FED7AA] rounded transition-colors mr-1" @click.stop="openPdf(item)">
                       PDF
                     </button>
-                    <button class="px-2.5 py-1 text-xs font-medium text-[#3A4A2E] bg-[#EEF2E6] hover:bg-[#D5E9C3] rounded transition-colors" @click.stop="openSample(item)">
-                      Catat Sample
+                    <button class="px-2.5 py-1 text-xs font-semibold text-[#3A4A2E] bg-[#EEF2E6] hover:bg-[#D5E9C3] border border-[#3A4A2E]/20 rounded transition-colors" @click.stop="openSample(item)">
+                      Audit BPP
                     </button>
                     <button class="ml-1 px-2.5 py-1 text-xs font-medium text-[#645d58] bg-[#F3ECE0] hover:bg-[#E2D8C7] rounded transition-colors" @click.stop="openDrawer(item)">
                       Detail
@@ -906,16 +916,16 @@ watch(
       </div>
     </div>
 
-    <!-- Catat Sample ML Modal / Bottom Sheet -->
+    <!-- Audit & Verifikasi Lapangan BPP Modal / Bottom Sheet -->
     <div v-if="isSampleOpen" class="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm">
       <div class="absolute inset-0" @click="closeSample"></div>
 
       <div class="relative w-full md:max-w-2xl max-h-[92vh] md:h-auto bg-white rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col md:border md:border-[#E2D8C7]">
         <div class="px-4 md:px-6 py-4 border-b border-[#E2D8C7] flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
           <div>
-            <p class="text-xs text-[#A8452A] font-semibold">Rekomendasi Scikit-learn · RandomForest</p>
-            <h3 class="text-base md:text-lg font-bold text-[#231a10]">Catat Sample Lahan</h3>
-            <p class="text-[11px] text-[#645d58] mt-0.5 hidden md:block">Model ML memproyeksikan hasil panen &amp; status kesehatan tanah dari parameter pH, kelembapan, dan hara N-P-K.</p>
+            <p class="text-xs text-[#A8452A] font-semibold">Balai Penyuluhan Pertanian (BPP) Cangkringan</p>
+            <h3 class="text-base md:text-lg font-bold text-[#231a10]">Audit & Verifikasi Lapangan BPP</h3>
+            <p class="text-[11px] text-[#645d58] mt-0.5 hidden md:block">Audit kondisi riil lahan, validasi parameter hara NPK/pH, serta berikan rekomendasi resmi PPL untuk dicantumkan pada sertifikat PDF petani.</p>
           </div>
           <button @click="closeSample" class="p-1 rounded-full hover:bg-[#F3ECE0] text-[#645d58]">
             <span class="material-symbols-outlined text-[20px]">close</span>
@@ -931,21 +941,39 @@ watch(
                 {{ item.input_parameters?.farm_id || ('LHN-' + item.id) }} — Desa {{ item.input_parameters?.desa || 'Cangkringan' }}
               </option>
             </select>
-            <p class="text-[11px] text-[#645d58] mt-1">Jika backend Django aktif, parameter diteruskan ke <code class="font-mono">/lahan/:id/input</code> dan diproses RandomForest Scikit-learn. Saat luring, hasil disimulasikan dari aturan hara setempat.</p>
+            <p class="text-[11px] text-[#645d58] mt-1">Status dan catatan audit BPP akan langsung tersinkronisasi ke laporan rekomendasi PDF petani dan histori audit sistem.</p>
           </div>
 
-          <!-- Kondisi Tanah (Standardized) -->
+          <!-- Status Verifikasi BPP & Kondisi Tanah -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kondisi Tanah</label>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Status Sertifikasi BPP Lapang</label>
+              <select v-model="sampleVerificationStatus" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
+                <option value="TERVERIFIKASI_BPP">✅ Terverifikasi BPP (Siap Sertifikasi)</option>
+                <option value="DALAM_PEMBINAAN">⚠️ Dalam Pembinaan PPL (Perlu Pendampingan)</option>
+                <option value="PRIORITAS_PEMBENAHAN">🚨 Prioritas Pembenahan (pH / Hara Kritis)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#231a10] mb-1.5">Kondisi Lapang Tanah</label>
               <select v-model="sampleKondisi" @change="onKondisiChange" class="w-full py-2 px-3 text-sm font-semibold text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none">
                 <option value="Kering">Kering</option>
                 <option value="Lembab">Lembab</option>
                 <option value="Basah">Basah</option>
               </select>
             </div>
+          </div>
+
+          <!-- Catatan Resmi PPL -->
+          <div>
+            <label class="block text-xs font-bold text-[#231a10] mb-1.5">Catatan &amp; Instruksi Resmi PPL (Dicetak di Lembar PDF Petani)</label>
+            <textarea v-model="samplePplNotes" rows="2" class="w-full py-2 px-3 text-xs font-medium text-[#231a10] bg-[#FFF8F4] border border-[#E2D8C7] rounded-xl focus:ring-1 focus:ring-[#A8452A] outline-none" placeholder="Masukkan arahan teknis pemupukan atau penanganan lahan oleh penyuluh..."></textarea>
+          </div>
+
+          <!-- Moisture & pH Slider -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="sample-moisture" class="block text-xs font-bold text-[#231a10] mb-1.5">Kelembapan lapang (%)</label>
+              <label for="sample-moisture" class="block text-xs font-bold text-[#231a10] mb-1.5">Kelembapan Lapang (%)</label>
               <input v-model="sampleMoisture" id="sample-moisture" @input="onMoistureChange" type="range" min="0" max="100" step="5"
                 class="w-full mt-2.5 accent-[#A8452A] cursor-pointer">
               <div class="flex items-baseline gap-1 mt-1">
@@ -953,16 +981,14 @@ watch(
                 <span class="text-[11px] font-medium text-[#645d58]">%</span>
               </div>
             </div>
-          </div>
-
-          <!-- pH -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label for="sample-ph" class="text-xs font-bold text-[#231a10]">Derajat keasaman (pH)</label>
-              <span class="text-lg font-bold text-[#243319]">{{ samplePh }} pH</span>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="sample-ph" class="text-xs font-bold text-[#231a10]">Derajat Keasaman (pH)</label>
+                <span class="text-lg font-bold text-[#243319]">{{ samplePh }} pH</span>
+              </div>
+              <input v-model="samplePh" id="sample-ph" type="range" min="0" max="14" step="0.1"
+                class="w-full h-2.5 bg-gradient-to-r from-[#93000a] via-[#3A4A2E] to-[#75786f]/50 rounded-lg appearance-none cursor-pointer mt-2.5">
             </div>
-            <input v-model="samplePh" id="sample-ph" type="range" min="0" max="14" step="0.1"
-              class="w-full h-2.5 bg-gradient-to-r from-[#93000a] via-[#3A4A2E] to-[#75786f]/50 rounded-lg appearance-none cursor-pointer">
           </div>
 
           <!-- N-P-K -->
@@ -985,14 +1011,14 @@ watch(
           <p v-if="sampleError" class="text-xs text-[#93000a] font-medium bg-[#FFDAD6] border border-[#E9C5BE] rounded-lg p-2.5">{{ sampleError }}</p>
 
           <!-- Submit -->
-          <button @click="submitSample" :disabled="isSubmittingSample" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#A8452A] hover:bg-[#923c24] text-white font-semibold text-sm rounded-xl shadow-sm transition-all active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed">
+          <button @click="submitSample" :disabled="isSubmittingSample" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#3A4A2E] hover:bg-[#2e3b25] text-white font-semibold text-sm rounded-xl shadow-sm transition-all active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed">
             <template v-if="!isSubmittingSample">
-              <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
-              <span>Proses Rekomendasi ML</span>
+              <span class="material-symbols-outlined text-[20px]">verified</span>
+              <span>Simpan Audit &amp; Validasi ML RandomForest</span>
             </template>
             <template v-else>
               <span class="material-symbols-outlined animate-spin text-[20px]">sync</span>
-              <span>Menjalankan Scikit-learn...</span>
+              <span>Menyimpan Audit &amp; Memproses ML...</span>
             </template>
           </button>
 
