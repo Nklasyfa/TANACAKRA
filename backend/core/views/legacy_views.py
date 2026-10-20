@@ -766,4 +766,28 @@ def generate_ai_warta_api(request):
         logger.exception("LLM generation error")
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def chatbot_ask_api(request):
+    prompt = request.data.get('prompt')
+    messages = request.data.get('messages', [])
+    if not prompt and not messages:
+        return Response({"error": "Prompt atau messages wajib diisi"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    if not messages and prompt:
+        messages = [{"role": "user", "content": prompt}]
+        
+    try:
+        from ..services.llm_engine import generate_ai_chat_response
+        reply = generate_ai_chat_response(messages)
+        return Response({
+            "reply": reply,
+            "source": "NVIDIA NIM (meta/llama-3.2-11b-vision-instruct)",
+            "model": "meta/llama-3.2-11b-vision-instruct"
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.exception("NVIDIA Chatbot error")
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 

@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import axios from 'axios'
 import { api } from './api'
 
 export interface ChatMessage {
@@ -7,10 +8,14 @@ export interface ChatMessage {
   text: string
   timestamp: string
   category?: 'hama' | 'pupuk' | 'cuaca' | 'pasar' | 'agronomi'
+  model?: string
   suggestions?: string[]
 }
 
 const CHAT_STORAGE_KEY = 'tanacakra_chat_history'
+
+const NVIDIA_API_KEY = import.meta.env.VITE_NVIDIA_API_KEY || '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'
+const NVIDIA_MODEL = import.meta.env.VITE_NVIDIA_MODEL || 'meta/llama-3.2-11b-vision-instruct'
 
 // Curated conversational intents (greetings, identity, thanks, assistance)
 const CONVERSATIONAL_INTENTS = [
@@ -196,6 +201,112 @@ export function clearChatHistory() {
   saveChatHistory()
 }
 
+/**
+ * Panggilan ke NVIDIA NIM AI (meta/llama-3.2-11b-vision-instruct)
+ * Menggunakan API Key resmi yang terdaftar di konfigurasi.
+ * Urutan evaluasi:
+ * 1. Backend Django API (/api/v1/chatbot/ask)
+ * 2. Vite / Vercel Proxy (/api-nvidia/v1/chat/completions)
+ * 3. Direct NVIDIA API (https://integrate.api.nvidia.com/v1/chat/completions)
+ */
+async function callNvidiaLLM(userPrompt: string, history: ChatMessage[]): Promise<{ text: string; model: string } | null> {
+  const systemPrompt = `Anda adalah CakraBot (Cakra AI), asisten kecerdasan buatan resmi agronomi presisi TANACAKRA untuk para petani dan penyuluh di lereng Gunung Merapi (Kapanewon Cangkringan, Kabupaten Sleman, D.I. Yogyakarta).
+
+Karakter & Pedoman:
+1. Bersikap ramah, santun, menghargai petani (gunakan sapaan hangat seperti "Bapak/Ibu Petani" atau "Sobat Tani").
+2. Berikan jawaban yang praktis, aplikatif di lapangan, mudah dipahami, dan akurat secara agronomi.
+3. Selalu perhatikan kondisi lokal Cangkringan: tanah regosol vulkanik Merapi yang berpasir dan cepat meloloskan air (butuh pupuk organik/bokashi, pH agak asam lereng Merapi butuh dolomit), elevasi 400-900 mdpl, hawa sejuk lembap, komoditas utama (Cabai Merah, Padi, Jagung, Tomat, Bawang Merah, Salak Pondoh).
+4. Jika pengguna hanya menyapa (seperti 'hai', 'halo', 'assalamualaikum', 'selamat pagi/siang'), balas sapaannya secara ramah dan hangat, tanyakan kendala atau apa yang bisa dibantu tentang tanaman dan petak lahannya hari ini.
+5. Jawab dalam Bahasa Indonesia yang alami, rapi, dan terstruktur (gunakan bullet points jika menjelaskan instruksi).`
+
+  const formattedMessages: { role: string; content: string }[] = [
+    { role: 'system', content: systemPrompt }
+  ]
+
+  // Add recent context (last 4 turns)
+  const contextHistory = history.slice(-4)
+  for (const m of contextHistory) {
+    if (m.text) {
+      formattedMessages.push({
+        role: m.role,
+        content: m.text
+      })
+    }
+  }
+  formattedMessages.push({ role: 'user', content: userPrompt })
+
+  const payload = {
+    model: NVIDIA_MODEL,
+    messages: formattedMessages,
+    temperature: 0.7,
+    max_tokens: 650
+  }
+
+  // 1. Coba melalui Backend Django
+  if (navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
+    try {
+      const res = await api.post('/chatbot/ask', {
+        prompt: userPrompt,
+        messages: formattedMessages.slice(1)
+      }, { timeout: 9000 })
+      if (res.data && res.data.reply) {
+        return {
+          text: res.data.reply.trim(),
+          model: res.data.model || 'NVIDIA Llama 3.2'
+        }
+      }
+    } catch {
+      // Backend offline, lanjutkan ke proxy
+    }
+  }
+
+  // 2. Coba melalui Vite / Vercel Proxy (/api-nvidia)
+  if (NVIDIA_API_KEY && navigator.onLine) {
+    try {
+      const res = await axios.post('/api-nvidia/v1/chat/completions', payload, {
+        headers: {
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 12000
+      })
+      const reply = res.data?.choices?.[0]?.message?.content
+      if (reply) {
+        return {
+          text: reply.trim(),
+          model: 'NVIDIA Llama 3.2'
+        }
+      }
+    } catch {
+      // Proxy tidak tersedia, coba direct
+    }
+  }
+
+  // 3. Coba direct NVIDIA integrate endpoint
+  if (NVIDIA_API_KEY && navigator.onLine) {
+    try {
+      const res = await axios.post('https://integrate.api.nvidia.com/v1/chat/completions', payload, {
+        headers: {
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 12000
+      })
+      const reply = res.data?.choices?.[0]?.message?.content
+      if (reply) {
+        return {
+          text: reply.trim(),
+          model: 'NVIDIA Llama 3.2'
+        }
+      }
+    } catch {
+      // Direct call failed (misal CORS atau offline)
+    }
+  }
+
+  return null
+}
+
 export async function sendChatMessage(userText: string): Promise<void> {
   const clean = userText.trim()
   if (!clean) return
@@ -213,66 +324,88 @@ export async function sendChatMessage(userText: string): Promise<void> {
 
   try {
     let answerText = ''
+    let answerModel = 'NVIDIA Llama 3.2'
     let answerCategory: ChatMessage['category'] = 'agronomi'
     let answerSuggestions: string[] | undefined = undefined
 
-    // 1. Check conversational intents first (greetings, thanks, identity, small talk)
-    const lower = clean.toLowerCase()
-    const convIntent = CONVERSATIONAL_INTENTS.find(ci => ci.matches(lower))
-    if (convIntent) {
-      await new Promise(r => setTimeout(r, 450))
-      answerText = convIntent.response
-      answerCategory = 'agronomi'
-      answerSuggestions = convIntent.suggestions
+    // 1. Prioritas Utama: Jalankan inferensi langsung ke NVIDIA AI NIM (Llama 3.2)
+    const nvidiaRes = await callNvidiaLLM(clean, chatMessages.value.slice(0, -1))
+    if (nvidiaRes && nvidiaRes.text) {
+      answerText = nvidiaRes.text
+      answerModel = nvidiaRes.model
+
+      const lower = clean.toLowerCase()
+      if (/hai|halo|pagi|siang|sore|assalamu/i.test(lower)) {
+        answerSuggestions = [
+          'Berapa dosis pupuk NPK untuk padi?',
+          'Cara mengatasi patek (antraknosa) cabai?',
+          'Cara menaikkan pH tanah masam dengan dolomit?',
+          'Prakiraan cuaca & musim tanam Cangkringan'
+        ]
+      } else if (/pupuk|urea|npk|dosis|hara/i.test(lower)) {
+        answerCategory = 'pupuk'
+        answerSuggestions = [
+          'Waktu pemupukan susulan pertama & kedua',
+          'Dosis kapur dolomit untuk tanah masam',
+          'Cara aplikasi pupuk organik bokashi'
+        ]
+      } else if (/hama|patek|ulat|wereng|penyakit|jamur/i.test(lower)) {
+        answerCategory = 'hama'
+        answerSuggestions = [
+          'Pengendalian antraknosa saat musim hujan',
+          'Pencegahan layu fusarium pada cabai',
+          'Dosis semprot fungisida Mankozeb'
+        ]
+      } else if (/cuaca|hujan|iklim|angin/i.test(lower)) {
+        answerCategory = 'cuaca'
+        answerSuggestions = [
+          'Buka Analisis Iklim 12 Bulan',
+          'Pengaruh curah hujan terhadap hasil panen',
+          'Manajemen saluran drainase guludan'
+        ]
+      }
     }
 
-    // 2. Check agronomic knowledge base
+    // 2. Cadangan Offline: Conversational Intents
     if (!answerText) {
+      const lower = clean.toLowerCase()
+      const convIntent = CONVERSATIONAL_INTENTS.find(ci => ci.matches(lower))
+      if (convIntent) {
+        answerText = convIntent.response
+        answerCategory = 'agronomi'
+        answerModel = 'Cakra AI (Lokal)'
+        answerSuggestions = convIntent.suggestions
+      }
+    }
+
+    // 3. Cadangan Offline: Basis Pengetahuan Agronomi
+    if (!answerText) {
+      const lower = clean.toLowerCase()
       const agronomicMatch = AGRONOMIC_KNOWLEDGE.find(item =>
         item.keywords.some(k => lower.includes(k))
       )
       if (agronomicMatch) {
-        await new Promise(r => setTimeout(r, 600))
         answerText = agronomicMatch.response
         answerCategory = agronomicMatch.category
+        answerModel = 'Cakra AI (Lokal)'
         answerSuggestions = agronomicMatch.suggestions
       }
     }
 
-    // 3. Fallback to backend AI endpoint if available and online
-    if (!answerText && navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
-      try {
-        const res = await api.post('/kabar-tani/generate', {
-          prompt: `Pertanyaan agronomi petani Cangkringan lereng Merapi: "${clean}". Berikan solusi praktis, ramah, dan ilmiah dalam bahasa Indonesia singkat padat.`
-        }, { timeout: 6000 })
-
-        if (res.data && res.data.summary) {
-          answerText = `${res.data.summary}\n\n**Rekomendasi Agronomi:**\n${Object.entries(res.data.metrics || {}).map(([k, v]) => `• **${k}**: ${v}`).join('\n')}`
-          answerCategory = res.data.category || 'agronomi'
-          answerSuggestions = ['Kebutuhan dosis pupuk hara', 'Prakiraan cuaca tanam', 'Cek riwayat data lahan']
-        }
-      } catch {
-        // Fallback to contextual agricultural response
-      }
-    }
-
-    // 4. Contextual smart fallback if no direct keyword matched
+    // 4. Cadangan Terakhir jika luring dan tidak cocok kata kunci
     if (!answerText) {
-      await new Promise(r => setTimeout(r, 550))
-      answerText = `Terima kasih atas pertanyaannya mengenai topik tersebut.
+      answerText = `Terima kasih atas pertanyaan Anda seputar pertanian di wilayah lereng Merapi Cangkringan.
 
-Untuk pengelolaan pertanian di wilayah Kalurahan Cangkringan (lereng Merapi):
-1. **Analisis Kondisi Lahan**: Pastikan drainase guludan lancar dan kadar air tanah terjaga di kisaran 50–70%.
-2. **Keseimbangan pH**: Untuk tanah abu vulkanik regosol, pertahankan pH ideal di angka **6.0 – 7.0** agar penyerapan hara N-P-K optimal.
-3. **Konsultasi Petugas**: Anda juga dapat berkonsultasi langsung dengan petugas Penyuluh Pertanian Lapang (PPL) di Kantor BPP Kapanewon Cangkringan.
-
-Silakan pilih topik panduan praktis berikut:`
+Untuk kondisi tanah vulkanik regosol di Cangkringan:
+1. **Struktur Tanah**: Bertekstur pasiran dengan drainase cepat, sangat memerlukan penambahan bahan organik atau pupuk kandang matang.
+2. **Keseimbangan pH**: Rentang optimal berada pada angka 6.0 – 6.8 agar penyerapan hara N-P-K berlangsung optimal.
+3. **Penyuluhan Lapangan**: Anda dapat berdiskusi dengan petugas PPL di Balai Penyuluhan Pertanian (BPP) Kapanewon Cangkringan.`
       answerCategory = 'agronomi'
+      answerModel = 'Cakra AI (Lokal)'
       answerSuggestions = [
         'Berapa dosis pupuk NPK untuk padi?',
         'Cara mengatasi patek (antraknosa) cabai?',
-        'Pengaruh curah hujan terhadap hasil panen',
-        'Cara menaikkan pH tanah masam'
+        'Cara menaikkan pH tanah masam dengan dolomit?'
       ]
     }
 
@@ -282,6 +415,7 @@ Silakan pilih topik panduan praktis berikut:`
       text: answerText,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       category: answerCategory,
+      model: answerModel,
       suggestions: answerSuggestions
     }
 
@@ -291,3 +425,4 @@ Silakan pilih topik panduan praktis berikut:`
     isAiThinking.value = false
   }
 }
+
