@@ -136,17 +136,19 @@ const selectedCommodityKpis = computed(() => {
     const priceRange = `Rp ${Math.round(projPrice * 0.95).toLocaleString('id-ID')} - Rp ${Math.round(projPrice * 1.05).toLocaleString('id-ID')}`
 
     const commodityVolMap: Record<string, number> = {
-      'Cabai Merah': 85,
-      'Salak Pondoh': 140,
-      'Padi': 190,
-      'Jagung': 110,
-      'Bawang Merah': 65,
-      'Kacang Tanah': 45,
-      'Tomat': 55
+      'Cabai Merah': 65,
+      'Salak Pondoh': 135,
+      'Padi': 185,
+      'Jagung': 95,
+      'Bawang Merah': 55,
+      'Kacang Tanah': 38,
+      'Tomat': 45
     }
-    const baseVol = commodityVolMap[key] || 75
-    const currentVol = baseVol
-    const projVol = Math.round(baseVol * 1.15)
+    const currentVol = Math.round(Number(volTrends[histCount - 1]?.[key]) || commodityVolMap[key] || 75)
+    const prevVol = Math.round(Number(volTrends[histCount - 2]?.[key]) || currentVol)
+    const volChange = prevVol ? (((currentVol - prevVol) / prevVol) * 100).toFixed(1) : '0.0'
+    const isVolUp = parseFloat(volChange) >= 0
+    const projVol = Math.round(Number(volTrends[total - 1]?.[key]) || Math.round(currentVol * 1.08))
     const volDiffNum = projVol - currentVol
 
     return {
@@ -157,10 +159,10 @@ const selectedCommodityKpis = computed(() => {
       projPriceDiff,
       priceRange,
       currentVol,
-      volChangePct: '+5.5%',
-      isVolUp: true,
+      volChangePct: `${isVolUp ? '+' : ''}${volChange}%`,
+      isVolUp,
       projVol,
-      projVolDiff: `+${volDiffNum} Ton`
+      projVolDiff: `${volDiffNum >= 0 ? '+' : ''}${Math.abs(volDiffNum)} Ton`
     }
   }
 })
