@@ -202,7 +202,84 @@ const fetchLogs = async () => {
     }
 
     try {
-      registeredUsers.value = await AdminService.getUsers()
+      const usersFromApi = await AdminService.getUsers()
+      const userMap = new Map<string, any>()
+
+      // 1. Add users from API / defaultUsers
+      if (Array.isArray(usersFromApi)) {
+        usersFromApi.forEach((u: any) => {
+          const key = (u.email || u.username || String(u.id)).toLowerCase().trim()
+          if (key) userMap.set(key, { ...u })
+        })
+      }
+
+      // 2. Discover users dynamically from audit logs
+      auditLogs.value.forEach((log: RichLogItem) => {
+        const uName = (log.userName || '').trim()
+        if (!uName || uName.toLowerCase().includes('pos pantau') || uName.toLowerCase().includes('bmkg') || uName.toLowerCase().includes('sensor')) {
+          return
+        }
+
+        // Try to extract email or role from userRole (e.g., "Petani (mardianto.tani@cangkringan.desa.id)")
+        let extractedEmail = (log as any).userEmail || ''
+        let extractedRole: 'ADMIN' | 'PETANI' | 'PENYULUH' = 'PETANI'
+        const roleStr = (log.userRole || '').trim()
+
+        if (roleStr.toLowerCase().includes('admin')) extractedRole = 'ADMIN'
+        else if (roleStr.toLowerCase().includes('penyuluh')) extractedRole = 'PENYULUH'
+
+        const emailMatch = roleStr.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)
+        if (emailMatch) {
+          extractedEmail = emailMatch[0]
+        }
+
+        const normKey = (extractedEmail || uName).toLowerCase().trim()
+        if (!userMap.has(normKey)) {
+          // Check if clean username matches an existing entry
+          const cleanUName = uName.replace(/\s*\([^)]*\)/g, '').toLowerCase().trim()
+          let alreadyExists = false
+          for (const existing of userMap.values()) {
+            const exName = (existing.username || '').replace(/\s*\([^)]*\)/g, '').toLowerCase().trim()
+            const exEmail = (existing.email || '').toLowerCase().trim()
+            if (exName === cleanUName || (extractedEmail && exEmail === extractedEmail.toLowerCase())) {
+              alreadyExists = true
+              break
+            }
+          }
+
+          if (!alreadyExists) {
+            userMap.set(normKey, {
+              id: log.userId || log.id || Math.abs(uName.split('').reduce((acc, c) => ((acc << 5) - acc) + c.charCodeAt(0), 0)),
+              username: uName,
+              email: extractedEmail || `${cleanUName.replace(/\s+/g, '.')}@tanacakra.id`,
+              role: extractedRole
+            })
+          }
+        }
+      })
+
+      // 3. Include current active user from localStorage if not present
+      try {
+        const rawCurrent = localStorage.getItem('tanacakra_user')
+        if (rawCurrent) {
+          const cu = JSON.parse(rawCurrent)
+          if (cu && (cu.username || cu.email)) {
+            const key = (cu.email || cu.username).toLowerCase().trim()
+            if (!userMap.has(key)) {
+              userMap.set(key, {
+                id: cu.id || Date.now(),
+                username: cu.username,
+                email: cu.email || `${cu.username}@tanacakra.id`,
+                role: cu.role || 'PETANI'
+              })
+            }
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+
+      registeredUsers.value = Array.from(userMap.values())
     } catch {
       registeredUsers.value = []
     }

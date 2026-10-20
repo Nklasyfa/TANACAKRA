@@ -8,7 +8,7 @@
       "destination": "https://integrate.api.nvidia.com/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

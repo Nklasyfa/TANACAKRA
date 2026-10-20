@@ -13,6 +13,8 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
+import CuacaKorelasiModal from '@/components/petani/CuacaKorelasiModal.vue'
+import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
 
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
@@ -134,17 +136,19 @@ const selectedCommodityKpis = computed(() => {
     const priceRange = `Rp ${Math.round(projPrice * 0.95).toLocaleString('id-ID')} - Rp ${Math.round(projPrice * 1.05).toLocaleString('id-ID')}`
 
     const commodityVolMap: Record<string, number> = {
-      'Cabai Merah': 85,
-      'Salak Pondoh': 140,
-      'Padi': 190,
-      'Jagung': 110,
-      'Bawang Merah': 65,
-      'Kacang Tanah': 45,
-      'Tomat': 55
+      'Cabai Merah': 65,
+      'Salak Pondoh': 135,
+      'Padi': 185,
+      'Jagung': 95,
+      'Bawang Merah': 55,
+      'Kacang Tanah': 38,
+      'Tomat': 45
     }
-    const baseVol = commodityVolMap[key] || 75
-    const currentVol = baseVol
-    const projVol = Math.round(baseVol * 1.15)
+    const currentVol = Math.round(Number(volTrends[histCount - 1]?.[key]) || commodityVolMap[key] || 75)
+    const prevVol = Math.round(Number(volTrends[histCount - 2]?.[key]) || currentVol)
+    const volChange = prevVol ? (((currentVol - prevVol) / prevVol) * 100).toFixed(1) : '0.0'
+    const isVolUp = parseFloat(volChange) >= 0
+    const projVol = Math.round(Number(volTrends[total - 1]?.[key]) || Math.round(currentVol * 1.08))
     const volDiffNum = projVol - currentVol
 
     return {
@@ -155,10 +159,10 @@ const selectedCommodityKpis = computed(() => {
       projPriceDiff,
       priceRange,
       currentVol,
-      volChangePct: '+5.5%',
-      isVolUp: true,
+      volChangePct: `${isVolUp ? '+' : ''}${volChange}%`,
+      isVolUp,
       projVol,
-      projVolDiff: `+${volDiffNum} Ton`
+      projVolDiff: `${volDiffNum >= 0 ? '+' : ''}${Math.abs(volDiffNum)} Ton`
     }
   }
 })
@@ -297,6 +301,84 @@ const todayLabel = new Date().toLocaleDateString('id-ID', {
 
 // Activity logs fetched from backend
 const activityLogs = ref<any[]>([])
+
+// ==========================================
+// MODAL STATE: Cuaca & PDF Laporan
+// ==========================================
+const isCuacaModalOpen = ref(false)
+const isPdfModalOpen = ref(false)
+const selectedPdfLahan = ref<any>(null)
+
+const openDashboardPdf = (lahan?: any) => {
+  if (lahan) {
+    selectedPdfLahan.value = lahan
+  } else if (lahanList.value && lahanList.value.length > 0) {
+    selectedPdfLahan.value = lahanList.value[0]
+  } else {
+    selectedPdfLahan.value = {
+      id: 1,
+      input_parameters: {
+        farm_id: 'CGK001',
+        desa: 'Wukirsari',
+        area_ha: 1.2,
+        soil_ph: 6.5,
+        soil_type: 'Regosol Vulkanik',
+        elevation_m: 620,
+        komoditas: 'Cabai Merah'
+      }
+    }
+  }
+  isPdfModalOpen.value = true
+}
+
+// ==========================================
+// PAGINATION STATE: Aktivitas (Foto 2) & Pengguna
+// ==========================================
+const currentLogPage = ref(1)
+const logPageSize = ref(7)
+const totalLogPages = computed(() => Math.max(1, Math.ceil(activityLogs.value.length / logPageSize.value)))
+const paginatedActivityLogs = computed(() => {
+  const start = (currentLogPage.value - 1) * logPageSize.value
+  return activityLogs.value.slice(start, start + logPageSize.value)
+})
+const logPageNumbers = computed(() => {
+  const total = totalLogPages.value
+  const cur = currentLogPage.value
+  const pages: (number | '...')[] = []
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (cur > 3) pages.push('...')
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i)
+    if (cur < total - 2) pages.push('...')
+    pages.push(total)
+  }
+  return pages
+})
+
+const currentUserPage = ref(1)
+const userPageSize = ref(7)
+const totalUserPages = computed(() => Math.max(1, Math.ceil(usersList.value.length / userPageSize.value)))
+const paginatedUsersList = computed(() => {
+  const start = (currentUserPage.value - 1) * userPageSize.value
+  return usersList.value.slice(start, start + userPageSize.value)
+})
+const userPageNumbers = computed(() => {
+  const total = totalUserPages.value
+  const cur = currentUserPage.value
+  const pages: (number | '...')[] = []
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+  } else {
+    pages.push(1)
+    if (cur > 3) pages.push('...')
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i)
+    if (cur < total - 2) pages.push('...')
+    pages.push(total)
+  }
+  return pages
+})
 
 const initMap = () => {
   if (map.value) return
@@ -592,6 +674,14 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button @click="isCuacaModalOpen = true" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#243319] hover:bg-[#3D562B] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[16px] text-[#d5e9c3]">cloud</span>
+            <span>Fitur Cuaca &amp; Iklim</span>
+          </button>
+          <button @click="openDashboardPdf()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+            <span>Cetak Rekomendasi PDF</span>
+          </button>
           <div class="flex items-center gap-2 font-mono text-[12px] text-[#645d58] bg-white px-3.5 py-2 rounded-xl border border-[#E5E0D8] shadow-sm">
             <span class="material-symbols-outlined text-[16px] text-[#243319]">schedule</span>
             <span>{{ todayLabel }}</span>
@@ -611,9 +701,15 @@ onMounted(() => {
             <span class="material-symbols-outlined text-[20px] text-[#243319]">cloudy_snowing</span>
             <span class="text-sm font-bold text-[#243319] tracking-wide">Cuaca &amp; Kondisi Udara</span>
           </div>
-          <span class="text-[11px] text-[#7E7063] font-mono uppercase tracking-wider">
-            Sumber: {{ cuacaReal?.sumber || 'BMKG' }} · {{ cuacaReal?.lokasi || 'Pos Pengamatan Kaliurang' }}
-          </span>
+          <div class="flex items-center gap-2.5">
+            <span class="text-[11px] text-[#7E7063] font-mono uppercase tracking-wider">
+              Sumber: {{ cuacaReal?.sumber || 'BMKG' }} · {{ cuacaReal?.lokasi || 'Pos Pengamatan Kaliurang' }}
+            </span>
+            <button @click="isCuacaModalOpen = true" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-[#243319] hover:bg-[#3D562B] text-white rounded-lg transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[15px] text-[#d5e9c3]">show_chart</span>
+              <span>Buka Analisis Iklim</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -949,9 +1045,21 @@ onMounted(() => {
               Curah hujan diprediksi stabil pada Triwulan IV 2026. Berpotensi menguntungkan pertumbuhan panen musim kedua namun berisiko pada kelembapan pengeringan pascapanen.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-[#d5e9c3]/20 flex items-center justify-between text-xs">
-            <span class="text-[#d5e9c3]">Indeks Kelembaban Tanah:</span>
-            <span class="font-bold text-emerald-400">Optimum (78%)</span>
+          <div class="mt-4 pt-3 border-t border-[#d5e9c3]/20 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#d5e9c3]">Indeks Kelembaban Tanah:</span>
+              <span class="font-bold text-emerald-400">Optimum (78%)</span>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <button @click="isCuacaModalOpen = true" class="flex-1 py-2 px-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#d5e9c3] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[15px]">thermostat</span>
+                <span>Analisis Cuaca</span>
+              </button>
+              <button @click="openDashboardPdf()" class="flex-1 py-2 px-2.5 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm">
+                <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                <span>Cetak Lembar PDF</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1227,7 +1335,7 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#E5E0D8]/60 text-xs font-medium text-[#231a10]">
-              <tr v-for="(log, idx) in activityLogs" :key="'log-' + idx" class="hover:bg-[#FFF8F4] transition-colors">
+              <tr v-for="(log, idx) in paginatedActivityLogs" :key="'log-' + idx" class="hover:bg-[#FFF8F4] transition-colors">
                 <td class="py-3.5 px-4 font-mono text-[12px] text-[#7E7063] whitespace-nowrap">{{ log.timestamp ? new Date(log.timestamp).toLocaleString('id-ID') : log.time }}</td>
                 <td class="py-3.5 px-4 font-semibold text-[#231a10]">{{ log.action || log.title }}</td>
                 <td class="py-3.5 px-4 text-[#645d58]">{{ log.user?.username || log.operator || 'Sistem' }}</td>
@@ -1240,6 +1348,31 @@ onMounted(() => {
               </tr>
             </tbody>
           </table>
+
+          <!-- Pagination Bar Log Aktivitas (Sesuai Foto 2 & Lahan/Sensor 1,2,3...) -->
+          <div v-if="totalLogPages > 1" class="flex items-center justify-between px-4 py-3 bg-[#F9F7F4] border-t border-[#E5E0D8] rounded-b-xl mt-1">
+            <span class="text-xs text-[#645d58]">
+              Halaman {{ currentLogPage }} dari {{ totalLogPages }} &bull; {{ activityLogs.length }} aktivitas tercatat
+            </span>
+            <div class="flex items-center gap-1">
+              <button @click="currentLogPage = Math.max(1, currentLogPage - 1)" :disabled="currentLogPage === 1"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              <template v-for="(page, i) in logPageNumbers" :key="i">
+                <span v-if="page === '...'" class="w-8 h-8 flex items-center justify-center text-xs text-[#645d58]">…</span>
+                <button v-else @click="currentLogPage = page as number"
+                  :class="currentLogPage === page ? 'bg-[#A8452A] text-white border-[#A8452A]' : 'bg-white text-[#231a10] border-[#E2D8C7] hover:bg-[#FDEBDB]'"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-semibold transition-colors">
+                  {{ page }}
+                </button>
+              </template>
+              <button @click="currentLogPage = Math.min(totalLogPages, currentLogPage + 1)" :disabled="currentLogPage === totalLogPages"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- TAB 2: Pengguna Terdaftar Table -->
@@ -1254,7 +1387,7 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#E5E0D8]/60 text-xs font-medium text-[#231a10]">
-              <tr v-for="user in usersList" :key="'user-' + user.id" class="hover:bg-[#FFF8F4] transition-colors">
+              <tr v-for="user in paginatedUsersList" :key="'user-' + user.id" class="hover:bg-[#FFF8F4] transition-colors">
                 <td class="py-3.5 px-4 font-bold text-[#231a10] flex items-center gap-3">
                   <div class="w-8 h-8 rounded-full bg-[#243319] text-white flex items-center justify-center font-bold text-xs uppercase shadow-2xs">
                     {{ user.username ? user.username.charAt(0) : 'U' }}
@@ -1289,6 +1422,31 @@ onMounted(() => {
               </tr>
             </tbody>
           </table>
+
+          <!-- Pagination Bar Pengguna Terdaftar -->
+          <div v-if="totalUserPages > 1" class="flex items-center justify-between px-4 py-3 bg-[#F9F7F4] border-t border-[#E5E0D8] rounded-b-xl mt-1">
+            <span class="text-xs text-[#645d58]">
+              Halaman {{ currentUserPage }} dari {{ totalUserPages }} &bull; {{ usersList.length }} pengguna terdaftar
+            </span>
+            <div class="flex items-center gap-1">
+              <button @click="currentUserPage = Math.max(1, currentUserPage - 1)" :disabled="currentUserPage === 1"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+              </button>
+              <template v-for="(page, i) in userPageNumbers" :key="i">
+                <span v-if="page === '...'" class="w-8 h-8 flex items-center justify-center text-xs text-[#645d58]">…</span>
+                <button v-else @click="currentUserPage = page as number"
+                  :class="currentUserPage === page ? 'bg-[#A8452A] text-white border-[#A8452A]' : 'bg-white text-[#231a10] border-[#E2D8C7] hover:bg-[#FDEBDB]'"
+                  class="w-8 h-8 flex items-center justify-center rounded-lg border text-xs font-semibold transition-colors">
+                  {{ page }}
+                </button>
+              </template>
+              <button @click="currentUserPage = Math.min(totalUserPages, currentUserPage + 1)" :disabled="currentUserPage === totalUserPages"
+                class="w-8 h-8 flex items-center justify-center rounded-lg border border-[#E2D8C7] text-[#645d58] hover:bg-[#FDEBDB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1365,6 +1523,19 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Cuaca & Korelasi Panen Modal -->
+    <CuacaKorelasiModal
+      :is-open="isCuacaModalOpen"
+      @close="isCuacaModalOpen = false"
+    />
+
+    <!-- PDF Laporan & Rekomendasi Modal -->
+    <LahanPdfModal
+      :is-open="isPdfModalOpen"
+      :lahan="selectedPdfLahan"
+      @close="isPdfModalOpen = false"
+    />
 
   </div>
 </template>
