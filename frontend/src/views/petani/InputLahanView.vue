@@ -5,7 +5,7 @@ import BottomNav from '@/components/petani/BottomNav.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -14,6 +14,31 @@ import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
 import { addNotification } from '@/services/notifications'
 
 import UserDropdown from '@/components/common/UserDropdown.vue'
+import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
+
+const showPdfResultModal = ref(false)
+const submittedLahanForPdf = computed(() => ({
+  id: selectedFarmId.value,
+  input_parameters: {
+    farm_id: selectedFarmId.value,
+    field_name: fieldName.value,
+    desa: searchMapQuery.value.trim() || 'Cangkringan',
+    komoditas: selectedCommodity.value,
+    soil_type: 'Regosol Vulkanik',
+    soil_ph: phValue.value,
+    organic_carbon: 2.1,
+    elevation_m: 600,
+    area_sqm: fieldArea.value,
+    area_ha: +(fieldArea.value / 10000).toFixed(2),
+    irrigation: 'Teknis',
+    latitude: coords.value.lat,
+    longitude: coords.value.lng
+  },
+  prediction: mlResult.value || {},
+  planting_info: {
+    commodity: selectedCommodity.value
+  }
+}))
 
 const router = useRouter()
 const route = useRoute()
@@ -137,6 +162,12 @@ onMounted(() => {
 
   if (route.query.tanam) {
     fieldName.value = `Blok Tanam - ${route.query.tanam}`
+    const tanamStr = String(route.query.tanam).toLowerCase()
+    const valid = ['Cabai Merah', 'Jagung', 'Salak Pondoh', 'Tomat', 'Bawang Merah', 'Padi'] as const
+    const match = valid.find(v => tanamStr.includes(v.toLowerCase()) || v.toLowerCase().includes(tanamStr))
+    if (match) {
+      selectedCommodity.value = match
+    }
   }
 
   fetchFarms()
@@ -1051,6 +1082,14 @@ const resetForm = () => {
             <div class="space-y-2.5 pt-2">
               <button
                 type="button"
+                @click="showPdfResultModal = true"
+                class="w-full h-[48px] bg-[#A8452A] hover:bg-[#8F3A22] text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                <span>Cetak / Unduh Lembar Rekomendasi PDF</span>
+              </button>
+              <button
+                type="button"
                 @click="router.push(role === 'ADMIN' ? '/admin' : '/petani')"
                 class="w-full h-[50px] bg-[#243319] hover:bg-[#3A4A2E] text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition"
               >
@@ -1075,5 +1114,12 @@ const resetForm = () => {
     <!-- Mobile Bottom Nav -->
     <AdminBottomNav v-if="role === 'ADMIN'" />
     <BottomNav v-else />
+
+    <!-- Instant PDF Report Modal -->
+    <LahanPdfModal
+      :is-open="showPdfResultModal"
+      :lahan="submittedLahanForPdf"
+      @close="showPdfResultModal = false"
+    />
   </div>
 </template>

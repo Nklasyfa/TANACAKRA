@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -39,7 +39,6 @@ const initSlots = () => {
 }
 
 // Watch props.isOpen
-import { watch } from 'vue'
 watch(() => props.isOpen, (open) => {
   if (open) initSlots()
 })
@@ -62,8 +61,10 @@ const getPhStatus = (ph: number) => {
 
 const getYield = (l: any) => {
   const p = getPred(l)
-  if (p.estimasi_hasil_panen_ton_ha) return Number(p.estimasi_hasil_panen_ton_ha)
-  return +(5.8 + (Number(getParams(l).soil_ph || 6.2) * 0.4)).toFixed(1)
+  const est = Number(p.estimasi_hasil_panen_ton_ha)
+  if (!isNaN(est) && est > 0) return est
+  const basePh = Number(getParams(l).soil_ph) || 6.2
+  return +(5.8 + (basePh * 0.4)).toFixed(1)
 }
 
 const highestYieldLand = computed(() => {
@@ -150,7 +151,7 @@ const highestYieldLand = computed(() => {
 
         <!-- Scrollable Comparison Matrix -->
         <div class="overflow-y-auto p-4 sm:p-6 flex-1">
-          <div class="grid" :class="comparedLands.length === 3 ? 'grid-cols-3 gap-4' : 'grid-cols-2 gap-6'">
+          <div class="grid grid-cols-1 gap-4 sm:gap-6" :class="comparedLands.length === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'">
             <!-- Columns for each compared land -->
             <div
               v-for="(land, index) in comparedLands"

@@ -7,6 +7,7 @@ import UserDropdown from '@/components/common/UserDropdown.vue'
 import { api, AdminService } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
 import { addNotification } from '@/services/notifications'
+import { supabase } from '@/services/supabase'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
@@ -117,11 +118,26 @@ const runModel = async () => {
 
 
 const pwdNotice = ref(false)
-const changePwd = () => {
+const changePwd = async () => {
+  try {
+    if (adminEmail.value && navigator.onLine) {
+      await supabase.auth.resetPasswordForEmail(adminEmail.value, {
+        redirectTo: window.location.origin + '/login'
+      })
+    }
+  } catch (err: any) {
+    console.warn('Reset password error:', err?.message)
+  }
+  AuditLogger.addLog({
+    title: 'Permintaan reset kata sandi admin',
+    subtitle: `Email tautan pemulihan dikirim ke ${adminEmail.value}`,
+    category: 'auth',
+    endpoint: '/api/v1/auth/reset-password'
+  })
   pwdNotice.value = true
   setTimeout(() => {
     pwdNotice.value = false
-  }, 3000)
+  }, 4000)
 }
 
 const handleLogout = () => {

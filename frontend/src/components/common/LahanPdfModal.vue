@@ -52,10 +52,10 @@ const handlePrint = () => {
   <Teleport to="body">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:fixed print:inset-0"
+      class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:static print:overflow-visible print:block"
     >
       <div
-        class="bg-white text-[#231a10] w-full max-w-4xl rounded-2xl shadow-2xl border border-[#E2D8C7] overflow-hidden flex flex-col my-4 print:my-0 print:border-none print:shadow-none print:max-w-none print:rounded-none"
+        class="bg-white text-[#231a10] w-full max-w-4xl rounded-2xl shadow-2xl border border-[#E2D8C7] overflow-hidden flex flex-col my-4 print:my-0 print:border-none print:shadow-none print:max-w-none print:rounded-none print:overflow-visible print:block"
       >
         <!-- Modal Toolbar (Hidden during print) -->
         <div class="px-6 py-3.5 bg-[#243319] text-[#FFF8F4] flex items-center justify-between border-b border-[#3A4A2E] print:hidden">
@@ -284,6 +284,13 @@ const handlePrint = () => {
 
 <style>
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+  body {
+    background: white !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -296,7 +303,7 @@ const handlePrint = () => {
     top: 0;
     width: 100%;
     margin: 0;
-    padding: 20mm !important;
+    padding: 0 !important;
     background: white !important;
   }
 }
