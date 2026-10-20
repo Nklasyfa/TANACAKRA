@@ -6,6 +6,7 @@ import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import { api, AdminService } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
+import { addNotification } from '@/services/notifications'
 
 const ADMIN_ACCOUNT = { username: 'Super Admin', email: 'admin@cangkringan.desa.id' }
 
@@ -98,6 +99,13 @@ const runModel = async () => {
     subtitle: 'Model: RandomForest · Status: Inferensi Siap · Runtime: 2.2s',
     category: 'ai',
     endpoint: '/api/v1/pipeline/trigger'
+  })
+  addNotification({
+    title: 'Pipeline RandomForest Selesai',
+    message: 'Inferensi model AI Scikit-learn telah dieksekusi dengan metrik MAPE 8,4%. Status: Siap.',
+    category: 'sistem',
+    targetRole: 'ADMIN',
+    link: '/admin/pengaturan'
   })
   modelInfo.value.lastRun = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }) + ' WIB'
   runState.value = 'done'

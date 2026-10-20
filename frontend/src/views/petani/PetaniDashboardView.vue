@@ -11,9 +11,12 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import CuacaKorelasiModal from '@/components/petani/CuacaKorelasiModal.vue'
 
 const router = useRouter()
+const showKorelasiModal = ref(false)
 const map = ref<any>(null)
 const markersGroup = ref<any>(null)
 const lahanList = ref<any[]>([])
@@ -412,11 +415,20 @@ const catatanList = computed(() => {
                 </div>
               </div>
             </div>
-            <div class="pt-3 border-t border-[#F3ECE0] flex items-start gap-2">
-              <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">nature_people</span>
-              <p class="text-xs sm:text-[13px] md:text-[15px] leading-relaxed text-[#4A3F35]">
-                <span class="font-semibold text-[#3A4A2E]">{{ cuacaDisplay.label }}.</span> {{ cuacaDisplay.message }}
-              </p>
+            <div class="pt-3 border-t border-[#F3ECE0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div class="flex items-start gap-2 min-w-0">
+                <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">nature_people</span>
+                <p class="text-xs sm:text-[13px] md:text-[15px] leading-relaxed text-[#4A3F35]">
+                  <span class="font-semibold text-[#3A4A2E]">{{ cuacaDisplay.label }}.</span> {{ cuacaDisplay.message }}
+                </p>
+              </div>
+              <button
+                @click="showKorelasiModal = true"
+                class="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#243319] hover:bg-[#1A2612] text-white text-xs font-semibold shrink-0 transition-colors shadow-2xs cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[15px] text-[#D5E9C3]">insights</span>
+                <span>Korelasi Cuaca &amp; Panen</span>
+              </button>
             </div>
           </template>
         </section>
@@ -578,6 +590,12 @@ const catatanList = computed(() => {
     </main>
 
     <BottomNav />
+
+    <!-- Cuaca & Korelasi Panen Modal -->
+    <CuacaKorelasiModal
+      :is-open="showKorelasiModal"
+      @close="showKorelasiModal = false"
+    />
 
   </div>
 </template>

@@ -1,0 +1,43 @@
+{
+  "name": "TANACAKRA - Agroklimat & Lahan Cangkringan",
+  "short_name": "Tanacakra",
+  "description": "Sistem Presisi Agroklimat & Rekomendasi Lahan Cangkringan Lereng Gunung Merapi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F4",
+  "theme_color": "#243319",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["agriculture", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Input Lahan Baru",
+      "url": "/petani/input",
+      "description": "Formulir analisis ML & telemetri tanah lahan"
+    },
+    {
+      "name": "Prediksi Pasar",
+      "url": "/petani/prediksi-pasar",
+      "description": "Tren komoditas dan peluang harga pasar"
+    },
+    {
+      "name": "Kabar Tani & BMKG",
+      "url": "/petani/kabar-tani",
+      "description": "Peringatan cuaca dan mitigasi hama"
+    }
+  ]
+}

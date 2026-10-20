@@ -12,15 +12,14 @@ export const api = axios.create({
   }
 })
 
-const isOfflineMode = !import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE_URL.includes('127.0.0.1') || import.meta.env.VITE_API_BASE_URL.includes('localhost')
-
-// Attach token if present in localStorage, or reject if offline to prevent console ERR_CONNECTION_REFUSED
+// Attach token if present in localStorage, or bypass if offline
 api.interceptors.request.use((config) => {
-  if (isOfflineMode) {
-    return Promise.reject(new Error('Offline mode: Bypassing backend network request to prevent connection errors.'))
+  const forceOffline = localStorage.getItem('tanacakra_force_offline') === 'true'
+  if (!navigator.onLine || forceOffline) {
+    return Promise.reject(new Error('Offline mode: Bypassing backend network request.'))
   }
   const token = localStorage.getItem('tanacakra_token')
-  if (token) {
+  if (token && token !== 'offline-token') {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
@@ -828,27 +827,7 @@ export const LahanService = {
     }
   },
   async getAllLahan() {
-    try {
-      const res = await api.get('/lahan')
-      const local = getLocalLahan()
-      return applyLocalEdits([...local, ...res.data])
-    } catch {
-      const local = getLocalLahan()
-      const farmCounts: Record<string, number> = {}
-      const sanitizedLocal = local.map((item: any, idx: number) => {
-        const farmId = item.input_parameters?.farm_id || 'CGK001'
-        farmCounts[farmId] = (farmCounts[farmId] || 0) + 1
-        if (farmCounts[farmId] > 1) {
-          const newCode = `CGK${String(idx + 1).padStart(3, '0')}`
-          return {
-            ...item,
-            input_parameters: { ...item.input_parameters, farm_id: newCode }
-          }
-        }
-        return item
-      })
-      return applyLocalEdits([...sanitizedLocal, ...generateFallbackLahan()])
-    }
+    return this.getLahanHistory()
   },
   async updateLahan(farmId: string, params: Record<string, any>) {
     // Simpan override lokal agar edit bertahan (master 108 lahan + entri user)
@@ -872,7 +851,7 @@ export const LahanService = {
     }
 
     try {
-      if (!isOfflineMode) {
+      if (navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
         await api.patch(`/lahan/${farmId}`, { parameters: params })
       }
     } catch { /* offline */ }
@@ -889,7 +868,7 @@ export const LahanService = {
     saveLocalLahan(local)
 
     try {
-      if (!isOfflineMode) {
+      if (navigator.onLine && localStorage.getItem('tanacakra_force_offline') !== 'true') {
         await api.delete(`/lahan/${farmId}`)
       }
     } catch { /* offline */ }
@@ -980,11 +959,18 @@ export const AdminService = {
     return updated
   },
 
-  async toggleUserRole(userId: number): Promise<User[]> {
+  async toggleUserRole(userId: number, specifiedRole?: 'ADMIN' | 'PETANI' | 'PENYULUH'): Promise<User[]> {
     const current = await this.getUsers()
     const updated = current.map(u => {
       if (u.id === userId) {
-        return { ...u, role: (u.role === 'ADMIN' ? 'PETANI' : 'ADMIN') as 'ADMIN' | 'PETANI' }
+        if (specifiedRole) {
+          return { ...u, role: specifiedRole }
+        }
+        let nextRole: 'ADMIN' | 'PETANI' | 'PENYULUH'
+        if (u.role === 'PETANI') nextRole = 'PENYULUH'
+        else if (u.role === 'PENYULUH') nextRole = 'ADMIN'
+        else nextRole = 'PETANI'
+        return { ...u, role: nextRole }
       }
       return u
     })
