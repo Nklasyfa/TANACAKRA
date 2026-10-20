@@ -37,7 +37,20 @@ const handleLogout = async () => {
 
 const goToSettings = () => {
   isOpen.value = false
-  router.push('/profil')
+  let role = 'PETANI'
+  try {
+    const raw = localStorage.getItem('tanacakra_user')
+    if (raw) {
+      const u = JSON.parse(raw)
+      if (u?.role) role = u.role
+    }
+  } catch {}
+
+  if (role === 'ADMIN' || role === 'PENYULUH') {
+    router.push('/admin/pengaturan')
+  } else {
+    router.push('/profil')
+  }
 }
 </script>
 

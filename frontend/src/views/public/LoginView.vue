@@ -37,13 +37,13 @@ const updateOfflineStatus = () => {
 }
 
 const roleToDashboard = (role: string) => {
-  router.push(role === 'ADMIN' ? '/admin' : '/petani')
+  router.push(role === 'ADMIN' || role === 'PENYULUH' ? '/admin' : '/petani')
 }
 
 const finishAuthIfSession = async () => {
   const session = await resolveSession()
   if (session) {
-    roleToDashboard(session.role === 'ADMIN' ? 'ADMIN' : 'PETANI')
+    roleToDashboard(session.role)
   }
 }
 

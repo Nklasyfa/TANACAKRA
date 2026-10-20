@@ -42,15 +42,8 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   if (!url.protocol.startsWith('http')) return
 
-  // For API or dynamic backend calls: Network first with fallback
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co')) {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return new Response(JSON.stringify({ offline: true, error: 'Offline network fallback' }), {
-          headers: { 'Content-Type': 'application/json' }
-        })
-      })
-    )
+  // Bypass API, Supabase, and dynamic external services so client fetch/axios interceptors handle errors natively
+  if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase.co') || url.hostname.includes('openstreetmap.org')) {
     return
   }
 
@@ -58,7 +51,7 @@ self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match('/index.html')
+        return caches.match('/index.html').then((cached) => cached || new Response('Offline', { status: 503 }))
       })
     )
     return
@@ -87,8 +80,8 @@ self.addEventListener('fetch', (event) => {
         })
         return networkResponse
       }).catch(() => {
-        // If offline and image request, return fallback or empty
-        return null
+        // Safe offline response instead of null to prevent ServiceWorker DOMException
+        return new Response('', { status: 408, statusText: 'Asset not available offline' })
       })
     })
   )

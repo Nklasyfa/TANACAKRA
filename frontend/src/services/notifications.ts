@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { showToast } from './toast'
 
 export interface AppNotification {
   id: string
@@ -136,8 +137,6 @@ export const roleFilteredNotifications = computed(() => {
 export const unreadCount = computed(() => {
   return roleFilteredNotifications.value.filter(n => !n.read).length
 })
-
-import { showToast } from './toast'
 
 export function addNotification(notif: {
   title: string

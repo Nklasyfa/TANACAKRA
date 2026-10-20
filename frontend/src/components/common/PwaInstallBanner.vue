@@ -27,7 +27,7 @@ const handleDismiss = () => {
   <Transition name="slide-banner">
     <div
       v-if="canInstall && !isInstalled && !dismissed"
-      class="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-8 z-40 max-w-md bg-[#243319] text-[#FFF8F4] rounded-2xl p-4 shadow-2xl border border-[#3D562B] flex items-center justify-between gap-3.5 backdrop-blur-md"
+      class="fixed bottom-24 md:bottom-6 left-3 right-3 md:left-6 md:right-auto z-40 max-w-sm bg-[#243319] text-[#FFF8F4] rounded-2xl p-3.5 shadow-2xl border border-[#3D562B] flex items-center justify-between gap-3 backdrop-blur-md"
     >
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-10 h-10 rounded-xl bg-[#3D562B] flex items-center justify-center shrink-0 border border-[#52743B]">

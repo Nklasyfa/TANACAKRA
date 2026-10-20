@@ -32,12 +32,20 @@ const handleSend = async (queryText?: string) => {
 }
 
 const formatMessage = (text: string) => {
-  // Convert basic markdown: **bold**, *italic*, \n to <br/>
-  let formatted = text
+  if (!text) return ''
+  // Escape raw HTML entities to prevent XSS
+  const safe = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+
+  // Convert markdown: **bold**, *italic*, \n to <br/>
+  return safe
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br/>')
-  return formatted
 }
 </script>
 
