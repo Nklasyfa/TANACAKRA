@@ -30,16 +30,110 @@ const todayLabel = computed(() => {
 // Tab view: 'logs' | 'users'
 const activeTab = ref<'logs' | 'users'>('logs')
 
+// Helper to resolve user from string/id or object
+const resolveUser = (userKey: string | any, users: any[]) => {
+  if (!userKey || userKey === 'all') return null
+  if (typeof userKey === 'object' && userKey !== null) return userKey
+  const strKey = String(userKey).trim()
+  return users.find(u => 
+    u.username === strKey || 
+    u.email === strKey || 
+    String(u.id) === strKey ||
+    (u.username && strKey.toLowerCase().includes(u.username.toLowerCase())) ||
+    (u.username && u.username.toLowerCase().includes(strKey.toLowerCase()))
+  ) || null
+}
+
+// Robust matcher between log and user
+const isLogMatchingUser = (log: RichLogItem, userKey: string | any, users: any[] = registeredUsers.value): boolean => {
+  if (!userKey || userKey === 'all') return true
+
+  const user = resolveUser(userKey, users)
+
+  const logUser = (log.userName || '').toLowerCase().trim()
+  const logRole = (log.userRole || '').toLowerCase().trim()
+  const logEmail = ((log as any).userEmail || '').toLowerCase().trim()
+  const logPayload = (typeof log.payload === 'string' ? log.payload : JSON.stringify(log.payload || '')).toLowerCase()
+  const logCombined = `${logUser} ${logRole} ${logEmail} ${logPayload}`
+
+  if (user) {
+    const uEmail = (user.email || '').toLowerCase().trim()
+    const uUsername = (user.username || '').toLowerCase().trim()
+    const uRole = (user.role || '').toLowerCase().trim()
+
+    // 1. Direct Email match
+    if (uEmail && logCombined.includes(uEmail)) {
+      return true
+    }
+
+    // 2. Super Admin matching (handles 'Super Admin Cangkringan' vs 'Super Admin', 'admin', etc.)
+    const isTargetAdmin = uRole === 'admin' || uUsername.includes('admin') || uEmail.includes('admin')
+    if (isTargetAdmin) {
+      // Exclude if log belongs to another specific named team member
+      const isOtherNamedMember = (
+        (logUser.includes('tia') || logUser.includes('fitrianingsih')) && !uUsername.includes('tia')
+      ) || (
+        (logUser.includes('nakula') || logUser.includes('syafa')) && !uUsername.includes('nakula')
+      ) || (
+        (logUser.includes('shofie') || logUser.includes('ardhya') || logUser.includes('279')) && !uUsername.includes('shofie')
+      )
+
+      if (!isOtherNamedMember) {
+        if (
+          logUser === 'super admin' ||
+          logUser === 'admin' ||
+          logUser.includes('super admin') ||
+          logUser.includes('cangkringan') ||
+          logRole.includes('admin') ||
+          logRole.includes('cangkringan.desa.id') ||
+          logRole.includes('tanacakra')
+        ) {
+          return true
+        }
+      }
+    }
+
+    // 3. Clean Name comparison (strip parenthesized role tags like (SA/PM), (Data Analyst), (Poktan ...))
+    const cleanUName = uUsername.replace(/\s*\([^)]*\)/g, '').trim()
+    if (cleanUName) {
+      // Direct inclusion in either direction
+      if (logUser.includes(cleanUName) || cleanUName.includes(logUser)) {
+        return true
+      }
+
+      // Meaningful word match (length >= 3, skipping common noise words)
+      const nameWords = cleanUName.split(/\s+/).filter((w: string) => w.length >= 3)
+      for (const word of nameWords) {
+        if (['pak', 'ibu', 'poktan', 'desa', 'admin', 'user'].includes(word)) continue
+        if (logUser.includes(word) || logRole.includes(word) || logCombined.includes(word)) {
+          return true
+        }
+      }
+    }
+
+    // 4. Student NIM / Digits match
+    const nimMatch = uEmail.match(/\d{4,}/) || uUsername.match(/\d{4,}/)
+    if (nimMatch) {
+      const nim = nimMatch[0]
+      if (logCombined.includes(nim)) return true
+    }
+
+    return false
+  }
+
+  // Fallback if userKey is a freeform text not in registeredUsers:
+  const raw = String(userKey).toLowerCase().trim()
+  return logUser.includes(raw) || raw.includes(logUser) || logRole.includes(raw) || raw.includes(logRole)
+}
+
+const getUserActivityCount = (user: any) => {
+  return auditLogs.value.filter(l => isLogMatchingUser(l, user, registeredUsers.value)).length
+}
+
 // Calculate activity per user
 const userActivitySummary = computed(() => {
   return registeredUsers.value.map(user => {
-    const userLogs = auditLogs.value.filter(l => {
-      const uName = (user.username || '').toLowerCase()
-      const uEmail = (user.email || '').toLowerCase()
-      const lUser = (l.userName || '').toLowerCase()
-      const lRole = (l.userRole || '').toLowerCase()
-      return lUser.includes(uName) || lRole.includes(uEmail) || (uName.includes('admin') && lRole.includes('admin'))
-    })
+    const userLogs = auditLogs.value.filter(l => isLogMatchingUser(l, user, registeredUsers.value))
     const lastLog = userLogs[0] || null
     return {
       ...user,
@@ -136,11 +230,7 @@ const filteredLogs = computed(() => {
     }
     // Filter User Selector
     if (selectedUser.value !== 'all') {
-      const selectedLower = selectedUser.value.toLowerCase()
-      const uNameLower = item.userName.toLowerCase()
-      const uRoleLower = item.userRole.toLowerCase()
-
-      if (!uNameLower.includes(selectedLower) && !uRoleLower.includes(selectedLower)) {
+      if (!isLogMatchingUser(item, selectedUser.value, registeredUsers.value)) {
         return false
       }
     }
@@ -397,12 +487,21 @@ const avgLatency = computed(() => {
                 v-model="selectedUser"
                 class="appearance-none bg-[#F9F7F4] text-[#231a10] border border-[#E5E0D8] text-xs font-semibold px-3.5 py-2 pr-9 rounded-lg focus:outline-none cursor-pointer hover:bg-[#F2EBDC] transition-colors"
               >
-                <option value="all">Semua Pengguna ({{ registeredUsers.length || 7 }} Terdaftar)</option>
+                <option value="all">Semua Pengguna ({{ auditLogs.length }} Entri Log)</option>
                 <option v-for="u in registeredUsers" :key="'opt-' + u.id" :value="u.username">
-                  {{ u.username }} ({{ u.email }})
+                  {{ u.username }} ({{ u.email }}) — {{ getUserActivityCount(u) }} log
                 </option>
               </select>
               <span class="material-symbols-outlined text-[18px] text-[#7E7063] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+            </div>
+
+            <!-- Active User Filter Indicator Badge -->
+            <div v-if="selectedUser !== 'all'" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#243319] text-[#D5E9C3] text-xs font-bold shadow-2xs">
+              <span class="material-symbols-outlined text-[15px]">person</span>
+              <span class="max-w-[150px] truncate">{{ selectedUser }}</span>
+              <button @click="selectedUser = 'all'" class="hover:text-white p-0.5 ml-0.5 cursor-pointer" title="Hapus filter pengguna">
+                <span class="material-symbols-outlined text-[14px]">close</span>
+              </button>
             </div>
 
             <button @click="resetFilters" class="text-xs text-[#7E7063] hover:text-[#231a10] font-semibold underline transition-colors cursor-pointer">
@@ -560,7 +659,28 @@ const avgLatency = computed(() => {
 
               <tr v-if="paginatedLogs.length === 0">
                 <td colspan="6" class="p-8 text-center text-[#7E7063]">
-                  Tidak ada log aktivitas yang sesuai dengan filter pencarian.
+                  <div class="flex flex-col items-center justify-center gap-2 max-w-md mx-auto py-6">
+                    <div class="w-12 h-12 rounded-full bg-[#FFF1E6] flex items-center justify-center text-[#A8452A] mb-1">
+                      <span class="material-symbols-outlined text-[26px]">manage_search</span>
+                    </div>
+                    <p class="font-bold text-sm text-[#231a10]">Tidak ada catatan aktivitas yang cocok</p>
+                    <p class="text-xs text-[#7E7063] leading-relaxed text-center">
+                      <span v-if="selectedUser !== 'all'">
+                        Belum ada riwayat aktivitas terekam untuk pengguna <strong>"{{ selectedUser }}"</strong> pada filter saat ini.
+                      </span>
+                      <span v-else>
+                        Tidak ada catatan log aktivitas yang memenuhi kriteria pencarian dan kategori yang dipilih.
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      @click="resetFilters"
+                      class="mt-2 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#243319] hover:bg-[#1b2713] text-[#D5E9C3] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">refresh</span>
+                      <span>Atur Ulang Filter &amp; Tampilkan Semua Log</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
