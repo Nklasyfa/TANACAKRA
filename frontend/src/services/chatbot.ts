@@ -282,28 +282,7 @@ Karakter & Pedoman:
     }
   }
 
-  // 3. Coba direct NVIDIA integrate endpoint
-  if (NVIDIA_API_KEY && navigator.onLine) {
-    try {
-      const res = await axios.post('https://integrate.api.nvidia.com/v1/chat/completions', payload, {
-        headers: {
-          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 12000
-      })
-      const reply = res.data?.choices?.[0]?.message?.content
-      if (reply) {
-        return {
-          text: reply.trim(),
-          model: 'NVIDIA Llama 3.2'
-        }
-      }
-    } catch {
-      // Direct call failed (misal CORS atau offline)
-    }
-  }
-
+  // 3. Jika offline atau proxy/backend gagal, kembalikan null untuk memicu cadangan lokal
   return null
 }
 

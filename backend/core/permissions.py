@@ -11,9 +11,10 @@ class IsAdminOrPenyuluh(permissions.BasePermission):
 
 class IsPetani(permissions.BasePermission):
     """
-    Permission khusus untuk Petani.
+    Permission khusus untuk Petani (Admin/Penyuluh juga dapat mengakses).
     """
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.role == 'PETANI'
+        return request.user.role in ['PETANI', 'ADMIN'] or request.user.is_superuser
+
