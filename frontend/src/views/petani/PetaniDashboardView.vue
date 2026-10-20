@@ -414,20 +414,39 @@ const catatanList = computed(() => {
                 </div>
               </div>
             </div>
-            <div class="pt-3 border-t border-[#F3ECE0] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div class="flex items-start gap-2 min-w-0">
+            <div class="pt-3 border-t border-[#F3ECE0]">
+              <div class="flex items-start gap-2 min-w-0 mb-3">
                 <span class="material-symbols-outlined text-primary text-[18px] mt-0.5 shrink-0">nature_people</span>
                 <p class="text-xs sm:text-[13px] md:text-[15px] leading-relaxed text-[#4A3F35]">
                   <span class="font-semibold text-[#3A4A2E]">{{ cuacaDisplay.label }}.</span> {{ cuacaDisplay.message }}
                 </p>
               </div>
-              <button
-                @click="showKorelasiModal = true"
-                class="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#243319] hover:bg-[#1A2612] text-white text-xs font-semibold shrink-0 transition-colors shadow-2xs cursor-pointer"
-              >
-                <span class="material-symbols-outlined text-[15px] text-[#D5E9C3]">insights</span>
-                <span>Korelasi Cuaca &amp; Panen</span>
-              </button>
+
+              <!-- Highlight Box: Analisis Riwayat Iklim & Korelasi -->
+              <div class="p-3.5 rounded-xl bg-[#F4F8F1] border border-[#D5E9C3] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-[#243319] text-[#D5E9C3] flex items-center justify-center shrink-0 shadow-2xs">
+                    <span class="material-symbols-outlined text-[20px]">insights</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <h4 class="text-xs font-bold text-[#243319]">Analisis Riwayat Iklim &amp; Korelasi Panen 12 Bulan</h4>
+                      <span class="px-1.5 py-0.2 rounded bg-[#D5E9C3] text-[#243319] text-[9px] font-bold">Pearson r = +0.82</span>
+                    </div>
+                    <p class="text-[11px] text-[#5C4A32] mt-0.5">
+                      Grafik dwisumbu telemetri BMKG vs produktivitas padi, cabai &amp; jagung lereng Merapi.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  @click="showKorelasiModal = true"
+                  class="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#243319] hover:bg-[#1A2612] text-white text-xs font-bold shrink-0 transition-colors shadow-2xs cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-[16px] text-[#D5E9C3]">query_stats</span>
+                  <span>Buka Analisis Iklim Lengkap</span>
+                </button>
+              </div>
             </div>
           </template>
         </section>

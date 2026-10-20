@@ -3,10 +3,11 @@ import { ref, onMounted, computed, watch } from 'vue'
 import PetaniSidebar from '@/components/petani/PetaniSidebar.vue'
 import BottomNav from '@/components/petani/BottomNav.vue'
 import { useRouter } from 'vue-router'
-import { LahanService } from '@/services/api'
+import { LahanService, type LandInputPayload } from '@/services/api'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
 import PerbandinganLahanModal from '@/components/common/PerbandinganLahanModal.vue'
+import CuacaKorelasiModal from '@/components/petani/CuacaKorelasiModal.vue'
 
 const router = useRouter()
 
@@ -22,25 +23,37 @@ const openCompare = () => {
   showCompareModal.value = true
 }
 
+const showKorelasiModal = ref(false)
+
 const historyList = ref<any[]>([])
 const isLoading = ref(true)
+const isGeneratingSample = ref(false)
 const selectedDesa = ref('all')
 const searchQuery = ref('')
+const currentUser = ref<any>(null)
 
 const loadHistory = async () => {
   try {
     isLoading.value = true
-    const data = await LahanService.getLahanHistory()
     const userStr = localStorage.getItem('tanacakra_user')
-    let userId = null
     if (userStr) {
-      try { userId = JSON.parse(userStr).id } catch {}
+      try { currentUser.value = JSON.parse(userStr) } catch {}
     }
-    
+
+    const data = await LahanService.getLahanHistory()
     const allData = data || []
-    if (userId) {
-      const userSpecific = allData.filter((item: any) => item.user && String(item.user.id) === String(userId))
-      historyList.value = userSpecific.length > 0 ? userSpecific : allData
+
+    if (currentUser.value && currentUser.value.role !== 'ADMIN') {
+      const u = currentUser.value
+      // Strictly isolate to lands owned by this specific farmer
+      const userSpecific = allData.filter((item: any) => {
+        if (!item.user) return false
+        const idMatch = u.id && String(item.user.id) === String(u.id)
+        const emailMatch = u.email && item.user.email && item.user.email.toLowerCase() === u.email.toLowerCase()
+        const usernameMatch = u.username && item.user.username && item.user.username.toLowerCase() === u.username.toLowerCase()
+        return idMatch || emailMatch || usernameMatch
+      })
+      historyList.value = userSpecific
     } else {
       historyList.value = allData
     }
@@ -48,6 +61,48 @@ const loadHistory = async () => {
     console.error('Gagal mengambil riwayat:', err)
   } finally {
     isLoading.value = false
+  }
+}
+
+const generateSampleLandsForUser = async () => {
+  if (isGeneratingSample.value) return
+  isGeneratingSample.value = true
+  try {
+    const sample1: LandInputPayload = {
+      farm_id: 'CGK-USR1',
+      field_name: 'Blok A - Padi Rojolele',
+      nama_lahan: 'Blok A - Padi Rojolele',
+      desa: 'Wukirsari',
+      komoditas: 'Padi',
+      pH: 6.5,
+      kelembapan: 62,
+      nitrogen: 130,
+      fosfor: 45,
+      kalium: 180,
+      area_ha: 0.85,
+      area_sqm: 8500,
+      soil_type: 'Regosol Vulkanik'
+    }
+    const sample2: LandInputPayload = {
+      farm_id: 'CGK-USR2',
+      field_name: 'Blok B - Cabai Merah Sleman',
+      nama_lahan: 'Blok B - Cabai Merah Sleman',
+      desa: 'Kepuharjo',
+      komoditas: 'Cabai Merah',
+      pH: 5.8,
+      kelembapan: 54,
+      nitrogen: 155,
+      fosfor: 50,
+      kalium: 195,
+      area_ha: 0.6,
+      area_sqm: 6000,
+      soil_type: 'Regosol Vulkanik'
+    }
+    await LahanService.inputLahan('CGK-USR1', sample1)
+    await LahanService.inputLahan('CGK-USR2', sample2)
+    await loadHistory()
+  } finally {
+    isGeneratingSample.value = false
   }
 }
 
@@ -261,7 +316,15 @@ const saveEdit = async () => {
             <h1 class="text-[28px] md:text-[34px] leading-tight font-bold tracking-tight text-[#241F1B]">Riwayat Data Lahan</h1>
             <p class="text-sm md:text-[15px] text-[#6B5B4A]">Semua catatan pengamatan tanah dan riwayat rekomendasi AI petak tani Anda</p>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0">
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              @click="showKorelasiModal = true"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-white border border-[#E2D8C7] hover:border-[#243319] text-[#243319] text-xs sm:text-sm font-semibold transition-all shadow-2xs cursor-pointer"
+              title="Analisis telemetri curah hujan BMKG vs produktivitas panen 12 bulan"
+            >
+              <span class="material-symbols-outlined text-[18px] text-[#A8452A]">insights</span>
+              <span>Analisis Iklim &amp; Korelasi</span>
+            </button>
             <button @click="openCompare" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#243319] hover:bg-[#1A2612] text-white text-xs sm:text-sm font-semibold transition-all shadow-sm cursor-pointer">
               <span class="material-symbols-outlined text-[18px] text-[#D5E9C3]">compare_arrows</span>
               Bandingkan Lahan
@@ -307,8 +370,8 @@ const saveEdit = async () => {
                   <th scope="col" class="py-3 px-4 w-44 uppercase tracking-wider">Tanggal Ditambahkan</th>
                   <th scope="col" class="py-3 px-4 w-48 uppercase tracking-wider">Petak &amp; Nama Lahan</th>
                   <th scope="col" class="py-3 px-4 w-48 uppercase tracking-wider">Parameter Hara</th>
-                  <th scope="col" class="py-3 px-4 uppercase tracking-wider">Hasil Rekomendasi ML</th>
-                  <th scope="col" class="py-3 px-4 w-28 text-center uppercase tracking-wider">Status</th>
+                  <th scope="col" class="py-3 px-4 uppercase tracking-wider">Hasil Rekomendasi ML &amp; Dokumen</th>
+                  <th scope="col" class="py-3 px-4 w-32 text-center uppercase tracking-wider">Status &amp; Aksi</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#F0EDE6] text-xs">
@@ -316,11 +379,35 @@ const saveEdit = async () => {
                   <td colspan="5" class="py-10 text-center text-[#6B5B4A]">Memuat riwayat data lahan Anda...</td>
                 </tr>
                 <tr v-else-if="filteredHistory.length === 0">
-                  <td colspan="5" class="py-12 text-center text-[#6B5B4A]">
-                    <div class="flex flex-col items-center justify-center gap-2">
-                      <span class="material-symbols-outlined text-[36px] text-[#A99A87]">landscape</span>
-                      <p class="font-bold text-[15px] text-[#241F1B]">Belum Ada Catatan Lahan</p>
-                      <p class="text-xs text-[#6B5B4A] max-w-sm">Anda belum memiliki catatan pengamatan lahan. Klik tombol "Catat Data Baru" di atas untuk merekam lahan pertama Anda.</p>
+                  <td colspan="5" class="py-12 px-4 text-center text-[#6B5B4A]">
+                    <div class="flex flex-col items-center justify-center gap-3 max-w-md mx-auto">
+                      <div class="w-16 h-16 rounded-2xl bg-[#F3ECE0] text-[#A8452A] flex items-center justify-center shadow-xs">
+                        <span class="material-symbols-outlined text-[36px]">landscape</span>
+                      </div>
+                      <div>
+                        <h4 class="font-bold text-base text-[#241F1B]">Belum Ada Catatan Lahan</h4>
+                        <p class="text-xs text-[#6B5B4A] mt-1 leading-relaxed">
+                          Akun <strong class="text-[#241F1B]">{{ currentUser?.email || currentUser?.username || 'Anda' }}</strong> belum memiliki catatan petak lahan pribadi. Silakan rekam petak Anda atau muat lahan contoh akun ini.
+                        </p>
+                      </div>
+                      <div class="flex flex-wrap items-center justify-center gap-2.5 mt-2">
+                        <button
+                          @click="router.push('/input-lahan')"
+                          class="px-4 py-2 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                        >
+                          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                          <span>Catat Lahan Baru</span>
+                        </button>
+                        <button
+                          @click="generateSampleLandsForUser"
+                          :disabled="isGeneratingSample"
+                          class="px-4 py-2 rounded-xl bg-white border border-[#E2D8C7] hover:border-[#243319] text-[#243319] text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-50"
+                        >
+                          <span v-if="isGeneratingSample" class="material-symbols-outlined text-[16px] animate-spin">sync</span>
+                          <span v-else class="material-symbols-outlined text-[16px] text-[#A8452A]">auto_awesome</span>
+                          <span>{{ isGeneratingSample ? 'Menyiapkan...' : 'Muat 2 Lahan Contoh Akun Saya' }}</span>
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -383,12 +470,24 @@ const saveEdit = async () => {
                         <span class="font-semibold text-[#3A4A2E]">Rekomendasi Pemupukan:</span> {{ fallbackRecommendation(item) }}
                       </div>
                     </template>
+                    <!-- Prominent PDF Button inside cell -->
+                    <div class="mt-2.5">
+                      <button
+                        type="button"
+                        @click.stop="openPdf(item)"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#A8452A] hover:bg-[#8F3A22] text-white text-[11px] font-bold shadow-2xs transition-colors cursor-pointer"
+                        title="Cetak Lembar Rekomendasi PDF Resmi BPP Cangkringan"
+                      >
+                        <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>
+                        <span>Cetak Lembar Rekomendasi PDF</span>
+                      </button>
+                    </div>
                   </td>
                   <td class="py-3 px-4 text-center align-middle">
                     <div class="flex flex-col items-center gap-2">
                       <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border text-left">{{ statusLabel(item) }}</span>
                       <div class="flex items-center gap-1 mt-1">
-                        <button title="Cetak PDF" @click.stop="openPdf(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] hover:bg-[#FFEDD5] transition-colors"><span class="material-symbols-outlined text-[15px]">picture_as_pdf</span></button>
+                        <button title="Cetak Lembar PDF" @click.stop="openPdf(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] hover:bg-[#FFEDD5] transition-colors"><span class="material-symbols-outlined text-[15px]">picture_as_pdf</span></button>
                         <button title="Edit" @click.stop="openEdit(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 hover:bg-[#D5E9C3] transition-colors"><span class="material-symbols-outlined text-[15px]">edit</span></button>
                         <button title="Hapus" @click.stop="confirmDelete(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 hover:bg-[#FFDAD6] transition-colors"><span class="material-symbols-outlined text-[15px]">delete</span></button>
                       </div>
@@ -493,10 +592,13 @@ const saveEdit = async () => {
                 </span>
               </div>
             </div>
-            <div v-else class="rounded-lg border border-[#E2D8C7] bg-white p-2.5">
-              <p class="text-[10px] text-[#645d58] font-semibold mb-1">Rekomendasi Pemupukan</p>
-              <p class="text-[11px] text-[#241F1B] leading-relaxed">{{ fallbackRecommendation(item) }}</p>
-            </div>
+            <button
+              @click.stop="openPdf(item)"
+              class="w-full mt-3 py-2 px-3 rounded-xl bg-[#A8452A] hover:bg-[#8F3A22] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-2xs transition-colors cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+              <span>Cetak Lembar Rekomendasi PDF</span>
+            </button>
           </article>
           <!-- Mobile Pagination -->
           <div v-if="totalPages > 1" class="flex items-center justify-between px-1 pt-2 pb-2">
@@ -581,5 +683,11 @@ const saveEdit = async () => {
     :is-open="showCompareModal"
     :all-lahan="historyList"
     @close="showCompareModal = false"
+  />
+
+  <!-- Cuaca & Korelasi Panen Modal -->
+  <CuacaKorelasiModal
+    :is-open="showKorelasiModal"
+    @close="showKorelasiModal = false"
   />
 </template>

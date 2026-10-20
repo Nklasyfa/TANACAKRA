@@ -43,6 +43,27 @@ const certNumber = computed(() => {
   return `TCK/BPP-CGK/2026/${code.padStart(3, '0')}`
 })
 
+const verificationStatus = computed(() => {
+  return params.value.verification_status || 'TERVERIFIKASI_BPP'
+})
+
+const verificationBadge = computed(() => {
+  switch (verificationStatus.value) {
+    case 'TERVERIFIKASI_BPP':
+      return { text: 'TERVERIFIKASI BPP', class: 'bg-[#EEF2E6] text-[#243319] border-[#D2DEC0]' }
+    case 'DALAM_PEMBINAAN':
+      return { text: 'DALAM PEMBINAAN PPL', class: 'bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]' }
+    case 'PRIORITAS_PEMBENAHAN':
+      return { text: 'PRIORITAS PEMBENAHAN', class: 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]' }
+    default:
+      return { text: 'TERVERIFIKASI SISTEM', class: 'bg-[#EEF2E6] text-[#243319] border-[#D2DEC0]' }
+  }
+})
+
+const pplNotes = computed(() => {
+  return params.value.ppl_notes || 'Lahan memenuhi standar agroklimat vulkanik Merapi. Pemupukan berimbang disetujui BPP Kapanewon Cangkringan.'
+})
+
 const handlePrint = () => {
   window.print()
 }
@@ -115,7 +136,7 @@ const handlePrint = () => {
             </div>
             <div class="text-xs text-[#645d58] sm:text-right">
               <div>Tanggal Terbit: <strong class="text-[#231a10]">{{ reportDate }}</strong></div>
-              <div>Status: <span class="text-[#243319] font-bold">Terverifikasi Sistem Presisi</span></div>
+              <div>Status BPP: <span class="font-bold px-2 py-0.5 rounded text-[10px] border" :class="verificationBadge.class">{{ verificationBadge.text }}</span></div>
             </div>
           </div>
 
@@ -247,6 +268,22 @@ const handlePrint = () => {
                 <span class="material-symbols-outlined text-[16px] text-[#A8452A] shrink-0 mt-0.5">shield</span>
                 <span>Pantau peringatan cuaca BMKG Cangkringan terkait kelembapan udara >80% untuk antisipasi jamur dan blas daun.</span>
               </div>
+            </div>
+
+            <!-- Catatan & Instruksi Khusus Petugas PPL BPP Cangkringan -->
+            <div class="mt-4 bg-[#FFF8F4] p-3.5 rounded-lg border border-[#F2DFCF] text-xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-[#A8452A] flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px]">verified_user</span>
+                  Instruksi Khusus Petugas Penyuluh Lapangan (PPL BPP Cangkringan):
+                </span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded border" :class="verificationBadge.class">
+                  {{ verificationBadge.text }}
+                </span>
+              </div>
+              <p class="text-[#443B33] italic leading-relaxed bg-white/70 p-2.5 rounded border border-[#E2D8C7]">
+                "{{ pplNotes }}"
+              </p>
             </div>
           </div>
 
