@@ -379,7 +379,7 @@ def dashboard_trends(request):
 
     last_known_price: dict = {}
     trends = []
-    for m in month_order[-24:]:
+    for m in month_order[-60:]:
         entry = {"month": m}
         for c in commodities:
             val = month_prices[m].get(c)
@@ -410,7 +410,7 @@ def dashboard_trends(request):
     for h in harvest_summary:
         m = str(h['date_harvest'])[:7]
         volume_by_month[m] = volume_by_month.get(m, 0.0) + float(h['volume'] or 0)
-    volume_trends = [{"month": m, "volume_ton": round(volume_by_month[m], 1)} for m in sorted(volume_by_month.keys())[-24:]]
+    volume_trends = [{"month": m, "volume_ton": round(volume_by_month[m], 1)} for m in sorted(volume_by_month.keys())[-60:]]
     if not volume_trends:
         volume_trends = [{"month": t["month"], "volume_ton": 350} for t in trends[:12]]
 
