@@ -81,9 +81,12 @@ const formatMessage = (text: string) => {
             <div>
               <div class="flex items-center gap-1.5">
                 <h4 class="font-bold text-xs text-white">Cakra AI</h4>
-                <span class="px-1.5 py-0.2 bg-[#3D562B] text-[#D5E9C3] rounded text-[9px] font-bold">Agronomi Merapi</span>
+                <span class="px-1.5 py-0.5 bg-[#17230F] text-[#A3E635] border border-[#A3E635]/40 rounded text-[9px] font-bold tracking-wider flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#A3E635] animate-pulse"></span>
+                  NVIDIA AI
+                </span>
               </div>
-              <p class="text-[10px] text-[#C2D7B2]">Asisten cerdas pertanian presisi Cangkringan</p>
+              <p class="text-[10px] text-[#C2D7B2]">Llama 3.2 &bull; Agronomi Presisi Merapi</p>
             </div>
           </div>
           <div class="flex items-center gap-1">
@@ -125,12 +128,22 @@ const formatMessage = (text: string) => {
               "
             >
               <div v-html="formatMessage(msg.text)" class="prose-sm"></div>
-              <span
-                class="block text-[9px] mt-1 text-right"
-                :class="msg.role === 'user' ? 'text-white/70' : 'text-[#7E7063]'"
-              >
-                {{ msg.timestamp }}
-              </span>
+              <div class="flex items-center justify-between gap-2 mt-1.5">
+                <span
+                  v-if="msg.role === 'assistant' && msg.model"
+                  class="text-[9px] font-semibold text-[#2E7D32] flex items-center gap-0.5 bg-[#E8F5E9] px-1.5 py-0.5 rounded border border-[#C8E6C9]"
+                >
+                  <span class="material-symbols-outlined text-[11px]">bolt</span>
+                  {{ msg.model }}
+                </span>
+                <span v-else></span>
+                <span
+                  class="text-[9px]"
+                  :class="msg.role === 'user' ? 'text-white/70' : 'text-[#7E7063]'"
+                >
+                  {{ msg.timestamp }}
+                </span>
+              </div>
             </div>
 
             <!-- Quick Suggestions under AI message -->
@@ -152,7 +165,7 @@ const formatMessage = (text: string) => {
           <!-- Thinking Indicator -->
           <div v-if="isAiThinking" class="flex items-center gap-2 text-[#7E7063] text-xs p-2 bg-white rounded-xl border border-[#E2D8C7] w-fit shadow-2xs">
             <span class="material-symbols-outlined text-[16px] text-[#A8452A] animate-spin">progress_activity</span>
-            <span>Cakra AI sedang menganalisis agroklimat...</span>
+            <span>NVIDIA AI (Llama 3.2) sedang menganalisis...</span>
           </div>
         </div>
 

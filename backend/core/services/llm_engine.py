@@ -39,7 +39,7 @@ Jangan memberikan penjelasan apapun selain JSON murni.
     
     try:
         response = client.chat.completions.create(
-            model="meta/llama-3.1-8b-instruct",
+            model="meta/llama-3.2-11b-vision-instruct",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
@@ -67,3 +67,38 @@ Jangan memberikan penjelasan apapun selain JSON murni.
     except Exception as e:
         print(f"Error calling LLM API: {e}")
         return None
+
+def generate_ai_chat_response(messages: list) -> str:
+    """Generate interactive chat response from NVIDIA LLM for Tanacakra CakraBot."""
+    client = get_llm_client()
+    system_prompt = (
+        "Anda adalah CakraBot (Cakra AI), asisten kecerdasan buatan resmi agronomi presisi TANACAKRA "
+        "untuk para petani dan penyuluh di lereng Gunung Merapi (Kapanewon Cangkringan, Kabupaten Sleman, D.I. Yogyakarta).\n"
+        "Karakter Anda:\n"
+        "- Ramah, sopan, menghargai petani, bersahabat, dan solutif.\n"
+        "- Berikan jawaban praktis, aplikatif di lahan, dan akurat secara agronomi.\n"
+        "- Berakar pada ekosistem lokal Merapi: tanah regosol vulkanik berpasir (drainase cepat, butuh pupuk organik/bokashi), "
+        "ketinggian 400-900 mdpl, cuaca sejuk-lembab, komoditas unggulan (Cabai Merah, Padi, Jagung, Tomat, Bawang Merah, Salak Pondoh).\n"
+        "- Jika pengguna hanya menyapa (seperti 'hai', 'halo', 'assalamualaikum', 'pagi'), balas sapaannya dengan hangat dan tanyakan kendala atau apa yang bisa dibantu hari ini.\n"
+        "- Gunakan Bahasa Indonesia yang mengalir alami dan terstruktur."
+    )
+    
+    formatted_messages = [{"role": "system", "content": system_prompt}]
+    for m in messages:
+        formatted_messages.append({
+            "role": m.get("role", "user"),
+            "content": m.get("content", m.get("text", ""))
+        })
+        
+    try:
+        response = client.chat.completions.create(
+            model="meta/llama-3.2-11b-vision-instruct",
+            messages=formatted_messages,
+            temperature=0.7,
+            max_tokens=600,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error calling NVIDIA chat LLM API: {e}")
+        raise e
+
