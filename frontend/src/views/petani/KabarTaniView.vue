@@ -7,6 +7,7 @@ import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import { KabarTaniService, type KabarTaniFeedResponse, generateAiWartaArticleAsync } from '@/services/kabarTani'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
+import { addNotification, syncNotificationsFromFeed } from '@/services/notifications'
 
 const isLoading = ref(true)
 const feed = ref<KabarTaniFeedResponse | null>(null)
@@ -62,6 +63,21 @@ const publishWarta = () => {
       source: newSource.value || 'Console Admin Cangkringan',
       metrics: { 'Waktu Terbit': 'Baru Saja', 'Status': 'Dipublikasikan' },
       cta_url: '/kabar-tani'
+    })
+
+    const catMap: Record<string, 'cuaca' | 'pasar' | 'hama' | 'sistem'> = {
+      cuaca: 'cuaca',
+      pasar: 'pasar',
+      hama: 'hama',
+      lahan: 'cuaca',
+      prediksi: 'pasar'
+    }
+    addNotification({
+      title: newTitle.value,
+      message: newSummary.value,
+      category: catMap[newCategory.value] || 'sistem',
+      targetRole: 'ALL',
+      link: '/kabar-tani'
     })
   }
 
@@ -160,7 +176,12 @@ const loadData = async () => {
       KabarTaniService.getFeed().catch(() => null),
       fetchCuacaCangkringan().catch(() => null)
     ])
-    if (feedData) feed.value = feedData
+    if (feedData) {
+      feed.value = feedData
+      if (feedData.items && feedData.items.length) {
+        syncNotificationsFromFeed(feedData.items.slice(0, 5))
+      }
+    }
     if (weatherData) cuacaReal.value = weatherData
   } finally {
     isLoading.value = false

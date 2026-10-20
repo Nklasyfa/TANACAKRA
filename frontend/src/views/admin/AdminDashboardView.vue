@@ -1265,16 +1265,16 @@ onMounted(() => {
                 <td class="py-3.5 px-4">
                   <span
                     class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold"
-                    :class="user.role === 'ADMIN' ? 'bg-[#243319] text-white' : 'bg-[#EBF2E5] text-[#243319] border border-[#d5e9c3]'"
+                    :class="user.role === 'ADMIN' ? 'bg-[#243319] text-white' : user.role === 'PENYULUH' ? 'bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]' : 'bg-[#EBF2E5] text-[#243319] border border-[#d5e9c3]'"
                   >
-                    {{ user.role === 'ADMIN' ? 'Super Admin' : 'Kelompok Tani' }}
+                    {{ user.role === 'ADMIN' ? 'Super Admin' : user.role === 'PENYULUH' ? 'Penyuluh Lapang' : 'Kelompok Tani' }}
                   </span>
                 </td>
                 <td class="py-3.5 px-4 text-right whitespace-nowrap">
                   <button
                     @click="handleToggleRole(user.id)"
                     class="px-2.5 py-1 text-[11px] font-bold text-[#243319] bg-[#EBF2E5] hover:bg-[#d5e9c3] rounded-md transition-colors mr-1 cursor-pointer"
-                    title="Tukar Peran ADMIN / PETANI"
+                    title="Tukar Peran (PETANI → PENYULUH → ADMIN)"
                   >
                     Ubah Role
                   </button>

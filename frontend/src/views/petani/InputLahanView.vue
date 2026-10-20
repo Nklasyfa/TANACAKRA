@@ -11,6 +11,7 @@ import 'leaflet/dist/leaflet.css'
 
 import { LahanService, type LandInputPayload } from '@/services/api'
 import { fetchCuacaCangkringan, type CuacaInfo } from '@/services/weather'
+import { addNotification } from '@/services/notifications'
 
 import UserDropdown from '@/components/common/UserDropdown.vue'
 
@@ -284,6 +285,15 @@ const submitData = async () => {
     mlResult.value = res.engine_output?.prediction_result
     plotlySchema.value = res.plotly_schema
     currentStep.value = 'success'
+
+    // Notifikasi dinamis hasil input lahan
+    addNotification({
+      title: `Analisis Lahan ${selectedFarmId.value} Selesai`,
+      message: `Rekomendasi panen ${selectedCommodity.value} telah dihitung (pH ${phValue.value}). Rekomendasi hara siap diimplementasikan.`,
+      category: 'cuaca',
+      targetRole: 'ALL',
+      link: '/riwayat'
+    })
   } catch (err: any) {
     console.error('Error submitting land data:', err)
     if (err.response && err.response.data && err.response.data.error) {

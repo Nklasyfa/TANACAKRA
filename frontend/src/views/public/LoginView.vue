@@ -72,9 +72,13 @@ const offlineDemoLogin = () => {
   const email = inputVal.includes('@') ? inputVal : `${inputVal}@petani.id`
   const username = inputVal.includes('@') ? inputVal.split('@')[0] : inputVal
 
+  // Deterministic ID so offline users keep consistent state across sessions
+  const normalizedUser = (username || 'petani').toLowerCase().replace(/[^a-z0-9]/g, '')
+  const deterministicId = isAdm ? 1 : Math.abs(normalizedUser.split('').reduce((acc, c) => ((acc << 5) - acc) + c.charCodeAt(0), 0)) || 101
+
   localStorage.setItem('tanacakra_user', JSON.stringify({
-    id: Date.now(),
-    username: username || 'petani',
+    id: deterministicId,
+    username: username || (isAdm ? 'Super Admin' : 'Petani Merapi'),
     email,
     phone: '',
     role
@@ -147,7 +151,7 @@ const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/petani'
+        redirectTo: window.location.origin + '/login'
       }
     })
     if (error) throw error

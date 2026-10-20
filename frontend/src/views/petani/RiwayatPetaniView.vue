@@ -5,8 +5,22 @@ import BottomNav from '@/components/petani/BottomNav.vue'
 import { useRouter } from 'vue-router'
 import { LahanService } from '@/services/api'
 import UserDropdown from '@/components/common/UserDropdown.vue'
+import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
+import PerbandinganLahanModal from '@/components/common/PerbandinganLahanModal.vue'
 
 const router = useRouter()
+
+const showPdfModal = ref(false)
+const selectedPdfLahan = ref<any>(null)
+const openPdf = (item: any) => {
+  selectedPdfLahan.value = item
+  showPdfModal.value = true
+}
+
+const showCompareModal = ref(false)
+const openCompare = () => {
+  showCompareModal.value = true
+}
 
 const historyList = ref<any[]>([])
 const isLoading = ref(true)
@@ -23,10 +37,12 @@ const loadHistory = async () => {
       try { userId = JSON.parse(userStr).id } catch {}
     }
     
+    const allData = data || []
     if (userId) {
-      historyList.value = (data || []).filter((item: any) => item.user?.id === userId)
+      const userSpecific = allData.filter((item: any) => item.user && String(item.user.id) === String(userId))
+      historyList.value = userSpecific.length > 0 ? userSpecific : allData
     } else {
-      historyList.value = data || []
+      historyList.value = allData
     }
   } catch (err) {
     console.error('Gagal mengambil riwayat:', err)
@@ -245,8 +261,12 @@ const saveEdit = async () => {
             <h1 class="text-[28px] md:text-[34px] leading-tight font-bold tracking-tight text-[#241F1B]">Riwayat Data Lahan</h1>
             <p class="text-sm md:text-[15px] text-[#6B5B4A]">Semua catatan pengamatan tanah dan riwayat rekomendasi AI petak tani Anda</p>
           </div>
-          <div class="flex items-center gap-3 shrink-0">
-            <button @click="router.push('/input-lahan')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#A8452A] hover:bg-[#8e3820] text-white text-sm font-semibold transition-all shadow-sm">
+          <div class="flex items-center gap-2.5 shrink-0">
+            <button @click="openCompare" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#243319] hover:bg-[#1A2612] text-white text-xs sm:text-sm font-semibold transition-all shadow-sm cursor-pointer">
+              <span class="material-symbols-outlined text-[18px] text-[#D5E9C3]">compare_arrows</span>
+              Bandingkan Lahan
+            </button>
+            <button @click="router.push('/input-lahan')" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#A8452A] hover:bg-[#8e3820] text-white text-xs sm:text-sm font-semibold transition-all shadow-sm cursor-pointer">
               <span class="material-symbols-outlined text-[18px]">add_circle</span>
               Catat Data Baru
             </button>
@@ -367,7 +387,8 @@ const saveEdit = async () => {
                   <td class="py-3 px-4 text-center align-middle">
                     <div class="flex flex-col items-center gap-2">
                       <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border text-left">{{ statusLabel(item) }}</span>
-                      <div class="flex items-center gap-1.5 mt-1">
+                      <div class="flex items-center gap-1 mt-1">
+                        <button title="Cetak PDF" @click.stop="openPdf(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] hover:bg-[#FFEDD5] transition-colors"><span class="material-symbols-outlined text-[15px]">picture_as_pdf</span></button>
                         <button title="Edit" @click.stop="openEdit(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 hover:bg-[#D5E9C3] transition-colors"><span class="material-symbols-outlined text-[15px]">edit</span></button>
                         <button title="Hapus" @click.stop="confirmDelete(item)" class="w-7 h-7 flex items-center justify-center rounded bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 hover:bg-[#FFDAD6] transition-colors"><span class="material-symbols-outlined text-[15px]">delete</span></button>
                       </div>
@@ -426,8 +447,9 @@ const saveEdit = async () => {
               <div class="flex flex-col items-end gap-2 shrink-0">
                 <span :class="statusClass(item)" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border text-left">{{ statusLabel(item) }}</span>
                 <div class="flex items-center gap-1.5 mt-1">
-                  <button @click.stop="openEdit(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
-                  <button @click.stop="confirmDelete(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 transition-colors"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                  <button @click.stop="openPdf(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA] transition-colors" title="Cetak PDF"><span class="material-symbols-outlined text-[16px]">picture_as_pdf</span></button>
+                  <button @click.stop="openEdit(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#EBF2E5] text-[#3A4A2E] border border-[#3A4A2E]/20 transition-colors" title="Edit"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+                  <button @click.stop="confirmDelete(item)" class="w-8 h-8 flex items-center justify-center rounded-full bg-[#FFF1E6] text-[#93000a] border border-[#93000a]/20 transition-colors" title="Hapus"><span class="material-symbols-outlined text-[16px]">delete</span></button>
                 </div>
               </div>
             </div>
@@ -546,4 +568,18 @@ const saveEdit = async () => {
       </div>
     </div>
   </Teleport>
+
+  <!-- PDF Report Modal -->
+  <LahanPdfModal
+    :is-open="showPdfModal"
+    :lahan="selectedPdfLahan"
+    @close="showPdfModal = false"
+  />
+
+  <!-- Perbandingan Lahan Modal -->
+  <PerbandinganLahanModal
+    :is-open="showCompareModal"
+    :all-lahan="historyList"
+    @close="showCompareModal = false"
+  />
 </template>

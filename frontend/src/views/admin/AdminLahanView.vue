@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { LahanService, type LandInputPayload, downloadCsv } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
+import { addNotification } from '@/services/notifications'
 // Leaflet imports
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -12,6 +13,20 @@ import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import PlotlyChart from '@/components/shared/PlotlyChart.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
+import LahanPdfModal from '@/components/common/LahanPdfModal.vue'
+import PerbandinganLahanModal from '@/components/common/PerbandinganLahanModal.vue'
+
+const showPdfModal = ref(false)
+const selectedPdfLahan = ref<any>(null)
+const openPdf = (item: any) => {
+  selectedPdfLahan.value = item
+  showPdfModal.value = true
+}
+
+const showCompareModal = ref(false)
+const openCompare = () => {
+  showCompareModal.value = true
+}
 
 const lahanList = ref<any[]>([])
 const isLoading = ref(true)
@@ -202,6 +217,13 @@ const submitSample = async () => {
       subtitle: `pH: ${samplePh.value} · Kelembapan: ${sampleMoisture.value}% · Kondisi: ${sampleKondisi.value}`,
       category: 'ai',
       endpoint: `/api/v1/lahan/${sampleFarmId.value}/input`
+    })
+    addNotification({
+      title: `Inferensi ML Petak ${sampleFarmId.value}`,
+      message: `Estimasi hasil panen ${sampleResult.value?.estimasi_hasil_panen_ton_ha || '4.5'} Ton/Ha berhasil dihitung.`,
+      category: 'sistem',
+      targetRole: 'ADMIN',
+      link: '/admin/lahan'
     })
   } catch (err: any) {
     console.error('Error menjalankan rekomendasi ML:', err)
@@ -505,6 +527,10 @@ watch(
             <p class="text-[13px] text-[#645d58] mt-1">Inventarisasi {{ lahanList.length }} petak lahan lereng Merapi dan tata kelola pipeline data tanah.</p>
           </div>
           <div class="flex items-center gap-2.5 shrink-0">
+            <button @click="openCompare" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-[#3D562B] hover:bg-[#2D4020] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[16px] text-[#D5E9C3]">compare_arrows</span>
+              <span>Bandingkan Lahan</span>
+            </button>
             <router-link to="/input-lahan" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-white rounded-lg shadow-sm transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-[16px]">add_circle</span>
               <span>Catat Lahan Baru</span>
@@ -596,6 +622,9 @@ watch(
                     </span>
                   </td>
                   <td class="py-3 px-4 text-right whitespace-nowrap">
+                    <button title="Cetak Laporan PDF" class="px-2.5 py-1 text-xs font-medium text-[#C2410C] bg-[#FFF7ED] hover:bg-[#FFEDD5] border border-[#FED7AA] rounded transition-colors mr-1" @click.stop="openPdf(item)">
+                      PDF
+                    </button>
                     <button class="px-2.5 py-1 text-xs font-medium text-[#3A4A2E] bg-[#EEF2E6] hover:bg-[#D5E9C3] rounded transition-colors" @click.stop="openSample(item)">
                       Catat Sample
                     </button>
@@ -752,6 +781,10 @@ watch(
         </div>
 
         <div class="px-4 md:px-5 py-3 border-t border-[#E2D8C7] bg-[#FFF8F4] flex items-center gap-2">
+          <button @click="openPdf(selectedLahan)" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-[#A8452A] hover:bg-[#8F3A22] text-white rounded-lg transition-colors cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+            PDF
+          </button>
           <button @click="openEdit(selectedLahan)" :disabled="isDeleting" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-[#243319] hover:bg-[#3A4A2E] text-white rounded-lg transition-colors disabled:opacity-60">
             <span class="material-symbols-outlined text-[16px]">edit</span>
             Edit Data
@@ -1007,6 +1040,20 @@ watch(
 
     <!-- Admin Bottom Navigation (Mobile) -->
     <AdminBottomNav />
+
+    <!-- PDF Report Modal -->
+    <LahanPdfModal
+      :is-open="showPdfModal"
+      :lahan="selectedPdfLahan"
+      @close="showPdfModal = false"
+    />
+
+    <!-- Perbandingan Lahan Modal -->
+    <PerbandinganLahanModal
+      :is-open="showCompareModal"
+      :all-lahan="lahanList"
+      @close="showCompareModal = false"
+    />
 
   </div>
 </template>

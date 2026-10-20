@@ -5,6 +5,7 @@ import AdminBottomNav from '@/components/admin/AdminBottomNav.vue'
 import UserDropdown from '@/components/common/UserDropdown.vue'
 import { api, LahanService } from '@/services/api'
 import { AuditLogger } from '@/services/audit'
+import { addNotification } from '@/services/notifications'
 import * as XLSX from 'xlsx'
 
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -258,6 +259,14 @@ const triggerFileUpload = async () => {
       subtitle: `${parsedOverview.value?.totalRows || 108} baris data lahan diproses & diverifikasi AI`,
       category: 'system',
       endpoint: '/api/v1/upload-excel'
+    })
+
+    addNotification({
+      title: `Import Master Data Berhasil`,
+      message: `${file.name}: ${parsedOverview.value?.totalRows || 108} baris data lahan berhasil diproses dan tersinkronisasi.`,
+      category: 'sistem',
+      targetRole: 'ADMIN',
+      link: '/admin/master-data'
     })
 
     selectedFile.value = null
