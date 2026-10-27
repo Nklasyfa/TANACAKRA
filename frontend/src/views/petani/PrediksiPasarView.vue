@@ -724,10 +724,24 @@ const createSchedule = () => {
             </div>
           </div>
 
-          <div class="w-full h-[360px] md:h-[440px] relative overflow-hidden">
-            <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
-            <div v-else class="h-full flex items-center justify-center text-xs text-[#75786f]">
-              {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
+          <!-- Mobile Swipe Indicator Hint -->
+          <div class="flex items-center justify-between sm:hidden px-1 mb-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EBF2E5] border border-[#3A4A2E]/15 text-[#3A4A2E] text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-[15px] animate-pulse">swipe</span>
+              <span>Grafik dapat digeser ke samping</span>
+            </div>
+            <span class="text-[11px] text-[#6B5B4A] font-medium flex items-center gap-0.5 bg-[#FFF1E6] px-2 py-0.5 rounded-lg border border-[#F2DFCF]">
+              <span>Geser</span>
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </span>
+          </div>
+
+          <div class="w-full rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60 overflow-x-auto scrollbar-thin">
+            <div class="h-[440px] md:h-[460px] min-w-[760px] md:min-w-0 w-full relative">
+              <PlotlyChart v-if="chartSchema" :schema="chartSchema" />
+              <div v-else class="h-full flex items-center justify-center text-xs text-[#75786f]">
+                {{ isLoading ? 'Memuat grafik Plotly.js...' : 'Data tren harga belum tersedia.' }}
+              </div>
             </div>
           </div>
 

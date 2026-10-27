@@ -18,40 +18,32 @@ const chartContainer = ref<HTMLDivElement | null>(null)
 let plotlyModule: any = null
 let resizeObserver: ResizeObserver | null = null
 
-const mobileLayout = (layout: any) => {
-  const isMobile = window.innerWidth < 768
-  if (!isMobile) {
+const formatLayout = (layout: any) => {
+  const isPie = props.schema?.data?.some((d: any) => d.type === 'pie')
+  if (isPie) {
     return {
       ...layout,
       autosize: true,
       font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
     }
   }
-  
-  // If pie/donut chart or already custom legend, keep or adjust gently
-  const isPie = props.schema?.data?.some((d: any) => d.type === 'pie')
 
+  // Preserve the exact diagram layout, margins, and legend as created in API/service.
+  // Lock drag/zoom so mobile touch swipe seamlessly scrolls the parent container horizontally.
   return {
     ...layout,
     autosize: true,
-    margin: {
-      ...(layout.margin || {}),
-      l: layout.margin?.l ?? 30,
-      r: layout.margin?.r ?? 30,
-      t: layout.title ? 42 : (layout.margin?.t ?? 20),
-      b: Math.max(50, layout.margin?.b ?? 50)
+    dragmode: false,
+    xaxis: {
+      ...(layout.xaxis || {}),
+      fixedrange: true
     },
-    legend: isPie ? {
-      ...(layout.legend || {}),
-      font: { ...(layout.legend?.font || {}), size: 10 }
-    } : {
-      ...(layout.legend || {}),
-      orientation: 'h',
-      x: 0.5,
-      xanchor: 'center',
-      y: -0.25,
-      font: { ...(layout.legend?.font || {}), size: 10 }
+    yaxis: {
+      ...(layout.yaxis || {}),
+      fixedrange: true
     },
+    ...(layout.xaxis2 ? { xaxis2: { ...layout.xaxis2, fixedrange: true } } : {}),
+    ...(layout.yaxis2 ? { yaxis2: { ...layout.yaxis2, fixedrange: true } } : {}),
     font: { ...(layout.font || {}), family: 'Plus Jakarta Sans, sans-serif' }
   }
 }
@@ -90,11 +82,12 @@ const renderChart = async () => {
     const Plotly = await getPlotlyInstance()
     if (!Plotly || !chartContainer.value) return
 
-    const layout = mobileLayout(props.schema.layout || {})
+    const layout = formatLayout(props.schema.layout || {})
     const config = {
       responsive: true,
       displayModeBar: false,
-      autosizable: true
+      autosizable: true,
+      scrollZoom: false
     }
 
     await Plotly.react(chartContainer.value, props.schema.data || [], layout, config)
@@ -127,3 +120,23 @@ watch(() => props.schema, async () => {
   await renderChart()
 }, { deep: true })
 </script>
+
+<style scoped>
+:deep(.js-plotly-plot),
+:deep(.plot-container),
+:deep(.svg-container) {
+  touch-action: pan-x pan-y !important;
+}
+
+:deep(.nsewdrag),
+:deep(.draglayer),
+:deep(.ndrag),
+:deep(.edrag),
+:deep(.nsdrag),
+:deep(.swdrag),
+:deep(.wdrag),
+:deep(.ewdrag),
+:deep(.sdrag) {
+  touch-action: pan-x pan-y !important;
+}
+</style>
