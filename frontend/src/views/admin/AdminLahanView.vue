@@ -1051,8 +1051,10 @@ watch(
               </li>
             </ul>
             <p class="text-[11px] text-[#645d58] italic">{{ sampleResult.catatan_lokasi }}</p>
-            <div v-if="samplePlotly" class="bg-[#FFF1E6] rounded-xl p-2 border border-[#F2DFCF] h-[340px] md:h-[420px]">
-              <PlotlyChart :schema="samplePlotly" />
+            <div v-if="samplePlotly" class="bg-[#FFF1E6] rounded-xl p-2 border border-[#F2DFCF] overflow-x-auto scrollbar-thin">
+              <div class="h-[340px] md:h-[420px] min-w-[600px] md:min-w-0 w-full">
+                <PlotlyChart :schema="samplePlotly" />
+              </div>
             </div>
             <p class="text-[10px] text-[#645d58] border-t border-[#F2DFCF]/70 pt-2.5 leading-relaxed">
               <strong class="text-[#3A4A2E]">Fungsi sklearn di sini:</strong> pipeline RandomForestClassifier &amp; Regressor membaca fitur

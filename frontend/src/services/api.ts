@@ -411,10 +411,10 @@ function generatePlotlySchema(
         paper_bgcolor: 'transparent',
         plot_bgcolor: bgColor,
         font: { family: 'Plus Jakarta Sans, sans-serif', color: textColor },
-        margin: { l: 65, r: 40, t: 30, b: 40 },
+        margin: { l: 65, r: 40, t: isMultiple ? 90 : 35, b: 40 },
         hovermode: 'x unified',
         showlegend: true,
-        legend: { orientation: 'h', x: 0, y: 1.18, font: { size: 10 } },
+        legend: { orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom', font: { size: 10 } },
         xaxis: { showgrid: true, gridcolor: gridColor, title: { text: 'Siklus Panen Komoditas', font: { size: 11 } } },
         yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
         xaxis2: { showgrid: true, gridcolor: gridColor, matches: 'x' },
@@ -435,10 +435,10 @@ function generatePlotlySchema(
           y: yHist,
           type: 'scatter',
           mode: 'lines+markers',
-          name: `${key} (Harga)`,
+          name: `${key} (Historis)`,
           line: { color, width: 2.5 },
           marker: { size: 5, color },
-          hovertemplate: '<b>%{x}</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: `<b>%{x} (Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
         })
 
         if (projCount > 0) {
@@ -450,7 +450,7 @@ function generatePlotlySchema(
             name: `${key} (Proyeksi)`,
             line: { color, width: 2.5, dash: 'dash' },
             marker: { size: 6, symbol: 'diamond', color },
-            hovertemplate: '<b>%{x} (Proyeksi)</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
+            hovertemplate: `<b>%{x} (Proyeksi Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
           })
         }
       })
@@ -465,22 +465,35 @@ function generatePlotlySchema(
         y: yHist,
         type: 'scatter',
         mode: 'lines+markers',
-        name: `${key} (Harga)`,
+        name: `${key} (Panen Historis)`,
         line: { color: mainColor, width: 3 },
         marker: { size: 6, color: mainColor },
-        hovertemplate: '<b>%{x}</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
+        hovertemplate: `<b>%{x} (Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
       })
 
       if (projCount > 0) {
+        const yUpper = yProj.map((v, i) => i === 0 ? v : Math.round(v * 1.05))
+        const yLower = yProj.map((v, i) => i === 0 ? v : Math.round(v * 0.95))
+
+        data.push({
+          x: [...projMonths, ...projMonths.slice().reverse()],
+          y: [...yUpper, ...yLower.slice().reverse()],
+          fill: 'toself',
+          fillcolor: `${mainColor}26`,
+          line: { color: 'transparent' },
+          showlegend: false,
+          hoverinfo: 'skip'
+        })
+
         data.push({
           x: projMonths,
           y: yProj,
           type: 'scatter',
           mode: 'lines+markers',
-          name: `${key} (Proyeksi)`,
+          name: `${key} (Proyeksi Panen)`,
           line: { color: mainColor, width: 3, dash: 'dash' },
           marker: { size: 7, symbol: 'diamond', color: mainColor },
-          hovertemplate: '<b>%{x} (Proyeksi)</b><br>' + key + ': Rp %{y:,.0f}/kg<extra></extra>'
+          hovertemplate: `<b>%{x} (Proyeksi Panen)</b><br>${key}: Rp %{y:,.0f}/kg<extra></extra>`
         })
       }
     }
@@ -488,8 +501,8 @@ function generatePlotlySchema(
     const singleComm = !isMultiple ? (keysToDisplay[0] || 'Cabai Merah') : undefined
     const volHistValues = histTrends.map(t => getVolValueForMonth(t.month || '', singleComm))
     const volProjValues = projTrends.map(t => getVolValueForMonth(t.month || '', singleComm))
-    const volLabel = singleComm ? `Volume Panen: ${singleComm}` : 'Volume Panen (Total Seluruh Komoditas)'
-    const volProjLabel = singleComm ? `Proyeksi Panen: ${singleComm}` : 'Proyeksi Volume (Akhir Tahun)'
+    const volLabel = singleComm ? `Hasil Panen: ${singleComm}` : 'Hasil Panen (Semua Komoditas)'
+    const volProjLabel = singleComm ? `Proyeksi Panen: ${singleComm}` : 'Proyeksi Hasil Panen (Akhir Tahun)'
 
     data.push({
       x: histMonths,
@@ -500,7 +513,7 @@ function generatePlotlySchema(
       yaxis: 'y2',
       line: { color: '#0D9488', width: 3 },
       marker: { size: 6, color: '#0D9488' },
-      hovertemplate: `<b>%{x}</b><br>${singleComm || 'Volume Total'}: %{y} Ton<extra></extra>`
+      hovertemplate: `<b>%{x}</b><br>${singleComm || 'Total Panen'}: %{y} Ton<extra></extra>`
     })
 
     if (projCount > 0) {
@@ -513,9 +526,43 @@ function generatePlotlySchema(
         yaxis: 'y2',
         line: { color: '#0D9488', width: 3, dash: 'dash' },
         marker: { size: 7, symbol: 'diamond', color: '#0D9488' },
-        hovertemplate: `<b>%{x} (Proyeksi)</b><br>${singleComm || 'Volume Total'}: %{y} Ton<extra></extra>`
+        hovertemplate: `<b>%{x} (Proyeksi)</b><br>${singleComm || 'Total Panen'}: %{y} Ton<extra></extra>`
       })
     }
+
+    const shapes: any[] = []
+    const annotations: any[] = []
+
+    if (projCount > 0 && projMonths.length > 1) {
+      shapes.push({
+        type: 'rect',
+        xref: 'x',
+        yref: 'paper',
+        x0: projMonths[0],
+        x1: projMonths[projMonths.length - 1],
+        y0: 0,
+        y1: 1,
+        fillcolor: 'rgba(245, 158, 11, 0.08)',
+        line: { width: 0 }
+      })
+
+      annotations.push({
+        xref: 'x',
+        yref: 'paper',
+        x: projMonths[0],
+        y: 0.95,
+        text: 'Zona Proyeksi Panen Akhir Tahun',
+        showarrow: false,
+        font: { size: 11, color: '#D97706', weight: 'bold' },
+        bgcolor: '#FEF3C7',
+        borderpad: 4,
+        bordercolor: '#F59E0B'
+      })
+    }
+
+    const allVols = [...volHistValues, ...(projCount > 0 ? volProjValues : [])]
+    const maxVol = Math.max(...allVols, 100)
+    const upperLimit = Math.ceil((maxVol * 1.4) / 50) * 50
 
     return {
       data,
@@ -524,13 +571,23 @@ function generatePlotlySchema(
         paper_bgcolor: 'transparent',
         plot_bgcolor: bgColor,
         font: { family: 'Plus Jakarta Sans, sans-serif', color: textColor },
-        margin: { l: 65, r: 65, t: 30, b: 40 },
+        margin: { l: 65, r: 65, t: isMultiple ? 90 : 35, b: 40 },
         hovermode: 'x unified',
         showlegend: true,
-        legend: { orientation: 'h', x: 0, y: 1.18, font: { size: 10 } },
-        xaxis: { showgrid: true, gridcolor: gridColor },
+        legend: { orientation: 'h', x: 0, y: 1.02, yanchor: 'bottom', font: { size: 10 } },
+        xaxis: { showgrid: true, gridcolor: gridColor, title: { text: 'Siklus Panen Komoditas', font: { size: 11 } } },
         yaxis: { title: { text: 'Harga (Rp/kg)', font: { size: 11, color: '#E63946' } }, gridcolor: gridColor, tickprefix: 'Rp ' },
-        yaxis2: { title: { text: 'Volume (Ton)', font: { size: 11, color: '#0D9488' } }, overlaying: 'y', side: 'right', showgrid: false, ticksuffix: ' Ton' }
+        yaxis2: {
+          title: { text: 'Hasil Panen (Ton)', font: { size: 11, color: '#0D9488' } },
+          overlaying: 'y',
+          side: 'right',
+          showgrid: false,
+          ticksuffix: ' Ton',
+          rangemode: 'tozero',
+          range: [0, upperLimit]
+        },
+        shapes,
+        annotations
       }
     }
   }

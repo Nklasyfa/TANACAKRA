@@ -921,11 +921,11 @@ onMounted(() => {
       </div>
 
       <!-- 5b. Chart Card: Tren Harga & Volume Panen (Plotly.js + Mode Switcher & Commodity Dropdown) -->
-      <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-5 shadow-sm flex flex-col gap-4">
+      <div class="bg-white rounded-[16px] border border-[#E5E0D8] p-4 sm:p-5 shadow-sm flex flex-col gap-4 w-full max-w-full overflow-hidden min-w-0">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-[#E5E0D8]">
           <div>
             <div class="flex items-center gap-2">
-              <h2 class="font-headline-md text-xl font-bold text-[#231a10]">
+              <h2 class="font-headline-md text-lg sm:text-xl font-bold text-[#231a10]">
                 Tren Harga &amp; Perkiraan Hasil Panen: {{ selectedCommodity }}
               </h2>
               <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EBF2E5] text-[#243319] border border-[#243319]/20">
@@ -938,29 +938,29 @@ onMounted(() => {
           </div>
 
           <!-- Controls: Tampilan Chart Mode Switcher + Commodity Selector -->
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2.5">
             <!-- View Mode Switcher -->
-            <div class="flex items-center gap-1 bg-[#F9F7F4] border border-[#E5E0D8] p-1 rounded-xl text-xs font-bold">
+            <div class="grid grid-cols-2 sm:flex sm:items-center gap-1 bg-[#F9F7F4] border border-[#E5E0D8] p-1 rounded-xl text-xs font-bold w-full sm:w-auto">
               <button
                 @click="chartViewMode = 'subplots'"
-                class="px-3 py-1.5 rounded-lg flex items-center gap-1 transition"
+                class="px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition cursor-pointer text-center whitespace-nowrap"
                 :class="chartViewMode === 'subplots' ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
               >
                 <span class="material-symbols-outlined text-[16px]">grid_view</span>
-                <span>Terpisah (Rekomendasi)</span>
+                <span>Terpisah <span class="hidden sm:inline">(Rekomendasi)</span></span>
               </button>
               <button
                 @click="chartViewMode = 'dual'"
-                class="px-3 py-1.5 rounded-lg flex items-center gap-1 transition"
+                class="px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition cursor-pointer text-center whitespace-nowrap"
                 :class="chartViewMode === 'dual' ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
               >
                 <span class="material-symbols-outlined text-[16px]">layers</span>
-                <span>Dual Axis (Gabung)</span>
+                <span>Dual Axis <span class="hidden sm:inline">(Gabung)</span></span>
               </button>
             </div>
 
             <!-- Filter Komoditas Dropdown -->
-            <div class="relative min-w-[180px]">
+            <div class="relative w-full sm:w-auto sm:min-w-[180px]">
               <select
                 v-model="selectedCommodity"
                 class="w-full appearance-none bg-[#F9F7F4] border border-[#E5E0D8] text-[#231a10] text-xs font-bold rounded-xl pl-3 pr-8 py-2 focus:outline-none focus:ring-1 focus:ring-[#243319] cursor-pointer shadow-2xs"
@@ -974,12 +974,12 @@ onMounted(() => {
             </div>
 
             <!-- Segmented Control Filter Tahun -->
-            <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl text-xs font-bold overflow-x-auto">
+            <div class="inline-flex p-1 bg-[#F9F7F4] border border-[#E5E0D8] rounded-xl text-xs font-bold overflow-x-auto max-w-full">
               <button
                 v-for="yr in availableYears"
                 :key="yr"
                 @click="selectedYear = yr"
-                class="px-2.5 py-1 rounded-lg transition-all whitespace-nowrap"
+                class="px-2.5 py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer"
                 :class="selectedYear === yr ? 'bg-[#243319] text-white shadow-xs' : 'text-[#7E7063] hover:text-[#231a10]'"
               >
                 {{ yr === 'all' ? 'Semua Tahun' : yr === '2026' ? '2026 (Proyeksi)' : yr }}
@@ -988,14 +988,28 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Plotly Canvas Container -->
-        <div class="w-full h-[420px] md:h-[480px] rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60">
-          <PlotlyChart
-            v-if="filteredChartSchema"
-            :schema="filteredChartSchema"
-          />
-          <div v-else class="h-full flex items-center justify-center text-xs text-[#7E7063]">
-            Memuat grafik Plotly.js...
+        <!-- Mobile Swipe Indicator Hint -->
+        <div class="flex items-center justify-between sm:hidden px-1">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EBF2E5] border border-[#243319]/15 text-[#243319] text-[11px] font-semibold whitespace-nowrap">
+            <span class="material-symbols-outlined text-[15px] animate-pulse">swipe</span>
+            <span>Grafik dapat digeser ke samping</span>
+          </div>
+          <span class="text-[11px] text-[#7E7063] font-medium flex items-center gap-0.5 bg-[#F9F7F4] px-2 py-0.5 rounded-lg border border-[#E5E0D8] whitespace-nowrap">
+            <span>Geser</span>
+            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </span>
+        </div>
+
+        <!-- Plotly Canvas Container (Horizontally Scrollable on Mobile) -->
+        <div class="w-full max-w-full rounded-xl bg-[#FFFBF7] p-2 border border-[#E5E0D8]/60 overflow-x-auto scrollbar-thin">
+          <div class="h-[460px] md:h-[480px] w-[760px] md:w-full shrink-0">
+            <PlotlyChart
+              v-if="filteredChartSchema"
+              :schema="filteredChartSchema"
+            />
+            <div v-else class="h-full flex items-center justify-center text-xs text-[#7E7063]">
+              Memuat grafik Plotly.js...
+            </div>
           </div>
         </div>
 
